@@ -6,6 +6,8 @@ export default defineNuxtConfig({
 		"@nuxtjs/color-mode",
 		"@nuxt/eslint",
 		"@nuxt/icon",
+		"@pinia/nuxt",
+		"pinia-plugin-persistedstate/nuxt",
 	],
 	devtools: { enabled: true },
 
