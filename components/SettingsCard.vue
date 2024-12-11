@@ -1,3 +1,4 @@
+<!-- eslint-disable tailwindcss/no-custom-classname -->
 <template>
 	<Card class="size-2/3 p-6 shadow-md">
 		<CardContent class="flex size-full justify-center">
@@ -6,8 +7,8 @@
 					<TabsTrigger value="account" class="w-full">
 						Compte
 					</TabsTrigger>
-					<TabsTrigger value="themes" class="w-full">
-						Thèmes
+					<TabsTrigger value="categories" class="w-full">
+						Catégories
 					</TabsTrigger>
 				</TabsList>
 				<TabsContent value="account" class="h-full w-2/3 items-center justify-center">
@@ -26,95 +27,22 @@
 									<FormMessage />
 								</FormItem>
 							</FormField>
-							<div class="col-span-4 flex h-fit w-full gap-x-4">
-								<FormField v-slot="{ componentField }" name="tag1">
-									<FormItem class="mt-auto w-full">
-										<FormLabel>Tags</FormLabel>
-										<Select v-bind="componentField">
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue :default-value="userStore.user.tag1" placeholder="1ère partie" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												<SelectGroup>
-													<SelectItem value="french">
-														Français
-													</SelectItem>
-													<SelectItem value="english">
-														English
-													</SelectItem>
-												</SelectGroup>
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								</FormField>
-								<FormField v-slot="{ componentField }" name="tag2">
-									<FormItem class="mt-auto w-full">
-										<Select v-bind="componentField">
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue :default-value="userStore.user.tag1" placeholder="2nd partie" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												<SelectGroup>
-													<SelectItem value="french">
-														Français
-													</SelectItem>
-													<SelectItem value="english">
-														English
-													</SelectItem>
-												</SelectGroup>
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								</FormField>
-							</div>
 						</div>
-
-						<!-- <FormField v-slot="{ componentField }" name="language">
-							<FormItem>
-								<FormLabel>Langue</FormLabel>
-
-								<Select v-bind="componentField" default-value="french">
-									<FormControl>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-									</FormControl>
-									<SelectContent>
-										<SelectGroup>
-											<SelectItem value="french">
-												Français
-											</SelectItem>
-											<SelectItem value="english">
-												English
-											</SelectItem>
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-								<FormDescription> La langue d'affichage de l'interface ainsi que des questions, si disponible. </FormDescription>
-								<FormMessage />
-							</FormItem>
-						</FormField> -->
-						<Button type="submit" class="w-full">
+						<Button type="submit" class="w-full" :disabled="!formSchema.safeParse(form.values).success">
 							Submit
 						</Button>
 					</form>
 				</TabsContent>
-				<TabsContent value="themes" class="size-full">
-					<ToggleGroup variant="outline" type="multiple" class="grid h-fit w-full grid-cols-3 items-start justify-start gap-3">
-						<ToggleGroupItem v-for="theme in themeList" :key="theme.title" class="group flex h-24 w-full items-start justify-start gap-4 p-4 transition data-[state=off]:-translate-y-0.5 data-[state=on]:bg-[#34D399]/[0.17] data-[state=off]:shadow-md data-[state=on]:shadow-none hover:data-[state=off]:translate-y-0 hover:data-[state=off]:bg-inherit hover:data-[state=off]:shadow-sm" :value="theme.value">
-							<!-- eslint-disable-next-line tailwindcss/no-custom-classname -->
+				<TabsContent value="categories" class="size-full overflow-auto p-1">
+					<ToggleGroup v-model="settingsStore.categories" variant="outline" type="multiple" class="grid h-fit w-full grid-cols-3 items-start justify-start gap-3">
+						<ToggleGroupItem v-for="categoty in categotyList" :key="categoty.title" class="group flex h-24 w-full items-start justify-start gap-4 p-4 transition data-[state=off]:-translate-y-0.5 data-[state=on]:bg-emerald-400/[0.17] data-[state=off]:shadow-md data-[state=on]:shadow-none hover:data-[state=off]:translate-y-0 hover:data-[state=off]:bg-inherit hover:data-[state=off]:shadow-sm" :value="categoty.value">
 							<div class="icon flex aspect-square size-10 items-center justify-center rounded-full border-2 border-border transition-colors">
-								<Icon name="lucide:check" class="text-2xl text-primary-foreground opacity-0 transition-opacity" />
+								<Icon :name="categoty.icon" class="block text-lg text-secondary-foreground opacity-100 transition-opacity" />
+								<Icon name="lucide:check" class="check hidden text-2xl text-primary-foreground opacity-0 transition-opacity" />
 							</div>
 							<div class="flex h-full flex-col">
-								<div class="text-start text-sm font-semibold">{{ theme.title }}</div>
-								<div class="overflow-hidden text-ellipsis text-start text-sm font-normal">{{ theme.descriton }}</div>
+								<div class="text-start text-sm font-semibold">{{ categoty.title }}</div>
+								<div class="overflow-hidden text-ellipsis text-start text-sm font-normal">{{ categoty.descriton }}</div>
 							</div>
 						</ToggleGroupItem>
 					</ToggleGroup>
@@ -130,76 +58,178 @@ import { useForm } from "vee-validate"
 import * as z from "zod"
 
 const userStore = useUserStore()
+const settingsStore = useSettingsStore()
 
-const formSchema = toTypedSchema(z.object({
+const formSchema = z.object({
 	username: z.string().min(2).max(50).default(userStore.user.username),
-	tag1: z.string().min(2).max(50).default(userStore.user.tag1).optional(),
-	tag2: z.string().min(2).max(50).default(userStore.user.tag2).optional(),
-}))
-
-const { handleSubmit } = useForm({
-	validationSchema: formSchema,
 })
 
-const onSubmit = handleSubmit((values) => {
-	console.log(values)
+const form = useForm({
+	validationSchema: toTypedSchema(formSchema),
 })
 
-const themeList = [
-	{
-		title: "Monuments",
-		descriton: "Lieu, taille ou encore histoire des monuments les plus célèbres",
-		value: "monuments",
-	},
+const onSubmit = form.handleSubmit((values) => {
+	userStore.updateUser(values.username)
+})
+
+const categotyList = [
 	{
 		title: "Animaux",
-		descriton: "Habitat, caractéristiques et comportements des animaux fascinants",
+		descriton: "Découverte des espèces animales, leurs habitats et comportements",
 		value: "animals",
+		icon: "lucide:paw-print",
+	},
+	{
+		title: "Archéologie",
+		descriton: "Exploration des civilisations anciennes et de leurs trésors enfouis",
+		value: "archaeology",
+		icon: "lucide:landmark",
+	},
+	{
+		title: "Arts",
+		descriton: "Peinture, sculpture et expressions artistiques à travers les âges",
+		value: "arts",
+		icon: "lucide:palette",
+	},
+	{
+		title: "BD",
+		descriton: "Univers, personnages et histoires emblématiques de la bande dessinée",
+		value: "comics",
+		icon: "lucide:book-open",
+	},
+	{
+		title: "Célébrités",
+		descriton: "Stars, figures publiques et anecdotes sur des personnalités connues",
+		value: "celebrities",
+		icon: "lucide:star",
 	},
 	{
 		title: "Cinéma",
-		descriton: "Films cultes, réalisateurs emblématiques et scènes inoubliables",
+		descriton: "Films, réalisateurs et moments marquants du grand écran",
 		value: "cinema",
+		icon: "lucide:film",
 	},
 	{
-		title: "Espace",
-		descriton: "Planètes, étoiles et mystères de l'univers fascinant",
-		value: "space",
+		title: "Culture en vrac",
+		descriton: "Un mélange de faits intéressants et de connaissances variées",
+		value: "random_culture",
+		icon: "lucide:layers",
 	},
 	{
-		title: "Cuisine",
-		descriton: "Plats célèbres, techniques culinaires et traditions gourmandes",
-		value: "cooking",
+		title: "Culture générale",
+		descriton: "Faits divers et savoirs incontournables dans différents domaines",
+		value: "general_culture",
+		icon: "lucide:book-open-text",
+	},
+	{
+		title: "Gastronomie",
+		descriton: "Plats, saveurs et traditions culinaires du monde entier",
+		value: "gastronomy",
+		icon: "lucide:utensils-crossed",
+	},
+	{
+		title: "Géographie",
+		descriton: "Pays, continents et phénomènes géographiques fascinants",
+		value: "geography",
+		icon: "lucide:map",
 	},
 	{
 		title: "Histoire",
-		descriton: "Événements marquants, figures clés et périodes incontournables",
+		descriton: "Grands événements, figures clés et époques marquantes",
 		value: "history",
+		icon: "lucide:castle",
 	},
 	{
-		title: "Technologie",
-		descriton: "Inventions, innovations et objets révolutionnaires",
-		value: "technology",
+		title: "Informatique",
+		descriton: "Technologies, logiciels et évolution du numérique",
+		value: "computing",
+		icon: "lucide:monitor",
+	},
+	{
+		title: "Littérature",
+		descriton: "Œuvres, auteurs et mouvements littéraires majeurs",
+		value: "literature",
+		icon: "lucide:feather",
+	},
+	{
+		title: "Loisirs",
+		descriton: "Activités, jeux et divertissements pour tous les goûts",
+		value: "hobbies",
+		icon: "lucide:gamepad",
+	},
+	{
+		title: "Musique",
+		descriton: "Genres, artistes et morceaux qui ont marqué l'histoire musicale",
+		value: "music",
+		icon: "lucide:music",
+	},
+	{
+		title: "Nature",
+		descriton: "Écosystèmes, phénomènes naturels et merveilles de la biodiversité",
+		value: "nature",
+		icon: "lucide:leaf",
+	},
+	{
+		title: "Pays du monde",
+		descriton: "Capitaux, cultures et particularités des nations du globe",
+		value: "countries",
+		icon: "lucide:earth",
+	},
+	{
+		title: "Pour adultes",
+		descriton: "Sujets sérieux ou plus osés destinés à un public adulte",
+		value: "adults",
+		icon: "lucide:user-x",
+	},
+	{
+		title: "Quotidien",
+		descriton: "Objets, habitudes et curiosités du quotidien",
+		value: "daily_life",
+		icon: "lucide:home",
+	},
+	{
+		title: "Sciences",
+		descriton: "Découvertes, théories et expériences scientifiques fascinantes",
+		value: "science",
+		icon: "lucide:microscope",
 	},
 	{
 		title: "Sports",
-		descriton: "Records, champions légendaires et moments mémorables",
+		descriton: "Records, athlètes et moments marquants dans le sport",
 		value: "sports",
+		icon: "lucide:dumbbell",
 	},
 	{
-		title: "Mythologie",
-		descriton: "Divinités, légendes et créatures des mythes anciens",
-		value: "mythology",
+		title: "Télévision",
+		descriton: "Émissions cultes, séries et moments marquants de la télé",
+		value: "television",
+		icon: "lucide:tv",
+	},
+	{
+		title: "Tourisme",
+		descriton: "Destinations, attractions et voyages inoubliables",
+		value: "tourism",
+		icon: "lucide:luggage",
+	},
+	{
+		title: "Web",
+		descriton: "Sites, tendances et culture numérique à travers Internet",
+		value: "web",
+		icon: "lucide:globe",
 	},
 ]
 </script>
 
 <style scoped>
 [data-state="on"] .icon {
-	@apply bg-[#10B981] border-[#10B981]
+	@apply bg-emerald-500 border-emerald-500
+}
+
+[data-state="on"] .icon span.check {
+	@apply opacity-100 block
 }
 
 [data-state="on"] .icon span {
-		@apply opacity-100
-	}
+	@apply opacity-0 hidden
+}
 </style>
