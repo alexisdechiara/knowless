@@ -6,8 +6,13 @@ export class Quizz {
 	difficulty?: string
 	points?: number
 	wikipedia?: string
-	image?: string
-	annecdote?: string
+	image?: {
+		url: string
+		alt: string
+	}
+
+	anecdote?: string
+	type: "open" | "two" | "four" | "range"
 	question: string
 	answers: Array<Answer>
 
@@ -17,9 +22,9 @@ export class Quizz {
 		this.difficulty = data?.difficulte
 		this.wikipedia = data.wikipedia
 		this.question = data.question
-		this.answers = shuffle<Answer>([
-			{ answer: data.reponse_correcte, isCorrect: true },
-		].concat(data.autres_choix.map(answer => ({ answer, isCorrect: false }))))
+		this.answers = shuffle<Answer>(data.autres_choix.map((answer: string) => ({ answer, isCorrect: answer === data.reponse_correcte })))
+		this.anecdote = data?.anecdote
+		this.type = "four"
 	}
 }
 

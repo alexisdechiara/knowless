@@ -26,6 +26,7 @@ export class OpenQuizzDBResult {
 	reponse_correcte: string
 	autres_choix: string[]
 	wikipedia?: string
+	anecdote?: string
 
 	constructor(data: OpenQuizzDBResult) {
 		this.categorie = data?.categorie
@@ -35,5 +36,6 @@ export class OpenQuizzDBResult {
 		this.reponse_correcte = data.reponse_correcte
 		this.autres_choix = data.autres_choix
 		this.wikipedia = data?.wikipedia
+		this.anecdote = data?.anecdote
 	}
 }

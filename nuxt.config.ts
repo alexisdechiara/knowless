@@ -11,6 +11,8 @@ export default defineNuxtConfig({
 		"pinia-plugin-persistedstate/nuxt",
 		"@nuxt/image",
 	],
+
+	ssr: false,
 	devtools: { enabled: true },
 
 	colorMode: {
