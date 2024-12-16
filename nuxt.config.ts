@@ -12,12 +12,17 @@ export default defineNuxtConfig({
 		"@nuxt/image",
 	],
 
-	ssr: false,
-	devtools: { enabled: true },
-
 	colorMode: {
 		classSuffix: "",
 	},
+
+	runtimeConfig: {
+		public: {
+			openQuizzDbApiKey: process.env.NUXT_PUBLIC_OPEN_QUIZZ_DB_API_KEY,
+			openQuizzDbApiUrl: process.env.NUXT_PUBLIC_OPEN_QUIZZ_DB_API_URL,
+		},
+	},
+
 	compatibilityDate: "2024-11-01",
 
 	typescript: {

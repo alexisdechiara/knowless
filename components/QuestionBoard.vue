@@ -2,7 +2,7 @@
 	<div class="flex size-full flex-col gap-4 p-4">
 		<ProgressBar :value="convertMillisecondsToPercentage" :duration="0" tickness="xl" />
 		<div class="relative h-9 w-full">
-			<Badge :class="content.difficulty === 'easy' ? 'bg-emerald-500' : content.difficulty === 'medium' ? 'bg-amber-500' : 'bg-red-500'" class="pointer-events-none absolute start-0 top-0 px-4 py-1 text-sm capitalize">{{ content?.difficulty }}</Badge>
+			<Badge :class="content?.difficulty === 'easy' ? 'bg-emerald-500' : content?.difficulty === 'hard' ? 'bg-red-500' : 'bg-amber-500'" class="pointer-events-none absolute start-0 top-0 px-4 py-1 text-sm capitalize">{{ content?.difficulty }}</Badge>
 			<span class="absolute start-1/2 top-0 -translate-x-1/2 text-3xl font-semibold">Question {{ nbQuestion }}</span>
 			<div class="absolute right-0 top-0 font-semibold">
 				<NumberFlowGroup>
@@ -29,9 +29,9 @@
 		<div class="relative flex size-full flex-col items-center justify-center">
 			<div class="flex w-1/2 flex-col gap-y-4">
 				<NuxtImg v-if="content?.image" class="aspect-video rounded-md" :src="content?.image?.url" :alt="content?.image?.alt" />
-				<span class="mb-8 text-pretty text-center text-3xl font-semibold">{{ content.question }}</span>
-				<Input v-if="content.type === 'open'" type="text" />
-				<ToggleGroup v-else-if="content.type === 'four' || content.type === 'two'" v-model="selectedAnswer" :type="checkMultipleCorrectAnswers ? 'multiple' : 'single'" variant="outline" :class="{ 'pointer-events-none': showResult }" class="grid auto-rows-fr grid-cols-2 gap-4">
+				<span class="mb-8 text-pretty text-center text-3xl font-semibold">{{ content?.question }}</span>
+				<Input v-if="content?.type === 'open'" type="text" />
+				<ToggleGroup v-else-if="content?.type === 'four' || content?.type === 'two'" v-model="selectedAnswer" :type="checkMultipleCorrectAnswers ? 'multiple' : 'single'" variant="outline" :class="{ 'pointer-events-none': showResult }" class="grid auto-rows-fr grid-cols-2 gap-4">
 					<ToggleGroupItem v-for="(choice, index) in content.answers" :key="`choice${index}`" :ref="`choice-${index}`" :data-result="showResult" :class="{ correctAnswerClass: choice.isCorrect, selectedAnswerClass: selectedAnswer === String(index) && !choice.isCorrect }" class="size-full py-4" :value="String(index)">
 						{{ choice.answer }}
 					</ToggleGroupItem>
@@ -83,12 +83,12 @@
 				<Icon name="lucide:arrow-right" class="text-3xl" />
 			</Button>
 
-			<Button v-if="status === 'incorrect' && showResult" variant="secondary" class="absolute bottom-8 right-8 flex h-fit py-3 pl-4" @click="emit('restart')">
-				<div class="flex flex-col">
-					<span class="text-lg font-medium">Recommencer</span>
-				</div>
-				<Icon name="lucide:rotate-ccw" class="text-lg" />
-			</Button>
+			<div v-if="status === 'incorrect' && showResult" class="absolute bottom-8 right-8 mt-16 flex justify-between gap-x-2">
+				<Button v-if="showBack" size="icon" variant="secondary" class="px-7 py-6 text-xl" @click="emit('back')">
+					<Icon name="lucide:arrow-left" class="aspect-square" />
+				</Button>
+				<Button v-if="showRestart" size="lg" class="w-full px-5 py-6 text-lg" @click="emit('restart')">Recommencer</Button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -97,12 +97,14 @@
 import NumberFlow, { NumberFlowGroup } from "@number-flow/vue"
 import type { Quizz } from "~/models/quizz"
 
-const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "status", "gameOver"])
+const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "gameOver"])
 
 const props = defineProps<{
-	content: Quizz
+	content: Quizz | null
 	duration: number
 	questionNumber?: number
+	showRestart?: boolean
+	showBack?: boolean
 }>()
 
 const nbQuestion = computed(() => props?.questionNumber || props?.questionNumber === 0 ? props.questionNumber + 1 : undefined)
@@ -132,7 +134,7 @@ function startTimer(nbMilliseconds: number) {
 	}
 	else {
 		showResult.value = true
-		if (selectedAnswer.value === String(props.content.answers.findIndex(answer => answer.isCorrect))) {
+		if (selectedAnswer.value === String(props.content?.answers.findIndex(answer => answer.isCorrect))) {
 			status.value = "correct"
 			emit("goodAnswer")
 		}
@@ -147,7 +149,7 @@ function startTimer(nbMilliseconds: number) {
 
 watch(status, () => emit("status", status.value))
 
-const checkMultipleCorrectAnswers = computed(() => props.content.answers.filter(answer => answer.isCorrect).length > 1)
+const checkMultipleCorrectAnswers = computed(() => props.content?.answers && props.content.answers.filter(answer => answer.isCorrect).length > 1)
 const remainingSeconds = computed(() => Math.floor(remainingTime.value / 1000))
 const remainingMilliseconds = computed(() => (remainingTime.value % 1000) / 10)
 </script>

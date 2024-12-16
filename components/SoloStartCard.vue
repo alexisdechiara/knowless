@@ -1,33 +1,38 @@
 <template>
 	<Card class="flex size-2/3 flex-col justify-between p-6 shadow-md">
 		<span class="text-center text-6xl font-semibold">Partie solo</span>
-		<ToggleGroup v-model="selectedDificulty" type="single" class="grid grid-cols-3 gap-12">
-			<Card v-for="dificulty in dificulties" :key="dificulty.title" class="h-full">
-				<ToggleGroupItem :value="dificulty.value" class="block size-full">
+		<ToggleGroup :model-value="selectedDifficulty" type="single" class="grid grid-cols-3 gap-12" @update:model-value="(difficulty) => { if (difficulty) selectedDifficulty = difficulty as string }">
+			<Card v-for="difficulty in difficulties" :key="difficulty.title" class="h-full">
+				<ToggleGroupItem :value="difficulty.value" class="block size-full">
 					<CardHeader class="flex flex-col items-center">
-						<Icon :name="dificulty.icon" class="my-8 text-6xl" />
-						<CardTitle>{{ dificulty.title }}</CardTitle>
+						<Icon :name="difficulty.icon" class="my-8 text-6xl" />
+						<CardTitle>{{ difficulty.title }}</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<CardDescription class="text-balance">
-							{{ dificulty.description }}
+							{{ difficulty.description }}
 						</CardDescription>
 					</CardContent>
 				</ToggleGroupItem>
 			</Card>
 		</ToggleGroup>
-		<Button class="w-full" size="xxl" @click="emit('start', dificulties.find((d) => d.value === selectedDificulty))">
-			Commencer
-		</Button>
+		<div class="flex gap-x-4">
+			<Button class="aspect-square h-full w-fit text-2xl" variant="outline" size="icon" @click="navigateTo('/')">
+				<Icon name="lucide:arrow-left" />
+			</Button>
+			<Button class="w-full" size="xxl" @click="emit('start', difficulties.find((d) => d.value === selectedDifficulty))">
+				Commencer
+			</Button>
+		</div>
 	</Card>
 </template>
 
 <script lang="ts" setup>
-const selectedDificulty = ref("easy")
+const selectedDifficulty = ref("easy")
 
 const emit = defineEmits(["start"])
 
-const dificulties = [
+const difficulties = [
 	{
 		title: "Facile",
 		value: "easy",

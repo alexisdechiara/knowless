@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { OpenQuizzDBResult } from "./openquizzdb"
 
 export class Quizz {
@@ -16,11 +17,24 @@ export class Quizz {
 	question: string
 	answers: Array<Answer>
 
-	constructor(data: OpenQuizzDBResult) {
+	constructor(data: OpenQuizzDBResult | any) {
 		this.category = data?.categorie
 		this.theme = data?.theme
-		this.difficulty = data?.difficulte
-		this.wikipedia = data.wikipedia
+		if (data && typeof data.difficulte === "string") {
+			switch (data.difficulte) {
+				case "débutant": this.difficulty = "easy"
+					break
+				case "confirmé": this.difficulty = "medium"
+					break
+				case "expert": this.difficulty = "hard"
+					break
+				default: this.difficulty = "medium"
+			}
+		}
+		else {
+			this.difficulty = data?.difficulty
+		}
+		this.wikipedia = data?.wikipedia
 		this.question = data.question
 		this.answers = shuffle<Answer>(data.autres_choix.map((answer: string) => ({ answer, isCorrect: answer === data.reponse_correcte })))
 		this.anecdote = data?.anecdote
