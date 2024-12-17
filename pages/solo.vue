@@ -1,6 +1,14 @@
 <template>
-	<div class="flex h-screen w-screen flex-col items-center justify-center bg-background">
-		<SoloStartCard v-if="!isPlaying" @start="start" />
+	<div class="relative flex h-screen w-screen flex-col items-center justify-center bg-background">
+		<template v-if="!isPlaying">
+			<SoloStartCard @start="start" />
+			<div class="absolute bottom-4 right-4">
+				<NuxtLink to="https://www.openquizzdb.org/" target="_blank">
+					<span class="text-sm font-medium text-primary">Powered by</span>
+					<NuxtImg src="/img/OpenQuizzDB.webp" alt="OpenQuizzDB" class="h-10" />
+				</NuxtLink>
+			</div>
+		</template>
 		<template v-else>
 			<Icon v-if="status === 'pending'" name="line-md:loading-loop" class="text-9xl" />
 			<template v-else-if="status === 'success'">

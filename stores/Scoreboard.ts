@@ -16,6 +16,10 @@ export const useScoreboardStore = defineStore("scoreboard", () => {
 	}
 
 	return { easy, medium, hard, getScoreBoardByDifficulty }
+}, {
+	persist: {
+		storage: piniaPluginPersistedstate.localStorage(),
+	},
 })
 
 export type ScoreBoard = {

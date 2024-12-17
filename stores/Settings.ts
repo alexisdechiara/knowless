@@ -31,4 +31,8 @@ export const useSettingsStore = defineStore("settingsStore", () => {
 	const language = ref("fr")
 
 	return { categories, language }
+}, {
+	persist: {
+		storage: piniaPluginPersistedstate.localStorage(),
+	},
 })

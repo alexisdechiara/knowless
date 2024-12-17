@@ -10,10 +10,22 @@ export default defineNuxtConfig({
 		"@pinia/nuxt",
 		"pinia-plugin-persistedstate/nuxt",
 		"@nuxt/image",
+		"@nuxt/content",
 	],
+
+	ssr: false,
+	devtools: {
+		enabled: true,
+	},
 
 	colorMode: {
 		classSuffix: "",
+	},
+
+	content: {
+		markdown: {
+			anchorLinks: false,
+		},
 	},
 
 	runtimeConfig: {
@@ -41,13 +53,13 @@ export default defineNuxtConfig({
 
 	shadcn: {
 		/**
-     * Prefix for all the imported component
-     */
+		* Prefix for all the imported component
+		*/
 		prefix: "",
 		/**
-     * Directory that the component lives in.
-     * @default "./components/ui"
-     */
+		* Directory that the component lives in.
+		* @default "./components/ui"
+		*/
 		componentDir: "./components/ui",
 	},
 })

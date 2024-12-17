@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-screen w-screen items-center justify-center">
+	<div class="relative flex h-screen w-screen items-center justify-center">
 		<TitleScreenCard
 			title="Bienvenue"
 			:links="[{
@@ -13,6 +13,9 @@
 					to: '/multiplayer',
 				}]"
 		/>
+		<NuxtLink to="/legal-notice" class="fixed bottom-1 left-1/2 -translate-x-1/2 underline underline-offset-2 transition-colors hover:text-muted-foreground">
+			Mentions légales et licences
+		</NuxtLink>
 	</div>
 </template>
 
