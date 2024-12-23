@@ -1,8 +1,8 @@
 <template>
-	<div class="relative flex h-screen w-screen flex-col items-center justify-center bg-background">
+	<div class="relative flex h-svh w-screen flex-col items-center justify-center bg-background">
 		<template v-if="!isPlaying">
 			<SoloStartCard @start="start" />
-			<div class="absolute bottom-4 right-4">
+			<div class="absolute bottom-4 right-4 hidden sm:block">
 				<NuxtLink to="https://www.openquizzdb.org/" target="_blank">
 					<span class="text-sm font-medium text-primary">Powered by</span>
 					<NuxtImg src="/img/OpenQuizzDB.webp" alt="OpenQuizzDB" class="h-10" />
@@ -21,13 +21,14 @@
 					show-back
 					@next="nextQuestion"
 					@good-answer="incrementScore"
-					@bad-answer="showGameOverDialog = true"
+					@bad-answer="isFinished = true"
 					@restart="restart"
 					@back="backToSelection"
+					@score-board="showGameOverDialog = true"
 				/>
 				<Dialog v-model:open="showGameOverDialog">
-					<DialogContent class="p-16 pb-4">
-						<span class="text-center text-4xl font-bold uppercase leading-loose tracking-wider">Vous avez perdu</span>
+					<DialogContent class="max-w-xl pb-4 sm:p-12" :class="{ 'sm:pb-4': isFinished, 'sm:pb-6': !isFinished }">
+						<span class="mb-2 text-center text-2xl font-bold uppercase leading-loose tracking-wider sm:text-4xl">{{ isFinished ? 'Vous avez perdu' : 'tableau des scores' }}</span>
 						<div class="flex justify-between text-2xl">
 							<span class="inline-flex w-full">Votre score</span>
 							<span class="inline-flex font-medium">{{ currentScore }}</span>
@@ -36,7 +37,7 @@
 							<span class="inline-flex w-full">Meilleur score</span>
 							<span class="inline-flex font-medium">{{ scoreboard.getScoreBoardByDifficulty(selectedDifficulty).bestScore }}</span>
 						</div>
-						<div class="mt-16 flex justify-between gap-x-4">
+						<div v-if="isFinished" class="mt-16 flex justify-between gap-x-4">
 							<Button size="xl" variant="secondary" @click="backToSelection">
 								<Icon name="lucide:arrow-left" class="aspect-square" />
 							</Button>
@@ -71,6 +72,7 @@ const scoreboard = useScoreboardStore()
 const config = useRuntimeConfig()
 
 const isPlaying = ref(false)
+const isFinished = ref(false)
 const selectedDifficulty = ref<Difficulty>("easy")
 const maxDurationTime = ref(5000)
 const showGameOverDialog = ref(false)
@@ -118,7 +120,6 @@ function incrementScore() {
 }
 
 function nextQuestion() {
-	// TODO fetch
 	reduceDurationTime()
 	currentScore.value = nextScore.value
 	roundKey.value++
@@ -134,11 +135,13 @@ function reduceDurationTime() {
 
 function backToSelection() {
 	showGameOverDialog.value = false
+	isFinished.value = false
 	isPlaying.value = false
 }
 
 function restart() {
 	showGameOverDialog.value = false
+	isFinished.value = false
 	maxDurationTime.value = 5000
 	currentScore.value = 0
 	nextScore.value = 0

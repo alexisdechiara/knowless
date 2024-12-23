@@ -26,10 +26,10 @@
 				</NumberFlowGroup>
 			</div>
 		</div>
-		<div class="relative flex size-full flex-col items-center justify-center">
-			<div class="flex w-1/2 flex-col gap-y-4">
+		<div class="relative mt-16 flex size-full flex-col items-center justify-start sm:mt-0 sm:justify-center">
+			<div class="flex flex-col gap-y-4 px-6 sm:w-1/2 sm:px-0">
 				<NuxtImg v-if="content?.image" class="aspect-video rounded-md" :src="content?.image?.url" :alt="content?.image?.alt" />
-				<span class="mb-8 text-pretty text-center text-3xl font-semibold">{{ content?.question }}</span>
+				<span class="mb-4 text-pretty text-center text-2xl font-semibold sm:mb-8 sm:text-3xl">{{ content?.question }}</span>
 				<Input v-if="content?.type === 'open'" type="text" />
 				<ToggleGroup v-else-if="content?.type === 'four' || content?.type === 'two'" v-model="selectedAnswer" :type="checkMultipleCorrectAnswers ? 'multiple' : 'single'" variant="outline" :class="{ 'pointer-events-none': showResult }" class="grid auto-rows-fr grid-cols-2 gap-4">
 					<ToggleGroupItem v-for="(choice, index) in content.answers" :key="`choice${index}`" :ref="`choice-${index}`" :data-result="showResult" :class="{ correctAnswerClass: choice.isCorrect, selectedAnswerClass: selectedAnswer === String(index) && !choice.isCorrect }" class="size-full py-4" :value="String(index)">
@@ -39,11 +39,26 @@
 			</div>
 
 			<Dialog v-if="content?.anecdote && showResult">
+				<TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger as-child>
+							<Button variant="outline" size="icon" class="absolute bottom-28 left-0 flex size-fit rounded-full p-3 sm:bottom-40 sm:left-8" @click="emit('scoreBoard')">
+								<Icon name="lucide:trophy" class="text-xl" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="right">
+							Voir le <b class="font-medium">tableau des scores</b>
+						</TooltipContent>
+					</Tooltip>
+				</TooltipProvider>
+			</Dialog>
+
+			<Dialog v-if="content?.anecdote && showResult">
 				<DialogTrigger>
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger as-child>
-								<Button variant="outline" size="icon" class="absolute bottom-24 left-8 flex size-fit rounded-full p-3">
+								<Button variant="outline" size="icon" class="absolute bottom-14 left-0 flex size-fit rounded-full p-3 sm:bottom-24 sm:left-8">
 									<Icon name="lucide:message-circle-more" class="text-xl" />
 								</Button>
 							</TooltipTrigger>
@@ -65,7 +80,7 @@
 			<TooltipProvider v-if="content?.wikipedia && showResult">
 				<Tooltip>
 					<TooltipTrigger as-child>
-						<Button variant="outline" size="icon" class="absolute bottom-8 left-8 flex size-fit rounded-full p-3" @click="navigateTo(content.wikipedia, { external: true, open: { target: '_blank' } })">
+						<Button variant="outline" size="icon" class="absolute bottom-0 left-0 flex size-fit rounded-full p-3 sm:bottom-8 sm:left-8" @click="navigateTo(content.wikipedia, { external: true, open: { target: '_blank' } })">
 							<Icon name="bi:wikipedia" class="text-xl" />
 						</Button>
 					</TooltipTrigger>
@@ -75,7 +90,7 @@
 				</Tooltip>
 			</TooltipProvider>
 
-			<Button v-if=" status === 'correct' && showResult" variant="secondary" class="absolute bottom-8 right-8 flex h-fit py-4 pl-5" @click="emit('next')">
+			<Button v-if=" status === 'correct' && showResult" variant="secondary" class="absolute bottom-0 right-0 flex h-fit py-4 pl-5 sm:bottom-8 sm:right-8" @click="emit('next')">
 				<div class="flex flex-col">
 					<span class="text-xl font-medium">Suivant</span>
 					<span v-if="nbQuestion" class="text-sm text-secondary-foreground/50">Question {{ nbQuestion + 1 }}</span>
@@ -83,7 +98,7 @@
 				<Icon name="lucide:arrow-right" class="text-3xl" />
 			</Button>
 
-			<div v-if="status === 'incorrect' && showResult" class="absolute bottom-8 right-8 mt-16 flex justify-between gap-x-2">
+			<div v-if="status === 'incorrect' && showResult" class="absolute bottom-0 right-0 mt-16 flex justify-between gap-x-2 sm:bottom-8 sm:right-8">
 				<Button v-if="showBack" size="icon" variant="secondary" class="px-7 py-6 text-xl" @click="emit('back')">
 					<Icon name="lucide:arrow-left" class="aspect-square" />
 				</Button>
@@ -97,7 +112,7 @@
 import NumberFlow, { NumberFlowGroup } from "@number-flow/vue"
 import type { Quizz } from "~/models/quizz"
 
-const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "gameOver"])
+const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "scoreBoard"])
 
 const props = defineProps<{
 	content: Quizz | null
@@ -141,7 +156,6 @@ function startTimer(nbMilliseconds: number) {
 		else {
 			status.value = "incorrect"
 			emit("badAnswer")
-			emit("gameOver")
 		}
 		emit("ended")
 	}

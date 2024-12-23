@@ -1,9 +1,9 @@
 <!-- eslint-disable tailwindcss/no-custom-classname -->
 <template>
-	<Card class="size-2/3 p-6 shadow-md">
+	<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="size-full p-6 sm:size-2/3 sm:shadow-md">
 		<CardContent class="flex size-full justify-center">
 			<Tabs default-value="account" class="flex size-full flex-col items-center">
-				<TabsList class="mb-6 w-1/3">
+				<TabsList class="mb-6 sm:w-1/3">
 					<TabsTrigger value="account" class="w-full">
 						Compte
 					</TabsTrigger>
@@ -13,13 +13,13 @@
 				</TabsList>
 				<TabsContent value="account" class="h-full w-2/3 items-center justify-center">
 					<form class="flex size-full flex-col items-center justify-center gap-10" @submit="onSubmit">
-						<div class="grid grid-cols-6 items-center gap-x-10">
-							<Avatar shape="circle" size="lg" class="col-span-2 row-span-2 size-40">
+						<div class="grid grid-cols-1 items-center gap-x-10 sm:grid-cols-6">
+							<Avatar shape="circle" size="lg" class="mb-4 size-40 sm:col-span-2 sm:row-span-2 sm:mb-0">
 								<AvatarImage src="https://api.dicebear.com/9.x/big-ears/svg?seed=Mackenzie" alt="avatar" />
 								<AvatarFallback class="text-xl">{{ userStore.user.username }}</AvatarFallback>
 							</Avatar>
 							<FormField v-slot="{ componentField }" name="username">
-								<FormItem class="col-span-4">
+								<FormItem class="sm:col-span-4">
 									<FormLabel>Pseudo*</FormLabel>
 									<FormControl>
 										<Input type="text" v-bind="componentField" :default-value="userStore.user.username" />
@@ -34,7 +34,7 @@
 					</form>
 				</TabsContent>
 				<TabsContent value="categories" class="size-full overflow-auto p-1">
-					<ToggleGroup v-model="settingsStore.categories" variant="outline" type="multiple" class="grid h-fit w-full grid-cols-3 items-start justify-start gap-3">
+					<ToggleGroup v-model="settingsStore.categories" variant="outline" type="multiple" class="grid h-fit w-full grid-cols-1 items-start justify-start gap-3 sm:grid-cols-3">
 						<ToggleGroupItem v-for="categoty in categotyList" :key="categoty.title" class="group flex h-24 w-full items-start justify-start gap-4 p-4 transition data-[state=off]:-translate-y-0.5 data-[state=on]:bg-emerald-400/[0.17] data-[state=off]:shadow-md data-[state=on]:shadow-none hover:data-[state=off]:translate-y-0 hover:data-[state=off]:bg-inherit hover:data-[state=off]:shadow-sm" :value="categoty.value">
 							<div class="icon flex aspect-square size-10 items-center justify-center rounded-full border-2 border-border transition-colors">
 								<Icon :name="categoty.icon" class="block text-lg text-secondary-foreground opacity-100 transition-opacity" />
@@ -49,14 +49,16 @@
 				</TabsContent>
 			</Tabs>
 		</CardContent>
-	</Card>
+	</component>
 </template>
 
 <script lang="ts" setup>
 import { toTypedSchema } from "@vee-validate/zod"
 import { useForm } from "vee-validate"
 import * as z from "zod"
+import { Card } from "~/components/ui/card"
 
+const breakpoints = useScreenSize()
 const userStore = useUserStore()
 const settingsStore = useSettingsStore()
 

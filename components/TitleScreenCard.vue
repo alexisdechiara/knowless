@@ -1,5 +1,5 @@
 <template>
-	<Card class="grid size-2/3 grid-cols-5 gap-6 p-6 shadow-md">
+	<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="flex size-full grid-cols-5 flex-col gap-6 p-6 sm:grid sm:size-2/3 sm:shadow-md">
 		<CardHeader class="col-span-3 p-0">
 			<div class="size-full overflow-hidden rounded-md bg-gradient-to-b from-indigo-500 via-purple-500 via-40% to-pink-500" />
 		</CardHeader>
@@ -20,11 +20,14 @@
 				</NuxtLink>
 			</div>
 		</CardContent>
-	</Card>
+	</component>
 </template>
 
 <script lang="ts" setup>
 import type { RouteLocationRaw } from "vue-router"
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
+
+const breakpoints = useScreenSize()
 
 withDefaults(defineProps<{
 	title?: string

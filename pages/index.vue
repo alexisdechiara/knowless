@@ -13,7 +13,7 @@
 					to: '/multiplayer',
 				}]"
 		/>
-		<NuxtLink to="/legal-notice" class="fixed bottom-1 left-1/2 -translate-x-1/2 underline underline-offset-2 transition-colors hover:text-muted-foreground">
+		<NuxtLink to="/legal-notice" class="fixed bottom-1 left-1/2 -translate-x-1/2 text-center underline underline-offset-2 transition-colors hover:text-muted-foreground">
 			Mentions légales et licences
 		</NuxtLink>
 	</div>
