@@ -16,13 +16,13 @@
 						<div class="grid grid-cols-1 items-center gap-x-10 sm:grid-cols-6">
 							<Avatar shape="circle" size="lg" class="mb-4 size-40 sm:col-span-2 sm:row-span-2 sm:mb-0">
 								<AvatarImage src="https://api.dicebear.com/9.x/big-ears/svg?seed=Mackenzie" alt="avatar" />
-								<AvatarFallback class="text-xl">{{ userStore.user.username }}</AvatarFallback>
+								<AvatarFallback class="text-xl">{{ user.username }}</AvatarFallback>
 							</Avatar>
 							<FormField v-slot="{ componentField }" name="username">
 								<FormItem class="sm:col-span-4">
 									<FormLabel>Pseudo*</FormLabel>
 									<FormControl>
-										<Input type="text" v-bind="componentField" :default-value="userStore.user.username" />
+										<Input type="text" v-bind="componentField" :default-value="user.username" />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -34,8 +34,8 @@
 					</form>
 				</TabsContent>
 				<TabsContent value="categories" class="size-full overflow-auto p-1">
-					<ToggleGroup v-model="settingsStore.categories" variant="outline" type="multiple" class="grid h-fit w-full grid-cols-1 items-start justify-start gap-3 sm:grid-cols-3">
-						<ToggleGroupItem v-for="categoty in categotyList" :key="categoty.title" class="group flex h-24 w-full items-start justify-start gap-4 p-4 transition data-[state=off]:-translate-y-0.5 data-[state=on]:bg-emerald-400/[0.17] data-[state=off]:shadow-md data-[state=on]:shadow-none hover:data-[state=off]:translate-y-0 hover:data-[state=off]:bg-inherit hover:data-[state=off]:shadow-sm" :value="categoty.value">
+					<ToggleGroup :model-value="settingsStore.categories" variant="outline" type="multiple" class="grid h-fit w-full grid-cols-1 items-start justify-start gap-3 sm:grid-cols-3" @update:model-value="handleUpdateCategories">
+						<ToggleGroupItem v-for="categoty in categoryList" :key="categoty.title" class="group flex h-24 w-full items-start justify-start gap-4 p-4 transition data-[state=off]:-translate-y-0.5 data-[state=on]:bg-emerald-400/[0.17] data-[state=off]:shadow-md data-[state=on]:shadow-none hover:data-[state=off]:translate-y-0 hover:data-[state=off]:bg-inherit hover:data-[state=off]:shadow-sm" :value="categoty.value">
 							<div class="icon flex aspect-square size-10 items-center justify-center rounded-full border-2 border-border transition-colors">
 								<Icon :name="categoty.icon" class="block text-lg text-secondary-foreground opacity-100 transition-opacity" />
 								<Icon name="lucide:check" class="check hidden text-2xl text-primary-foreground opacity-0 transition-opacity" />
@@ -59,11 +59,11 @@ import * as z from "zod"
 import { Card } from "~/components/ui/card"
 
 const breakpoints = useScreenSize()
-const userStore = useUserStore()
+const user = useUserStore()
 const settingsStore = useSettingsStore()
 
 const formSchema = z.object({
-	username: z.string().min(2).max(50).default(userStore.user.username),
+	username: z.string().min(2).max(50).default(user.username),
 })
 
 const form = useForm({
@@ -71,10 +71,16 @@ const form = useForm({
 })
 
 const onSubmit = form.handleSubmit((values) => {
-	userStore.updateUser(values.username)
+	user.updateUser(values.username)
 })
 
-const categotyList = [
+const handleUpdateCategories = (newCategories: string[] | string) => {
+	if (newCategories.length > 0) {
+		settingsStore.categories = Array.isArray(newCategories) ? newCategories : [newCategories]
+	}
+}
+
+const categoryList = [
 	{
 		title: "Animaux",
 		descriton: "Découverte des espèces animales, leurs habitats et comportements",
@@ -192,7 +198,7 @@ const categotyList = [
 	{
 		title: "Sciences",
 		descriton: "Découvertes, théories et expériences scientifiques fascinantes",
-		value: "science",
+		value: "sciences",
 		icon: "lucide:microscope",
 	},
 	{

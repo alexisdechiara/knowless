@@ -1,18 +1,19 @@
 import { defineStore } from "pinia"
+import { v4 as uuidv4 } from "uuid"
 
-export const useUserStore = defineStore("userStore", () => {
-	const user = ref({
-		username: "Jhon Smith",
-		id: useId(),
-	})
+export const useUserStore = defineStore("User", () => {
+	const username = ref<string>("Mackenzie")
+	const id = ref<string>(uuidv4())
 
-	function updateUser(username?: string) {
-		if (username) {
-			user.value.username = username
+	const getId = computed(() => id.value)
+
+	function updateUser(data?: string) {
+		if (data) {
+			username.value = data
 		}
 	}
 
-	return { user, updateUser }
+	return { username, getId, updateUser }
 }, {
 	persist: {
 		storage: piniaPluginPersistedstate.localStorage(),

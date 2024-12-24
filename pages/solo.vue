@@ -69,6 +69,8 @@ import type { Difficulty } from "~/types/Difficulty"
 import { difficultyMapping } from "~/types/Difficulty"
 
 const scoreboard = useScoreboardStore()
+const settings = useSettingsStore()
+
 const config = useRuntimeConfig()
 
 const isPlaying = ref(false)
@@ -88,11 +90,17 @@ function start(difficulty: Difficulty) {
 }
 
 const getDifficultyValue = (key: Difficulty): number => difficultyMapping[key]
+const category = ref<string | null>(localCategoryToOpenQuizzCategory(settings.getRandomCategory()))
+
+const getNewCategory = () => {
+	category.value = localCategoryToOpenQuizzCategory(settings.getRandomCategory())
+}
 
 const { data, status, error, execute, refresh } = useFetch(`${config.public.openQuizzDbApiUrl || "https://api.openquizzdb.org"}`, {
 	query: {
 		key: config.public.openQuizzDbApiKey,
 		diff: getDifficultyValue(selectedDifficulty.value),
+		categ: computed(() => category.value),
 		anec: 1,
 		wiki: 1,
 		lang: "fr",
@@ -101,6 +109,7 @@ const { data, status, error, execute, refresh } = useFetch(`${config.public.open
 	server: false,
 	immediate: false,
 	cache: "no-cache",
+	watch: [category],
 })
 
 watch(error, () => {
@@ -114,6 +123,10 @@ watch(error, () => {
 	})
 })
 
+watch(roundKey, () => {
+	getNewCategory()
+})
+
 function incrementScore() {
 	nextScore.value++
 	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).bestScore = Math.max(scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).bestScore, nextScore.value)
@@ -122,8 +135,8 @@ function incrementScore() {
 function nextQuestion() {
 	reduceDurationTime()
 	currentScore.value = nextScore.value
-	roundKey.value++
 	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).nbRounds++
+	roundKey.value++
 	refresh()
 }
 
@@ -145,9 +158,9 @@ function restart() {
 	maxDurationTime.value = 5000
 	currentScore.value = 0
 	nextScore.value = 0
-	roundKey.value++
 	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).nbGames++
 	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).nbRounds++
+	roundKey.value++
 	refresh()
 }
 </script>

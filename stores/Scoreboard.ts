@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import type { Difficulty } from "~/types/Difficulty"
 
-export const useScoreboardStore = defineStore("scoreboard", () => {
+export const useScoreboardStore = defineStore("Scoreboard", () => {
 	const easy = reactive<ScoreBoard>({ nbGames: 0, nbRounds: 0, bestScore: 0 })
 	const medium = reactive<ScoreBoard>({ nbGames: 0, nbRounds: 0, bestScore: 0 })
 	const hard = reactive<ScoreBoard>({ nbGames: 0, nbRounds: 0, bestScore: 0 })

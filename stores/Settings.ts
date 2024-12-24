@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 
-export const useSettingsStore = defineStore("settingsStore", () => {
-	const categories = ref([
+export const useSettingsStore = defineStore("Settings", () => {
+	const categories = ref<Array<string>>([
 		"animals",
 		"archaeology",
 		"arts",
@@ -20,7 +20,7 @@ export const useSettingsStore = defineStore("settingsStore", () => {
 		"nature",
 		"countries",
 		"daily_life",
-		"science",
+		"sciences",
 		"sports",
 		"television",
 		"tourism",
@@ -30,7 +30,12 @@ export const useSettingsStore = defineStore("settingsStore", () => {
 
 	const language = ref("fr")
 
-	return { categories, language }
+	function getRandomCategory() {
+		const index: number = Math.floor(Math.random() * categories.value.length)
+		return categories.value[index]
+	}
+
+	return { categories, language, getRandomCategory }
 }, {
 	persist: {
 		storage: piniaPluginPersistedstate.localStorage(),
