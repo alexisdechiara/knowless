@@ -1,7 +1,8 @@
 import { defineStore } from "pinia"
 
 export const useSettingsStore = defineStore("Settings", () => {
-	const categories = ref<Array<string>>([
+	const user = useSupabaseUser()
+	const categories = ref<Array<string>>(user.value?.user_metadata?.categories || [
 		"animals",
 		"archaeology",
 		"arts",

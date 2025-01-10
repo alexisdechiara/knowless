@@ -114,7 +114,7 @@ const { data, status, error, execute, refresh } = useFetch(`${config.public.open
 
 watch(error, () => {
 	console.error(error.value)
-	toast(`Erreur ${error.value?.statusCode}`, {
+	toast.error(`Erreur ${error.value?.statusCode}`, {
 		description: error.value?.message,
 		action: {
 			label: "Actualiser",

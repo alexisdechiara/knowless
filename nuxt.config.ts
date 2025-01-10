@@ -11,6 +11,7 @@ export default defineNuxtConfig({
 		"pinia-plugin-persistedstate/nuxt",
 		"@nuxt/image",
 		"@nuxt/content",
+		"@nuxtjs/supabase",
 	],
 
 	ssr: false,
@@ -61,5 +62,14 @@ export default defineNuxtConfig({
 		* @default "./components/ui"
 		*/
 		componentDir: "./components/ui",
+	},
+
+	supabase: {
+		redirect: true,
+		redirectOptions: {
+			login: "/register",
+			callback: "/",
+			exclude: ["/login", "/register"],
+		},
 	},
 })
