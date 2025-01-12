@@ -15,9 +15,11 @@
 				<NuxtLink v-if="showSettings" to="/settings" class="flex h-fit w-full justify-center rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
 					<Icon name="lucide:settings-2" class="text-2xl text-secondary-foreground" />
 				</NuxtLink>
-				<NuxtLink v-if="showFriends" to="/friends" class="aspect-square h-full w-fit rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
-					<Icon name="lucide:users" class="text-2xl text-secondary-foreground" />
-				</NuxtLink>
+				<FriendListPopover>
+					<Button v-if="showFriends" variant="ghost" class="aspect-square h-full w-fit rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
+						<Icon name="lucide:users" class="text-2xl text-secondary-foreground" />
+					</Button>
+				</FriendListPopover>
 			</div>
 		</CardContent>
 	</component>

@@ -1,5 +1,5 @@
 <template>
-	<div class="flex w-full items-center gap-2 rounded p-2 hover:bg-secondary/25">
+	<div class="flex w-full items-center">
 		<div class="relative aspect-square size-10">
 			<Avatar size="sm">
 				<AvatarImage :src="friend.avatar ? friend.avatar : ''" alt="avatar" />
@@ -16,10 +16,10 @@
 			<Button v-if="status === 'pending'" variant="outline" class="hover:bg-destructive hover:text-destructive-foreground" @click="emit('reject', friend.id)">
 				Refuser
 			</Button>
-			<Button v-if="status === 'accepted'" @click="emit('join', friend.id)"> Rejoindre </Button>
 			<Button v-if="status === 'accepted'" size="icon" variant="outline" class="hover:bg-destructive hover:text-destructive-foreground" @click="emit('remove', friend.id)">
 				<Icon name="lucide:trash-2" />
 			</Button>
+			<Button v-if="status === 'accepted'" @click="emit('join', friend.id)"> Rejoindre </Button>
 		</div>
 	</div>
 </template>
