@@ -6,6 +6,7 @@ export class User {
 	language?: string
 	avatar?: string
 	created_at?: string
+	categories?: string[]
 
 	constructor(data?: Record<string, any>) {
 		this.id = data?.id
@@ -14,5 +15,6 @@ export class User {
 		this.language = data?.language
 		this.avatar = data?.avatar
 		this.created_at = data?.created_at
+		this.categories = data?.categories
 	}
 }

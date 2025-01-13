@@ -41,9 +41,7 @@
 				<Button type="submit" :disabled="!meta.valid" class="w-full">	Connexion </Button>
 				<div class="mt-4 text-center text-sm">
 					Vous n'avez pas de compte ?
-					<a href="#" class="underline">
-						S'inscrire
-					</a>
+					<NuxtLink to="/register" class="underline"> S'inscrire </NuxtLink>
 				</div>
 			</div>
 		</form>

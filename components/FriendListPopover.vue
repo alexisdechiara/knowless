@@ -20,12 +20,18 @@
 						<Icon name="lucide:user-round-plus" class="size-4" @click="addFriend" />
 					</button>
 				</div>
-				<div class="flex min-h-64 flex-col overflow-auto">
-					<div v-if="pendingFriends.length > 0" class="flex size-full flex-col gap-4">
-						<RowFriend v-for="friend in pendingFriends" :key="friend.id" :friend="friend" status="pending" @accept="acceptFriend($event)" @reject="rejectFriend($event)" />
+				<div class="flex h-full min-h-64 flex-col gap-4">
+					<div v-if="pendingFriends.length > 0" class="size-full">
+						<div class="pb-2 text-lg font-semibold">En attente</div>
+						<div class="flex size-full flex-col gap-4">
+							<RowFriend v-for="friend in pendingFriends" :key="friend.id" :friend="friend" status="pending" @accept="acceptFriend($event)" @reject="rejectFriend($event)" />
+						</div>
 					</div>
-					<div v-if="friends.length > 0" class="flex size-full flex-col gap-4">
-						<RowFriend v-for="friend in friends" :key="friend.id" :friend="friend" status="accepted" @remove="removeFriend($event)" />
+					<div v-if="friends.length > 0" class="size-full flex-1">
+						<div v-if="pendingFriends.length > 0" class="pb-2 text-lg font-semibold">Amis</div>
+						<div class="flex size-full flex-col gap-4">
+							<RowFriend v-for="friend in friends" :key="friend.id" :friend="friend" status="accepted" @remove="removeFriend($event)" />
+						</div>
 					</div>
 				</div>
 			</CardContent>

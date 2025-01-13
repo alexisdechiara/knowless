@@ -13,13 +13,16 @@
 			</NuxtLink>
 			<div class="mt-auto flex w-full justify-between gap-2">
 				<NuxtLink v-if="showSettings" to="/settings" class="flex h-fit w-full justify-center rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
-					<Icon name="lucide:settings-2" class="text-2xl text-secondary-foreground" />
+					<Icon name="lucide:settings-2" class="text-2xl " />
 				</NuxtLink>
 				<FriendListPopover>
 					<Button v-if="showFriends" variant="ghost" class="aspect-square h-full w-fit rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
-						<Icon name="lucide:users" class="text-2xl text-secondary-foreground" />
+						<Icon name="lucide:users" class="text-2xl" />
 					</Button>
 				</FriendListPopover>
+				<Button v-if="user" variant="destructive" class="aspect-square h-full w-fit rounded-lg bg-slate-50 text-secondary-foreground transition-colors duration-300 ease-out hover:text-destructive-foreground dark:bg-slate-800" @click="supabase.auth.signOut(); navigateTo('/register')">
+					<Icon name="lucide:log-out" class="text-2xl" />
+				</Button>
 			</div>
 		</CardContent>
 	</component>
@@ -29,6 +32,8 @@
 import type { RouteLocationRaw } from "vue-router"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
 const breakpoints = useScreenSize()
 
 withDefaults(defineProps<{
