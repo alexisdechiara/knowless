@@ -1,4 +1,30 @@
-export default function localCategoryToOpenQuizzCategory(category: string) {
+export const defaultCategories = [
+	"animals",
+	"archaeology",
+	"arts",
+	"comics",
+	"celebrities",
+	"cinema",
+	"random_culture",
+	"general_culture",
+	"gastronomy",
+	"geography",
+	"history",
+	"computing",
+	"literature",
+	"hobbies",
+	"music",
+	"nature",
+	"countries",
+	"daily_life",
+	"sciences",
+	"sports",
+	"television",
+	"tourism",
+	"web",
+]
+
+export function localCategoryToOpenQuizzCategory(category: string) {
 	switch (category) {
 		case "animals":
 			return "animaux"
@@ -48,4 +74,10 @@ export default function localCategoryToOpenQuizzCategory(category: string) {
 		default:
 			return null
 	}
+}
+
+export function getRandomCategory(categories: Array<string> = defaultCategories) {
+	if (categories.length === 0) categories = defaultCategories
+	const index: number = Math.floor(Math.random() * categories.length)
+	return categories[index]
 }

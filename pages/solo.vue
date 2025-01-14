@@ -35,7 +35,7 @@
 						</div>
 						<div class="flex justify-between text-2xl">
 							<span class="inline-flex w-full">Meilleur score</span>
-							<span class="inline-flex font-medium">{{ scoreboard.getScoreBoardByDifficulty(selectedDifficulty).bestScore }}</span>
+							<span class="inline-flex font-medium">{{ stats.bestScore }}</span>
 						</div>
 						<div v-if="isFinished" class="mt-16 flex justify-between gap-x-4">
 							<Button size="xl" variant="secondary" @click="backToSelection">
@@ -68,9 +68,6 @@ import { Quizz } from "~/models/quizz"
 import type { Difficulty } from "~/types/Difficulty"
 import { difficultyMapping } from "~/types/Difficulty"
 
-const scoreboard = useScoreboardStore()
-const settings = useSettingsStore()
-
 const config = useRuntimeConfig()
 
 const isPlaying = ref(false)
@@ -85,15 +82,26 @@ const roundKey = ref(0)
 function start(difficulty: Difficulty) {
 	isPlaying.value = true
 	selectedDifficulty.value = difficulty
-	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).nbGames++
+	stats.nbGames++
+	stats.nbRounds++
 	execute()
 }
 
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
+const { data: player } = await supabase.from("players").select("categories, stats").eq("id", user.value?.id).single()
+const stats = reactive({
+	nbGames: player.stats[selectedDifficulty.value].nb_games || 0,
+	nbRounds: player.stats[selectedDifficulty.value].nb_rounds || 0,
+	bestScore: player.stats[selectedDifficulty.value].best_score || 0,
+})
+
 const getDifficultyValue = (key: Difficulty): number => difficultyMapping[key]
-const category = ref<string | null>(localCategoryToOpenQuizzCategory(settings.getRandomCategory()))
+const category = ref<string | null>(localCategoryToOpenQuizzCategory(getRandomCategory(player.categories)))
 
 const getNewCategory = () => {
-	category.value = localCategoryToOpenQuizzCategory(settings.getRandomCategory())
+	category.value = localCategoryToOpenQuizzCategory(getRandomCategory(player.categories))
 }
 
 const { data, status, error, execute, refresh } = useFetch(`${config.public.openQuizzDbApiUrl || "https://api.openquizzdb.org"}`, {
@@ -129,13 +137,13 @@ watch(roundKey, () => {
 
 function incrementScore() {
 	nextScore.value++
-	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).bestScore = Math.max(scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).bestScore, nextScore.value)
+	stats.bestScore = Math.max(stats.bestScore, nextScore.value)
 }
 
 function nextQuestion() {
 	reduceDurationTime()
 	currentScore.value = nextScore.value
-	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).nbRounds++
+	stats.nbRounds++
 	roundKey.value++
 	refresh()
 }
@@ -152,15 +160,26 @@ function backToSelection() {
 	isPlaying.value = false
 }
 
-function restart() {
+async function restart() {
 	showGameOverDialog.value = false
 	isFinished.value = false
 	maxDurationTime.value = 5000
 	currentScore.value = 0
 	nextScore.value = 0
-	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).nbGames++
-	scoreboard.getScoreBoardByDifficulty(selectedDifficulty.value).nbRounds++
 	roundKey.value++
 	refresh()
 }
+
+watch(isFinished, async () => {
+	if (isFinished.value) {
+		await supabase
+			.from("players")
+			.update({ stats: {
+				easy: selectedDifficulty.value === "easy" ? { nb_games: stats.nbGames, nb_rounds: stats.nbRounds, best_score: stats.bestScore } : player.stats.easy,
+				medium: selectedDifficulty.value === "medium" ? { nb_games: stats.nbGames, nb_rounds: stats.nbRounds, best_score: stats.bestScore } : player.stats.medium,
+				hard: selectedDifficulty.value === "hard" ? { nb_games: stats.nbGames, nb_rounds: stats.nbRounds, best_score: stats.bestScore } : player.stats.hard,
+			} })
+			.eq("id", user.value?.id)
+	}
+})
 </script>

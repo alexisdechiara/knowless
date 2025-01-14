@@ -4,8 +4,8 @@
 
 <template>
 	<CustomCard back @back="navigateTo('/')">
-		<div class="hidden size-full flex-col md:flex">
-			<div class="space-y-0.5">
+		<div class="flex size-full flex-col">
+			<div class="gap-y-0.5">
 				<h2 class="text-2xl font-bold tracking-tight">
 					Paramètres
 				</h2>
@@ -14,14 +14,12 @@
 				</p>
 			</div>
 			<Separator class="my-6" />
-			<div class="relative flex size-full flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-				<aside class="absolute left-0 top-0 -mx-4 lg:w-1/5">
+			<div class="flex size-full flex-col gap-y-8 lg:relative lg:flex-row lg:gap-x-12 lg:gap-y-0">
+				<aside class="lg:absolute lg:left-0 lg:top-0 lg:w-1/5">
 					<SettingsNavbar />
 				</aside>
-				<div class="absolute left-[20%] right-0 top-0 size-full flex-1 overflow-auto lg:max-w-2xl">
-					<div class="space-y-6">
-						<slot />
-					</div>
+				<div class="size-full overflow-auto lg:absolute lg:left-1/4 lg:right-0 lg:top-0">
+					<slot />
 				</div>
 			</div>
 		</div>
