@@ -1,7 +1,7 @@
 <!-- eslint-disable tailwindcss/no-custom-classname -->
 <template>
-	<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="fixed left-1/2 top-1/2 size-full -translate-x-1/2 -translate-y-1/2 gap-4 p-6 sm:size-2/3 sm:shadow-md">
-		<CardHeader v-if="$slots.header" class="p-0">
+	<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="fixed left-1/2 top-1/2 flex size-full -translate-x-1/2 -translate-y-1/2 flex-col sm:size-2/3 sm:shadow-md">
+		<CardHeader v-if="$slots.header">
 			<slot name="header" />
 		</CardHeader>
 		<CardContent class="size-full">
@@ -17,10 +17,11 @@
 			</Tabs>
 			<slot />
 		</CardContent>
-		<Button v-if="back" variant="secondary" class="absolute bottom-6 left-6" size="icon" @click="$emit('back')">
-			<Icon name="lucide:chevron-left" />
-		</Button>
-		<CardFooter v-if="$slots.footer">
+
+		<CardFooter v-if="back || $slots.footer">
+			<Button v-if="back" variant="secondary" size="icon" @click="$emit('back')">
+				<Icon name="lucide:chevron-left" />
+			</Button>
 			<slot name="footer" />
 		</CardFooter>
 	</component>

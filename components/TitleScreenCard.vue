@@ -7,12 +7,12 @@
 			<CardTitle class="pb-6">
 				<h2 class="select-none text-6xl">{{ title }}</h2>
 			</CardTitle>
-			<NuxtLink v-for="(link, index) in links" :key="`${link.title}-${index}`" :to="link.to" class="group flex h-fit w-full flex-col items-start gap-1 rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
+			<NuxtLink v-for="(link, index) in links" :key="`${link.title}-${index}`" :to="link.disabled ? '' : link.to" class="group flex h-fit w-full flex-col items-start gap-1 rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700" :class="{ 'pointer-events-auto !cursor-not-allowed opacity-50': link.disabled }">
 				<h3 class="text-xl font-medium text-secondary-foreground">{{ link.title }}</h3>
 				<p class="text-pretty text-start font-normal leading-tight text-secondary-foreground/75"> {{ link.description }} </p>
 			</NuxtLink>
 			<div class="mt-auto flex w-full justify-between gap-2">
-				<NuxtLink v-if="showSettings" to="/settings" class="flex h-fit w-full justify-center rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
+				<NuxtLink v-if="showSettings" to="/settings/profile" class="flex h-fit w-full justify-center rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
 					<Icon name="lucide:settings-2" class="text-2xl " />
 				</NuxtLink>
 				<FriendListPopover>
@@ -43,6 +43,7 @@ withDefaults(defineProps<{
 		description?: string
 		to?: RouteLocationRaw
 		icon?: string
+		disabled?: boolean
 	}>
 	showSettings?: boolean
 	showFriends?: boolean

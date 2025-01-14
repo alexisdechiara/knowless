@@ -6,7 +6,7 @@ import { toast } from "vue-sonner"
 import type { GenericObject } from "vee-validate"
 import { toTypedSchema } from "@vee-validate/zod"
 import FormLabel from "~/components/ui/form/FormLabel.vue"
-import Auth from "~/components/auth.vue"
+import Auth from "~/components/Auth.vue"
 
 const languages = [
 	{ value: "en", label: "English" },
