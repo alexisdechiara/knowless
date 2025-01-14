@@ -1,5 +1,5 @@
 <template>
-	<div class="flex size-full flex-col gap-4 p-4">
+	<div class="absolute inset-0 flex size-full flex-col gap-4 p-4">
 		<ProgressBar :value="convertMillisecondsToPercentage" :duration="0" tickness="xl" />
 		<div class="relative h-9 w-full">
 			<Badge :class="content?.difficulty === 'easy' ? 'bg-emerald-500' : content?.difficulty === 'hard' ? 'bg-red-500' : 'bg-amber-500'" class="pointer-events-none absolute start-0 top-0 px-4 py-1 text-sm capitalize">{{ content?.difficulty }}</Badge>

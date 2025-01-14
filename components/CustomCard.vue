@@ -1,10 +1,10 @@
 <!-- eslint-disable tailwindcss/no-custom-classname -->
 <template>
-	<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="fixed left-1/2 top-1/2 flex size-full -translate-x-1/2 -translate-y-1/2 gap-4 p-6 sm:size-2/3 sm:shadow-md">
-		<CardHeader v-if="$slots.header" class="flex p-0">
+	<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="fixed left-1/2 top-1/2 size-full -translate-x-1/2 -translate-y-1/2 gap-4 p-6 sm:size-2/3 sm:shadow-md">
+		<CardHeader v-if="$slots.header" class="p-0">
 			<slot name="header" />
 		</CardHeader>
-		<CardContent class="flex size-full">
+		<CardContent class="size-full">
 			<Tabs v-if="Array.isArray(tabs) && tabs.length > 0" :default-value="tabs[0].value" class="flex size-full flex-col items-center">
 				<TabsList class="mb-6 sm:w-1/3">
 					<TabsTrigger v-for="tab in tabs" :key="tab.value" :value="tab.value" class="w-full">
@@ -20,7 +20,7 @@
 		<Button v-if="back" variant="secondary" class="absolute bottom-6 left-6" size="icon" @click="$emit('back')">
 			<Icon name="lucide:chevron-left" />
 		</Button>
-		<CardFooter v-if="$slots.footer" class="flex p-0">
+		<CardFooter v-if="$slots.footer">
 			<slot name="footer" />
 		</CardFooter>
 	</component>
