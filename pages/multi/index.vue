@@ -5,12 +5,12 @@
 			:links="[{
 					title: 'Créer une partie',
 					description: 'Si vous souhaitez créer une partie  personnalisée en tant que l’hôte pour jouer seul ou à plusieurs',
-					to: '/create',
+					to: '/multi/create',
 				},
 				{
 					title: 'Rejoindre une partie',
 					description: 'Si vous possédez un code d’invitation pour rejoindre une partie personnalisée',
-					to: '/join',
+					to: '/multi/join',
 				}]"
 		/>
 	</div>
