@@ -36,7 +36,9 @@
 							</Button>
 						</FriendListPopover>
 					</div>
-					<Button variant="outline" size="lg" class="block w-full">Paramètres</Button>
+					<LobbySettings v-model="lobby">
+						<Button variant="outline" size="lg" class="block w-full">Paramètres</Button>
+					</LobbySettings>
 				</div>
 			</div>
 			<div class="col-span-3 flex w-full flex-col justify-between gap-8">

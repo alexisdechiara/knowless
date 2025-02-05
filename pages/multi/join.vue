@@ -21,10 +21,10 @@ const onSubmit = handleSubmit(async () => {
 		setErrors({ pin: "Le lobby n'existe pas" })
 	}
 	else if (lobby) {
-		if (lobby.banned_players.includes(user.value?.id)) {
+		if (lobby.banned_players && lobby.banned_players.includes(user.value?.id)) {
 			setErrors({ pin: "Vous avez été banni de ce lobby" })
 		}
-		else if (lobby.max_players <= lobby.players.length) {
+		else if (lobby.max_players && lobby.max_players <= lobby.players.length) {
 			setErrors({ pin: "Le lobby est plein" })
 		}
 		else if (lobby.is_public) {

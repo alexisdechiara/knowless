@@ -13,6 +13,7 @@ export class Lobby {
 	players: Array<User>
 	invitedPlayersId: Array<string>
 	bannedPlayersId: Array<string>
+	securityLevel: Array<string> = ["friends", "join"]
 
 	constructor(data?: Record<string, any>, players?: any[] | any) {
 		this.id = data?.id
@@ -33,5 +34,6 @@ export class Lobby {
 		}
 		this.invitedPlayersId = data?.invited_friends || []
 		this.bannedPlayersId = data?.banned_players || []
+		this.securityLevel = data?.security_level || ["friends", "join"]
 	}
 }
