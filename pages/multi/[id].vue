@@ -1,6 +1,18 @@
 <template>
 	<div class="fixed inset-0 flex flex-col px-64 py-32">
-		<h1 class="mb-16 text-center text-5xl font-semibold">{{ lobby?.title }}</h1>
+		<h1 class="mb-16 text-center text-5xl font-semibold">
+			{{ lobby?.title }}
+			<TooltipProvider v-if="!lobby.isPublic" :delay-duration="0">
+				<Tooltip>
+					<TooltipTrigger as-child>
+						<Icon class="ms-2 cursor-pointer text-3xl text-muted-foreground" name="lucide:lock" />
+					</TooltipTrigger>
+					<TooltipContent :side-offset="16">
+						Le lobby est en privé, il ne sera pas visible dans la liste des parties.
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
+		</h1>
 		<div class="grid size-full grid-cols-5 gap-x-32">
 			<div class="col-span-2 flex w-fit flex-col">
 				<div class="flex items-center gap-4">
@@ -43,7 +55,7 @@
 			</div>
 			<div class="col-span-3 flex w-full flex-col justify-between gap-8">
 				<div class="flex flex-col gap-y-4">
-					<template v-for="player in lobby.players" :key="player.id">
+					<template v-for="player in lobby.players.filter(player => player.id !== user.id)" :key="player.id">
 						<div v-if="player.id !== user.id" class="flex w-full items-center gap-2">
 							<Avatar size="sm">
 								<AvatarImage :src="player.avatar ? player.avatar : ''" alt="avatar" />
@@ -53,7 +65,7 @@
 								<span class="font-semibold text-primary">{{ player.username }}</span>
 								<span class="italic text-muted-foreground">{{ lobby?.host === player.id ? 'Hôte de la partie' : 'Joueur' }}</span>
 							</div>
-							<DropdownMenu>
+							<DropdownMenu v-if="isHost">
 								<DropdownMenuTrigger as-child>
 									<Button class="ms-auto" size="icon" variant="link">
 										<Icon name="lucide:ellipsis-vertical" />
@@ -79,7 +91,7 @@
 				</div>
 				<div class="flex w-full gap-x-8">
 					<Button size="xxl" class="block w-full">Démarrer</Button>
-					<Button size="xxl" variant="outline" class="block aspect-square w-fit items-center justify-center p-0">
+					<Button size="xxl" variant="outline" class="block aspect-square w-fit items-center justify-center p-0" @click="leaveLobby()">
 						<Icon name="lucide:log-out" />
 					</Button>
 				</div>
@@ -119,30 +131,54 @@ const fetchPlayers = async (newData: any) => {
 		.in("id", newData.players)
 
 	if (fetchedPlayers && lobby.value) {
-		lobby.value.players = fetchedPlayers.filter(player => player.id !== user.id)
+		lobby.value.players = fetchedPlayers
 	}
 }
 
 const isHost = computed(() => lobby.value?.host === user.id)
 
-const kickPlayer = async (id: string) => {
-	console.log("Kicking player", id)
-	const updatedPlayers = lobby.value.players.filter((player: User) => player.id !== id)
-	console.log("Updated players", updatedPlayers)
+function kickPlayer(id: string) {
+	removePlayer(id)
+}
 
-	const { data, error } = await supabase
-		.from("lobbies")
-		.update({ players: updatedPlayers.map((player: User) => player.id) })
-		.eq("id", lobby.value.id)
-		.select() // Ajouté pour récupérer `data`
+async function leaveLobby() {
+	removePlayer(user.id)
+	await navigateTo("/")
+}
 
-	if (error) {
-		toast.error(`Erreur ${error.code}`, {
-			description: error.message,
-		})
+async function removePlayer(id: string) {
+	console.log("list des joueurs", lobby.value.players)
+	console.log("id du joueur à exclure", id)
+	const updatedPlayerIds: Array<string> = lobby.value.players.filter(player => player.id !== id).map(player => player.id)
+	console.log("Liste des nouveaux joueurs", updatedPlayerIds)
+
+	if (!updatedPlayerIds || updatedPlayerIds.length === 0) {
+		const { error } = await supabase
+			.from("lobbies")
+			.delete()
+			.eq("id", lobby.value.id)
+
+		if (error) {
+			toast.error(`Erreur ${error.code}`, {
+				description: error.message,
+			})
+		}
 	}
-	else if (data) {
-		lobby.value.players = updatedPlayers
+	else {
+		const { data, error } = await supabase
+			.from("lobbies")
+			.update({ players: updatedPlayerIds })
+			.eq("id", lobby.value.id)
+			.select()
+			.single()
+
+		console.log(data)
+
+		if (error) {
+			toast.error(`Erreur ${error.code}`, {
+				description: error.message,
+			})
+		}
 	}
 }
 

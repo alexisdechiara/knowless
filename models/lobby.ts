@@ -21,9 +21,9 @@ export class Lobby {
 		this.host = data?.host
 		this.maxPlayers = data?.max_players
 		this.created_at = data?.created_at
-		this.isPublic = data?.isPublic
+		this.isPublic = data?.is_public
 		this.password = data?.password
-		this.isFriendsOnly = data?.is_friends_only
+		this.isFriendsOnly = data?.friends_only
 		if (players && players.length > 0) {
 			this.players = players.map((player: any) => {
 				return new User(player)
@@ -35,5 +35,9 @@ export class Lobby {
 		this.invitedPlayersId = data?.invited_friends || []
 		this.bannedPlayersId = data?.banned_players || []
 		this.securityLevel = data?.security_level || ["friends", "join"]
+	}
+
+	getPlayerIds(): Array<string> {
+		return this.players.map(player => player.id)
 	}
 }
