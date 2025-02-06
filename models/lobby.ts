@@ -11,6 +11,7 @@ export class Lobby {
 	isFriendsOnly: boolean
 	maxPlayers: number
 	players: Array<User>
+	playerIds: Array<string>
 	invitedPlayersId: Array<string>
 	bannedPlayersId: Array<string>
 	securityLevel: Array<string> = ["friends", "join"]
@@ -32,12 +33,13 @@ export class Lobby {
 		else {
 			this.players = []
 		}
+		this.playerIds = data?.players || []
 		this.invitedPlayersId = data?.invited_friends || []
 		this.bannedPlayersId = data?.banned_players || []
 		this.securityLevel = data?.security_level || ["friends", "join"]
 	}
 
 	getPlayerIds(): Array<string> {
-		return this.players.map(player => player.id)
+		return this.players && this.players.length > 0 ? this.players.map(player => player.id) : this.playerIds
 	}
 }

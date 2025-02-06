@@ -48,68 +48,6 @@ else {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	lobbies.value = data.map((lobby: any) => new Lobby(lobby))
 }
-
-async function updateLobbyPlayers(lobby: Lobby) {
-	console.log("nouveau joueur", user.value?.id)
-	await supabase.rpc("add_player_to_lobby", {
-		lobby_id: lobby.id,
-		player_id: user.value?.id,
-	})
-}
-
-async function joinLobby(lobby: Lobby) {
-	if (user.value && lobby.bannedPlayersId.includes(user.value?.id)) {
-		toast.error("Vous avez été banni de ce lobby")
-	}
-	else if (lobby.players.length + 1 >= lobby.maxPlayers) {
-		toast.error("Le lobby est plein")
-	}
-	else {
-		if (lobby.isFriendsOnly && user.value) {
-			const { data, status: isFriend } = await supabase
-				.from("friendship")
-				.select("*")
-				.or(`and(friend_id.eq.${user.value?.id},user_id.eq.${lobby.host}),and(friend_id.eq.${lobby.host},user_id.eq.${user.value?.id})`)
-				.eq("status", "accepted")
-				.single()
-
-			console.log(isFriend)
-
-			if (!data || isFriend !== 200) {
-				toast.error("Seul les amis de l'hôte sont acceptés")
-				return
-			}
-		}
-
-		// check if the user is already in the lobby
-		if ((user.value && lobby.getPlayerIds().includes(user.value?.id)) || lobby.host === user.value?.id) {
-			await navigateTo(`/multi/${lobby.id}`)
-		}
-
-		// check if the user is invited to the lobby
-		else if (user.value && lobby.invitedPlayersId && lobby.invitedPlayersId.includes(user.value?.id)) {
-			updateLobbyPlayers(lobby)
-			await navigateTo(`/multi/${lobby.id}`)
-		}
-
-		// check if the lobby has a password
-		else if (lobby.password) {
-			const answer = prompt("Entrez le mot de passe du lobby")
-			if (answer === lobby.password) {
-				updateLobbyPlayers(lobby)
-				await navigateTo(`/multi/${lobby.id}`)
-			}
-			else {
-				toast.error("Mauvais mot de passe")
-			}
-		}
-
-		else {
-			updateLobbyPlayers(lobby)
-			await navigateTo(`/multi/${lobby.id}`)
-		}
-	}
-}
 </script>
 
 <template>
@@ -160,10 +98,10 @@ async function joinLobby(lobby: Lobby) {
 					<template v-for="lobby in lobbies" :key="lobby.id">
 						<TableRow v-if="lobby.isPublic" class="flex items-center">
 							<TableCell class="w-fit font-medium"> {{ lobby.title }} </TableCell>
-							<TableCell class="flex-1 text-right"> {{ lobby.players.length + 1 }} / {{ lobby.maxPlayers }} </TableCell>
+							<TableCell class="flex-1 text-right"> {{ lobby.playerIds.length }} / {{ lobby.maxPlayers }} </TableCell>
 							<TableCell class="w-fit text-center">
-								<Button :disabled="lobby.players.length + 1 >= lobby.maxPlayers || (user && lobby.bannedPlayersId.includes(user?.id))" @click="joinLobby(lobby)">
-									{{ lobby.players.length + 1 >= lobby.maxPlayers ? "Complet"
+								<Button :disabled="lobby.playerIds.length >= lobby.maxPlayers || (user && lobby.bannedPlayersId.includes(user?.id))" @click="joinLobby(lobby)">
+									{{ lobby.playerIds.length >= lobby.maxPlayers ? "Complet"
 										: user && lobby.bannedPlayersId.includes(user?.id) ? "Banni"
 											: "Rejoindre" }}
 								</Button>

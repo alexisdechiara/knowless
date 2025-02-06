@@ -147,11 +147,7 @@ async function leaveLobby() {
 }
 
 async function removePlayer(id: string) {
-	console.log("list des joueurs", lobby.value.players)
-	console.log("id du joueur à exclure", id)
-	const updatedPlayerIds: Array<string> = lobby.value.players.filter(player => player.id !== id).map(player => player.id)
-	console.log("Liste des nouveaux joueurs", updatedPlayerIds)
-
+	const updatedPlayerIds: Array<string> = lobby.value.playerIds.filter(playerId => playerId !== id)
 	if (!updatedPlayerIds || updatedPlayerIds.length === 0) {
 		const { error } = await supabase
 			.from("lobbies")
@@ -164,15 +160,27 @@ async function removePlayer(id: string) {
 			})
 		}
 	}
+	else if (lobby.value.host === id) {
+		const { error } = await supabase
+			.from("lobbies")
+			.update({ host: updatedPlayerIds[0], players: updatedPlayerIds })
+			.eq("id", lobby.value.id)
+			.select()
+			.single()
+
+		if (error) {
+			toast.error(`Erreur ${error.code}`, {
+				description: error.message,
+			})
+		}
+	}
 	else {
-		const { data, error } = await supabase
+		const { error } = await supabase
 			.from("lobbies")
 			.update({ players: updatedPlayerIds })
 			.eq("id", lobby.value.id)
 			.select()
 			.single()
-
-		console.log(data)
 
 		if (error) {
 			toast.error(`Erreur ${error.code}`, {
@@ -231,7 +239,7 @@ onMounted(async () => {
 
 		lobby.value = new Lobby(data, fetchedPlayers)
 
-		if (user.id !== lobby.value?.host && !lobby.value?.players.map(player => player.id).includes(user.id)) {
+		if (user.id !== lobby.value?.host && !lobby.value?.playerIds.includes(user.id)) {
 			navigateTo(`/multi/${data.id}/join`)
 		}
 		else if (lobby.value?.invitedPlayersId && lobby.value?.invitedPlayersId.includes(user.id) && lobby.value?.maxPlayers > lobby.value?.players.length) {
@@ -245,6 +253,8 @@ onMounted(async () => {
 				{ event: "*", schema: "public", table: "lobbies", filter: `id=eq.${route.params.id}` },
 				(payload) => {
 					if (payload.new) {
+						const newLobby = new Lobby(payload.new)
+						lobby.value.host = newLobby.host
 						fetchPlayers(payload.new)
 					}
 				},
