@@ -188,6 +188,17 @@ async function removePlayer(id: string) {
 			})
 		}
 	}
+
+	const { error } = await supabase
+		.from("players")
+		.update({ status: "offline", lobby_id: null })
+		.eq("id", id)
+
+	if (error) {
+		toast.error(`Erreur ${error.code}`, {
+			description: error.message,
+		})
+	}
 }
 
 const banPlayer = async (id: string) => {
@@ -240,10 +251,10 @@ onMounted(async () => {
 		lobby.value = new Lobby(data, fetchedPlayers)
 
 		if (user.id !== lobby.value?.host && !lobby.value?.playerIds.includes(user.id)) {
-			navigateTo(`/multi/${data.id}/join`)
+			navigateTo(`/multi/join`)
 		}
 		else if (lobby.value?.invitedPlayersId && lobby.value?.invitedPlayersId.includes(user.id) && lobby.value?.maxPlayers > lobby.value?.players.length) {
-			navigateTo(`/multi/${data.id}/join`)
+			navigateTo(`/multi/join`)
 		}
 
 		const channel = supabase
@@ -265,6 +276,18 @@ onMounted(async () => {
 			supabase.removeChannel(channel)
 		})
 	}
+})
+
+async function handleUnload() {
+	navigator.sendBeacon(`/api/lobby/leave`, JSON.stringify({ lobby: { id: lobby.value?.id, host: lobby.value?.host, playerIds: lobby.value?.playerIds.filter(playerId => playerId !== user.id) }, userId: user.id }))
+}
+
+onMounted(() => {
+	window.addEventListener("unload", handleUnload)
+})
+
+onUnmounted(() => {
+	window.removeEventListener("unload", handleUnload)
 })
 </script>
 

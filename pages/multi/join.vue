@@ -48,6 +48,38 @@ else {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	lobbies.value = data.map((lobby: any) => new Lobby(lobby))
 }
+
+onMounted(() => {
+	const channel = supabase
+		.channel(`lobby-updates`)
+		.on(
+			"postgres_changes",
+			{ event: "*", schema: "public", table: "lobbies", filter: "is_public=eq.true" },
+			(payload) => {
+				const oldLobby = new Lobby(payload.old)
+				const newLobby = new Lobby(payload.new)
+
+				// Update the lobby in the list or add it if it doesn't exist
+				const index = lobbies.value.findIndex(lobby => lobby.id === newLobby.id)
+				if (index !== -1) {
+					lobbies.value[index] = newLobby
+				}
+				else {
+					lobbies.value.push(newLobby)
+				}
+
+				// Remove the lobby from the list if it was deleted
+				if (payload.eventType === "DELETE") {
+					lobbies.value = lobbies.value.filter(lobby => lobby.id !== oldLobby.id)
+				}
+			},
+		)
+		.subscribe()
+
+	onUnmounted(() => {
+		supabase.removeChannel(channel)
+	})
+})
 </script>
 
 <template>
@@ -85,7 +117,7 @@ else {
 				</FormItem>
 			</FormField>
 		</form>
-		<Card v-if="lobbies && lobbies.length > 0" class="w-full">
+		<Card v-if="lobbies && lobbies.length > 0" class="mb-16 w-full">
 			<Table>
 				<TableHeader>
 					<TableRow>
