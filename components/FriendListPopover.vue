@@ -48,6 +48,8 @@ const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
 const friendToAdd = ref("")
+const friends = ref<Array<User>>([])
+const pendingFriends = ref<Array<User>>([])
 
 const friendUsername = computed(() => friendToAdd.value.split("#")[0])
 
@@ -149,58 +151,57 @@ async function acceptFriend(friendId: string) {
 	}
 }
 
-const friends = ref<Array<User>>([])
-const pendingFriends = ref<Array<User>>([])
+onMounted(async () => {
+	const { data, error } = await supabase
+		.from("friendship")
+		.select("friend_id, user_id, status")
+		.or(`user_id.eq.${user?.value?.id},friend_id.eq.${user?.value?.id}`)
 
-const { data, error } = await supabase
-	.from("friendship")
-	.select("friend_id, user_id, status")
-	.or(`user_id.eq.${user?.value?.id},friend_id.eq.${user?.value?.id}`)
-
-if (error) {
-	console.error(error)
-}
-else {
-	// Filtrer les relations pertinentes
-	const pending = data.filter(
-		relation => relation.status === "pending" && relation.friend_id === user?.value?.id,
-	)
-	const accepted = data.filter(relation => relation.status === "accepted")
-
-	// Récupérer les IDs des utilisateurs pour ces relations
-	const pendingIds = pending.map(relation => relation.user_id) // Les utilisateurs qui ont envoyé une demande
-	const acceptedIds = accepted.map(relation =>
-		relation.user_id === user?.value?.id ? relation.friend_id : relation.user_id,
-	)
-
-	// Récupérer les détails des utilisateurs en une seule requête
-	const { data: players, error: playersError } = await supabase
-		.from("players")
-		.select("*")
-		.in("id", [...pendingIds, ...acceptedIds])
-
-	if (playersError) {
-		console.error(playersError)
+	if (error) {
+		console.error(error)
 	}
 	else {
+	// Filtrer les relations pertinentes
+		const pending = data.filter(
+			relation => relation.status === "pending" && relation.friend_id === user?.value?.id,
+		)
+		const accepted = data.filter(relation => relation.status === "accepted")
+
+		// Récupérer les IDs des utilisateurs pour ces relations
+		const pendingIds = pending.map(relation => relation.user_id) // Les utilisateurs qui ont envoyé une demande
+		const acceptedIds = accepted.map(relation =>
+			relation.user_id === user?.value?.id ? relation.friend_id : relation.user_id,
+		)
+
+		// Récupérer les détails des utilisateurs en une seule requête
+		const { data: players, error: playersError } = await supabase
+			.from("players")
+			.select("*")
+			.in("id", [...pendingIds, ...acceptedIds])
+
+		if (playersError) {
+			console.error(playersError)
+		}
+		else {
 		// Mapper les joueurs récupérés pour les organiser
-		const playersMap = new Map(players.map(player => [player.id, player]))
+			const playersMap = new Map(players.map(player => [player.id, player]))
 
-		// Ajouter les amis acceptés et les demandes en attente
-		pending.forEach((relation) => {
-			const player = playersMap.get(relation.user_id) // L'utilisateur qui a envoyé la demande
-			if (player) {
-				pendingFriends.value.push(new User(player))
-			}
-		})
+			// Ajouter les amis acceptés et les demandes en attente
+			pending.forEach((relation) => {
+				const player = playersMap.get(relation.user_id) // L'utilisateur qui a envoyé la demande
+				if (player) {
+					pendingFriends.value.push(new User(player))
+				}
+			})
 
-		accepted.forEach((relation) => {
-			const friendId = relation.user_id === user?.value?.id ? relation.friend_id : relation.user_id
-			const player = playersMap.get(friendId)
-			if (player) {
-				friends.value.push(new User(player))
-			}
-		})
+			accepted.forEach((relation) => {
+				const friendId = relation.user_id === user?.value?.id ? relation.friend_id : relation.user_id
+				const player = playersMap.get(friendId)
+				if (player) {
+					friends.value.push(new User(player))
+				}
+			})
+		}
 	}
-}
+})
 </script>
