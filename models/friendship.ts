@@ -1,11 +1,22 @@
-export class Friendship {
-	user_id: string
-	friend_id: string
-	status: string
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { User } from "./user"
 
-	constructor(user_id: string, friend_id: string, status: string) {
-		this.user_id = user_id
-		this.friend_id = friend_id
-		this.status = status
+export class Friendship {
+	id: number
+	player?: User | undefined
+	playerId: string
+	friend: User | undefined
+	friendId: string
+	status: "accepted" | "refused" | "pending" | string | undefined
+	createdAt: Date
+
+	constructor(data: Record<string, any>, playerData?: User, friendData?: User) {
+		this.id = data.id
+		this.player = playerData
+		this.playerId = data.user_id
+		this.friend = friendData
+		this.friendId = data.friend_id
+		this.status = data.status
+		this.createdAt = new Date(data.created_at)
 	}
 }

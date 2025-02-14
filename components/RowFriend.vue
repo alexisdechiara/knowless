@@ -7,7 +7,7 @@
 			</Avatar>
 			<span class="absolute bottom-1 right-0 block size-3 rounded-full ring-2 ring-white" :class="friend.status === 'online' ? 'bg-green-500' : friend.status === 'in-lobby' ? 'bg-yellow-500' : friend.status === 'playing' ? 'bg-red-500' : 'bg-background border-2 border-border'" />
 		</div>
-		<div class="ml-2">
+		<div class="ml-1.5 mr-3">
 			<p class="text-sm font-medium">{{ friend.username }}</p>
 			<p class="text-xs text-muted-foreground">#{{ friend.usertag }}</p>
 		</div>
