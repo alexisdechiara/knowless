@@ -194,6 +194,7 @@ export function useLobby() {
 						description: `${player.username} a été banni du lobby`,
 					})
 				}
+				return new Lobby(data)
 			}).catch((error) => {
 				if (options?.log) {
 					console.log(`Erreur lors du bannissement de ${player.username}`)
