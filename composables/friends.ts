@@ -1,13 +1,13 @@
 import { toast } from "vue-sonner"
 
+type OptionsType = {
+	log?: boolean
+	toast?: boolean
+}
+
 export const useFriends = () => {
 	const supabase = useSupabaseClient()
 	const user = useSupabaseUser()
-
-	type OptionsType = {
-		log?: boolean
-		toast?: boolean
-	}
 
 	async function inviteFriend(username: string, usertag: string, options: OptionsType = { toast: true }): Promise<boolean> {
 		const { data: friend, error: friendError } = await supabase

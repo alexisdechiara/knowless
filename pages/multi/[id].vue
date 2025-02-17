@@ -25,7 +25,7 @@
 						<span class="italic text-muted-foreground">{{ lobby?.host === user.id ? 'Hôte de la partie' : 'Joueur' }}</span>
 					</div>
 				</div>
-				<div class="mt-auto flex flex-col gap-y-2 pt-4">
+				<div v-if="isHost" class="mt-auto flex flex-col gap-y-2 pt-4">
 					<div class="flex w-full gap-x-2">
 						<div class="relative w-full items-center">
 							<TooltipProvider :delay-duration="0" trigger="hover" placement="top">
@@ -72,13 +72,13 @@
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent>
-									<DropdownMenuItem v-if="isHost" @click="kickPlayer(player.id)">
+									<DropdownMenuItem v-if="isHost" @click="removePlayer(player, lobby)">
 										<Icon name="lucide:user-round-x" /> Exclure
 									</DropdownMenuItem>
-									<DropdownMenuItem v-if="isHost" @click="banPlayer(player.id)">
+									<DropdownMenuItem v-if="isHost" @click="banPlayer(player, lobby)">
 										<Icon name="lucide:ban" /> Bannir
 									</DropdownMenuItem>
-									<DropdownMenuItem v-if="isHost" @click="promotePlayer(player.id)">
+									<DropdownMenuItem v-if="isHost" @click="promotePlayer(player, lobby)">
 										<Icon name="lucide:circle-fading-arrow-up" /> Promouvoir hôte
 									</DropdownMenuItem>
 									<!-- <DropdownMenuItem>
@@ -104,8 +104,9 @@
 import { useClipboard } from "@vueuse/core"
 import { toast } from "vue-sonner"
 import { Lobby } from "~/models/lobby"
-import type { User } from "~/models/user"
+import { User } from "~/models/user"
 
+const { getPlayers, removePlayer, banPlayer, promotePlayer } = useLobby()
 const supabase = useSupabaseClient()
 const route = useRoute()
 const showCode = ref(false)
@@ -122,111 +123,15 @@ watch(copied, (value) => {
 const { data: user } = await supabase
 	.from("players")
 	.select("*")
-	.eq("id", useSupabaseUser().value?.id).single()
-
-const fetchPlayers = async (newData: any) => {
-	const { data: fetchedPlayers } = await supabase
-		.from("players")
-		.select("*")
-		.in("id", newData.players)
-
-	if (fetchedPlayers && lobby.value) {
-		lobby.value.players = fetchedPlayers
-	}
-}
+	.eq("id", useSupabaseUser().value?.id)
+	.single()
 
 const isHost = computed(() => lobby.value?.host === user.id)
 
-function kickPlayer(id: string) {
-	removePlayer(id)
-}
-
 async function leaveLobby() {
-	removePlayer(user.id)
-	await navigateTo("/")
-}
-
-async function removePlayer(id: string) {
-	const updatedPlayerIds: Array<string> = lobby.value.playerIds.filter(playerId => playerId !== id)
-	if (!updatedPlayerIds || updatedPlayerIds.length === 0) {
-		const { error } = await supabase
-			.from("lobbies")
-			.delete()
-			.eq("id", lobby.value.id)
-
-		if (error) {
-			toast.error(`Erreur ${error.code}`, {
-				description: error.message,
-			})
-		}
-	}
-	else if (lobby.value.host === id) {
-		const { error } = await supabase
-			.from("lobbies")
-			.update({ host: updatedPlayerIds[0], players: updatedPlayerIds })
-			.eq("id", lobby.value.id)
-			.select()
-			.single()
-
-		if (error) {
-			toast.error(`Erreur ${error.code}`, {
-				description: error.message,
-			})
-		}
-	}
-	else {
-		const { error } = await supabase
-			.from("lobbies")
-			.update({ players: updatedPlayerIds })
-			.eq("id", lobby.value.id)
-			.select()
-			.single()
-
-		if (error) {
-			toast.error(`Erreur ${error.code}`, {
-				description: error.message,
-			})
-		}
-	}
-
-	const { error } = await supabase
-		.from("players")
-		.update({ status: "offline", lobby_id: null })
-		.eq("id", id)
-
-	if (error) {
-		toast.error(`Erreur ${error.code}`, {
-			description: error.message,
-		})
-	}
-}
-
-const banPlayer = async (id: string) => {
-	const { data: newData, error } = await supabase.from("lobbies").update({ banned_players: [...lobby.value.bannedPlayersId, id] }).eq("id", lobby.value.id).select()
-	console.log(newData, error)
-
-	if (error) {
-		toast.error(`Erreur ${error.code}`, {
-			description: error.message,
-		})
-	}
-	else if (newData) {
-		lobby.value.bannedPlayersId.push(id)
-		kickPlayer(id)
-	}
-}
-
-const promotePlayer = async (id: string) => {
-	const { data: newData, error } = await supabase.from("lobbies").update({ host: id }).eq("id", lobby?.value.id)
-
-	if (error) {
-		toast.error("Une erreur est survenue", {
-			description: error.message,
-		})
-	}
-	else if (newData && lobby.value) {
-		lobby.value.host = id
-	}
+	await removePlayer(new User(user), lobby.value).then(async () => {
+		await navigateTo("/")
+	})
 }
 
 onMounted(async () => {
@@ -262,11 +167,11 @@ onMounted(async () => {
 			.on(
 				"postgres_changes",
 				{ event: "*", schema: "public", table: "lobbies", filter: `id=eq.${route.params.id}` },
-				(payload) => {
+				async (payload) => {
 					if (payload.new) {
-						const newLobby = new Lobby(payload.new)
-						lobby.value.host = newLobby.host
-						fetchPlayers(payload.new)
+						const newLobby: Lobby = new Lobby(payload.new)
+						lobby.value = newLobby
+						lobby.value.players = await getPlayers(newLobby.playerIds)
 					}
 				},
 			)
@@ -282,11 +187,17 @@ async function handleUnload() {
 	navigator.sendBeacon(`/api/lobby/leave`, JSON.stringify({ lobby: { id: lobby.value?.id, host: lobby.value?.host, playerIds: lobby.value?.playerIds.filter(playerId => playerId !== user.id) }, userId: user.id }))
 }
 
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+	event.preventDefault()
+}
+
 onMounted(() => {
+	window.addEventListener("beforeunload", handleBeforeUnload)
 	window.addEventListener("unload", handleUnload)
 })
 
 onUnmounted(() => {
+	window.removeEventListener("beforeunload", handleBeforeUnload)
 	window.removeEventListener("unload", handleUnload)
 })
 </script>
