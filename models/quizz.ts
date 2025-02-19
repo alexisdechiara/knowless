@@ -28,7 +28,7 @@ export class Quizz {
 					break
 				case "expert": this.difficulty = "hard"
 					break
-				default: this.difficulty = "medium"
+				default: this.difficulty = data?.difficulty
 			}
 		}
 		else {
@@ -36,7 +36,12 @@ export class Quizz {
 		}
 		this.wikipedia = data?.wikipedia
 		this.question = data.question
-		this.answers = shuffle<Answer>(data.autres_choix.map((answer: string) => ({ answer, isCorrect: answer === data.reponse_correcte })))
+		if ("autres_choix" in data && "reponse_correcte" in data) {
+			this.answers = shuffle<Answer>(data.autres_choix.map((answer: string) => ({ answer, isCorrect: false }))).concat({ answer: data.reponse_correcte, isCorrect: true })
+		}
+		else {
+			this.answers = data.answers
+		}
 		this.anecdote = data?.anecdote
 		this.type = "four"
 	}
