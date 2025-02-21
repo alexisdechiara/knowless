@@ -15,6 +15,8 @@ export default defineEventHandler(async (event) => {
 				question: "Quel morceau a été choisi pour figurer en face B du titre ‘NewLife’?",
 				reponse_correcte: "’Shout’",
 				autres_choix: ["’Ice Machine’", "’Any Second Now’", "’See You’"],
-				wikipedia: "https://fr.wikipedia.org/wiki/New_Life" }],
+				wikipedia: "https://fr.wikipedia.org/wiki/New_Life",
+				anecdote: "L’album est sorti en 1996, et le morceau est sorti en 1997.",
+			}],
 	}
 })

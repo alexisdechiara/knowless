@@ -18,7 +18,12 @@ export class Quizz {
 	answers: Array<Answer>
 
 	constructor(data: OpenQuizzDBResult | any) {
-		this.category = data?.categorie
+		if (data?.categorie) {
+			this.category = data.categorie
+		}
+		else {
+			this.category = data?.category
+		}
 		this.theme = data?.theme
 		if (data && typeof data.difficulte === "string") {
 			switch (data.difficulte) {

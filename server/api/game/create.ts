@@ -6,7 +6,7 @@ import { Lobby } from "~/models/lobby"
 
 const querySchema = z.object({
 	lobbyId: z.string().length(4),
-	nbQuestions: z.number({ coerce: true }).min(5).max(20).default(20).optional(),
+	nbQuestions: z.number({ coerce: true }).min(1).max(20).default(20).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 		})
 	}
 
-	if (nbQuestions < 5 || nbQuestions > 20) {
+	if (nbQuestions < 1 || nbQuestions > 20) {
 		throw createError({
 			statusCode: 400,
 			statusMessage: "Nombre de questions invalide",
@@ -72,7 +72,10 @@ export default defineEventHandler(async (event) => {
 					manual: 0,
 				},
 			})
-			answers.push({ id: player, answers: new Array(nbQuestions).fill("") })
+			answers.push({
+				id: player,
+				answers: new Array(nbQuestions).fill(""),
+			})
 		}
 
 		const { data: game, error: gameError } = await supabase
@@ -81,7 +84,6 @@ export default defineEventHandler(async (event) => {
 				questions: questions,
 				scoreboard: scoreboard,
 				answers: answers,
-				status: "starting",
 			})
 			.select()
 			.single()

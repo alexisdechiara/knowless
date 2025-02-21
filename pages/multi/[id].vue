@@ -1,14 +1,44 @@
 <template>
 	<div class="fixed inset-0 flex flex-col px-64 py-32">
 		<template v-if="game">
-			<Countdown v-if="game.status === 'starting'" @finished="startGame()" />
+			<Countdown v-if="game.phase === 'start'" @finished="startGame()" />
 			<QuestionBoard
-				v-else-if="game.status === 'playing' && game?.questions[game?.currentQuestionIndex]"
+				v-else-if="game.phase === 'question' || game.phase === 'correction' && game?.questions[game?.currentQuestionIndex]"
 				:key="game.currentQuestionIndex"
+				mode="multi"
+				:phase="game.phase"
 				:content="game.questions[game.currentQuestionIndex]"
-				:question-number="game.currentQuestionIndex + 1"
-				:duration="10000"
-			/>
+				:question-number="game.currentQuestionIndex"
+				:duration="game.phase === 'question' ? 3000 : 0"
+				:lobby="lobby"
+				@answer="submitAnswer($event)"
+				@ended="game.phase === 'question' && nextQuestion()"
+			>
+				<template v-if="game.phase === 'correction'" #header>
+					<div class="absolute start-1/2 top-0 flex -translate-x-1/2 gap-2">
+						<Avatar
+							v-for="player in lobby.players"
+							:key="player.id"
+							size="sm"
+							class="ring-2 ring-offset-1"
+							:class="
+								game.questions[game.currentQuestionIndex].answers
+									.filter(answer => answer.isCorrect)
+									.map(answer => answer.answer)
+									.includes(
+										game.answers[game.answers.findLastIndex(playersAnswer => playersAnswer.id === player.id)]
+											?.answers[game.currentQuestionIndex],
+									)
+									? 'ring-green-500'
+									: 'ring-red-500'
+							"
+						>
+							<AvatarImage :src=" player.avatar ? player.avatar : ''" alt="avatar" />
+							<AvatarFallback class="text-xl">{{ player.username }}</AvatarFallback>
+						</Avatar>
+					</div>
+				</template>
+			</QuestionBoard>
 		</template>
 		<template v-else>
 			<h1 class="mb-16 text-center text-5xl font-semibold">
@@ -154,6 +184,7 @@ async function startLobby() {
 	const { error } = await useFetch("/api/game/create", {
 		method: "POST",
 		query: {
+			nbQuestions: 1,
 			lobbyId: route.params.id,
 		},
 	})
@@ -169,13 +200,68 @@ async function startGame() {
 	const { error } = await supabase
 		.from("games")
 		.update({
-			status: "playing",
+			phase: "question",
 		})
 		.eq("id", game.value?.id)
 
 	if (error) {
 		console.error(error)
 		toast.error("Une erreur est survenue lors de la mise a jour", {
+			description: error.details,
+		})
+	}
+}
+
+async function nextQuestion() {
+	if (game.value?.currentQuestionIndex != null && game.value?.currentQuestionIndex < game.value?.questions.length - 1) {
+		const { error } = await supabase
+			.from("games")
+			.update({
+				current_question_index: (game.value?.currentQuestionIndex + 1) % game.value?.questions.length,
+			})
+			.eq("id", game.value?.id)
+
+		if (error) {
+			console.error(error)
+			toast.error(`Erreur ${error.code}`, {
+				description: error.details,
+			})
+		}
+	}
+	else {
+		switchToCorrection()
+	}
+}
+
+async function submitAnswer(newAnswer: string) {
+	const { error } = await supabase
+		.rpc("update_answer", {
+			p_id: user.id, // ID du joueur
+			p_index: game.value?.currentQuestionIndex, // Index de la réponse à mettre à jour
+			p_new_answer: newAnswer, // Nouvelle réponse
+		})
+
+	if (error) {
+		console.error(error)
+		toast.error(`Erreur ${error.code}`, {
+			description: error.details,
+		})
+	}
+}
+
+async function switchToCorrection() {
+	const { error } = await supabase
+		.from("games")
+		.update({
+			current_question_index: 0,
+			current_player_index: 0,
+			phase: "correction",
+		})
+		.eq("id", game.value?.id)
+
+	if (error) {
+		console.error(error)
+		toast.error(`Erreur ${error.code}`, {
 			description: error.details,
 		})
 	}
@@ -204,7 +290,6 @@ watch(lobby, async () => {
 					"postgres_changes",
 					{ event: "*", schema: "public", table: "games", filter: `id=eq.${lobby.value?.gameId}` },
 					async (payload) => {
-						console.log(payload)
 						if (payload.new) {
 							game.value = new Game(payload.new)
 							console.log("new lobby :", game.value)

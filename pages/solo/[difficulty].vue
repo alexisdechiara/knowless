@@ -4,6 +4,7 @@
 		<template v-else-if="status === 'success'">
 			<QuestionBoard
 				:key="roundKey"
+				mode="solo"
 				:content="data"
 				:question-number="currentScore"
 				:duration="maxDurationTime"
