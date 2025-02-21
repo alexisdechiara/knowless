@@ -1,4 +1,3 @@
-<!-- TODO: Refacto le board pour ajouter le mode multiplayer avec correction -->
 <template>
 	<div class="absolute inset-0 flex size-full flex-col gap-4 p-4">
 		<ProgressBar v-if=" mode === 'solo' || phase === 'question'" :value="convertMillisecondsToPercentage" :duration="0" tickness="xl" />
@@ -130,6 +129,7 @@ type QuestionBoardProps = {
 	showRestart?: boolean
 	showBack?: boolean
 	lobby?: never
+	answer?: never
 } | {
 	mode: "multi"
 	phase: "question" | "correction"
@@ -139,6 +139,7 @@ type QuestionBoardProps = {
 	showRestart?: never
 	showBack?: never
 	lobby?: Lobby | null
+	answer?: string
 }
 
 const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "scoreBoard", "answer"])
@@ -152,6 +153,11 @@ const inputAnswer = ref<string>("")
 const emittedAnswer = ref<string>("")
 const status = ref<"correct" | "incorrect" | "pending" | undefined>(undefined)
 const showResult = ref(false)
+
+if (props.answer) {
+	if (props.content?.type === "open") inputAnswer.value = props.answer
+	else selectedAnswer.value = String(props.content?.answers.findIndex(answer => answer.answer === props.answer))
+}
 
 watchDebounced(selectedAnswer, () => {
 	emittedAnswer.value = String(props.content?.answers[Number(selectedAnswer.value)].answer)

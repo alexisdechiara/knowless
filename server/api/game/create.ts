@@ -3,6 +3,7 @@ import { Quizz } from "./../../../models/quizz"
 import type { OpenQuizzDB, OpenQuizzDBResult } from "~/models/openquizzdb"
 import { serverSupabaseClient } from "#supabase/server"
 import { Lobby } from "~/models/lobby"
+import type { Game } from "~/models/game"
 
 const querySchema = z.object({
 	lobbyId: z.string().length(4),
@@ -53,7 +54,7 @@ export default defineEventHandler(async (event) => {
 
 				if (!response.results.length) throw new Error("Aucune question reçue")
 
-				questions.push(new Quizz(response.results[0] as OpenQuizzDBResult))
+				questions.push(new Quizz(response.results[0] as OpenQuizzDBResult, { points: 3 }))
 				console.log(new Quizz(response.results[0] as OpenQuizzDBResult))
 			}
 			catch (error) {
@@ -62,19 +63,15 @@ export default defineEventHandler(async (event) => {
 			}
 		}
 
-		const scoreboard: Array<{ id: string, score: { automatic: number, manual: number } }> = []
-		const answers: Array<{ id: string, answers: Array<string> }> = []
+		const playersData: Game["playersData"] = []
 		for (const player of lobby.playerIds) {
-			scoreboard.push({
-				id: player,
-				score: {
-					automatic: 0,
-					manual: 0,
-				},
-			})
-			answers.push({
+			playersData.push({
 				id: player,
 				answers: new Array(nbQuestions).fill(""),
+				score: {
+					default: 0,
+					adjustment: 0,
+				},
 			})
 		}
 
@@ -82,8 +79,7 @@ export default defineEventHandler(async (event) => {
 			.from("games")
 			.insert({
 				questions: questions,
-				scoreboard: scoreboard,
-				answers: answers,
+				players_data: playersData,
 			})
 			.select()
 			.single()

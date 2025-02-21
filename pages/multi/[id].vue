@@ -4,41 +4,50 @@
 			<Countdown v-if="game.phase === 'start'" @finished="startGame()" />
 			<QuestionBoard
 				v-else-if="game.phase === 'question' || game.phase === 'correction' && game?.questions[game?.currentQuestionIndex]"
-				:key="game.currentQuestionIndex"
+				:key="`${game.phase}-${game.currentQuestionIndex}-${game.currentPlayerIndex}`"
 				mode="multi"
 				:phase="game.phase"
 				:content="game.questions[game.currentQuestionIndex]"
 				:question-number="game.currentQuestionIndex"
 				:duration="game.phase === 'question' ? 3000 : 0"
 				:lobby="lobby"
+				:answer="game.playersData[game.playersData.findLastIndex(playersAnswer => playersAnswer.id === user.id)]?.answers[game.currentQuestionIndex]"
 				@answer="submitAnswer($event)"
+				@good-answer="result = true"
+				@bad-answer="result = false"
 				@ended="game.phase === 'question' && nextQuestion()"
+				@next="isHost ? nextPlayerCorrection() : ''"
 			>
 				<template v-if="game.phase === 'correction'" #header>
-					<div class="absolute start-1/2 top-0 flex -translate-x-1/2 gap-2">
+					<div class="fixed end-6 top-1/2 flex -translate-y-1/2 flex-col gap-4">
 						<Avatar
 							v-for="player in lobby.players"
 							:key="player.id"
 							size="sm"
 							class="ring-2 ring-offset-1"
-							:class="
+							:class="[
 								game.questions[game.currentQuestionIndex].answers
 									.filter(answer => answer.isCorrect)
 									.map(answer => answer.answer)
 									.includes(
-										game.answers[game.answers.findLastIndex(playersAnswer => playersAnswer.id === player.id)]
+										game.playersData[game.playersData.findLastIndex(playersAnswer => playersAnswer.id === player.id)]
 											?.answers[game.currentQuestionIndex],
 									)
 									? 'ring-green-500'
-									: 'ring-red-500'
-							"
+									: 'ring-red-500',
+								game.playersData[game.currentPlayerIndex].id === player.id ? 'scale-110' : 'scale-90',
+							]"
 						>
 							<AvatarImage :src=" player.avatar ? player.avatar : ''" alt="avatar" />
 							<AvatarFallback class="text-xl">{{ player.username }}</AvatarFallback>
 						</Avatar>
 					</div>
+					<span class="absolute start-1/2 top-0 -translate-x-1/2 text-3xl font-semibold">{{ lobby.players.find(player => player.id === game?.playersData[game.currentPlayerIndex]?.id)?.username }}</span>
 				</template>
 			</QuestionBoard>
+			<pre v-else class="overflow-auto">
+				{{ game }}
+			</pre>
 		</template>
 		<template v-else>
 			<h1 class="mb-16 text-center text-5xl font-semibold">
@@ -159,6 +168,7 @@ const code = ref(String(route.params.id))
 const { copy, copied, isSupported } = useClipboard({ source: code })
 const lobby = ref<Lobby>(new Lobby())
 const game = ref<Game | null>(null)
+const result = ref<boolean>(false)
 
 watch(copied, (value) => {
 	if (value) {
@@ -229,33 +239,62 @@ async function nextQuestion() {
 		}
 	}
 	else {
-		switchToCorrection()
+		changePhase("correction")
 	}
 }
 
 async function submitAnswer(newAnswer: string) {
 	const { error } = await supabase
 		.rpc("update_answer", {
-			p_id: user.id, // ID du joueur
-			p_index: game.value?.currentQuestionIndex, // Index de la réponse à mettre à jour
+			p_game_id: game.value?.id,
+			p_player_id: user.id, // ID du joueur
 			p_new_answer: newAnswer, // Nouvelle réponse
+			p_answer_index: game.value?.currentQuestionIndex, // Index de la réponse à mettre à jour
 		})
 
 	if (error) {
 		console.error(error)
 		toast.error(`Erreur ${error.code}`, {
-			description: error.details,
+			description: error.message,
 		})
 	}
 }
 
-async function switchToCorrection() {
+async function nextPlayerCorrection() {
+	if (game.value) {
+		if (game.value?.currentQuestionIndex != null && game.value?.currentQuestionIndex < game.value?.questions.length - 1) {
+			const isLastPlayer = game.value?.playersData ? game.value?.currentPlayerIndex === game.value?.playersData.length - 1 : false
+			console.log(isLastPlayer)
+
+			const { error } = await supabase
+				.rpc("next_player_correction", {
+					p_game_id: game.value?.id,
+					p_player_id: game.value?.playersData[game.value?.currentPlayerIndex].id,
+					p_new_default_score: result.value ? game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0 + (game.value?.currentQuestionIndex != null ? game.value?.questions[game.value?.currentQuestionIndex]?.points : 0) : game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0,
+					p_new_player_index: isLastPlayer ? 0 : game.value.currentPlayerIndex || 0 + 1,
+					p_new_question_index: isLastPlayer ? (game.value?.currentQuestionIndex + 1) % game.value?.questions.length : game.value?.currentQuestionIndex,
+				})
+
+			if (error) {
+				console.error(error)
+				toast.error(`Erreur ${error.code}`, {
+					description: error.message,
+				})
+			}
+		}
+		else {
+			changePhase("adjustement")
+		}
+	}
+}
+
+async function changePhase(phase: "question" | "correction" | "adjustement") {
 	const { error } = await supabase
 		.from("games")
 		.update({
 			current_question_index: 0,
 			current_player_index: 0,
-			phase: "correction",
+			phase: phase,
 		})
 		.eq("id", game.value?.id)
 

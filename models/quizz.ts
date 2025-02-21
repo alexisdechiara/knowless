@@ -5,7 +5,7 @@ export class Quizz {
 	category?: string
 	theme?: string
 	difficulty?: string
-	points?: number
+	points: number
 	wikipedia?: string
 	image?: {
 		url: string
@@ -17,7 +17,7 @@ export class Quizz {
 	question: string
 	answers: Array<Answer>
 
-	constructor(data: OpenQuizzDBResult | any) {
+	constructor(data: OpenQuizzDBResult | any, additionalData?: Record<string, any>) {
 		if (data?.categorie) {
 			this.category = data.categorie
 		}
@@ -49,6 +49,7 @@ export class Quizz {
 		}
 		this.anecdote = data?.anecdote
 		this.type = "four"
+		this.points = data?.points || additionalData?.points || 1
 	}
 }
 
