@@ -9,6 +9,7 @@ export class User {
 	categories?: string[]
 	status?: string
 	lobbyId?: string
+	score?: number
 
 	constructor(data?: Record<string, any>) {
 		this.id = data?.id

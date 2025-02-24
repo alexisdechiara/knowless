@@ -23,7 +23,4 @@ export default defineEventHandler(async (event) => {
 		console.error(error)
 		return { error }
 	}
-	else {
-		console.log("Status mis à jour")
-	}
 })

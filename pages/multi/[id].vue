@@ -11,12 +11,12 @@
 				:question-number="game.currentQuestionIndex"
 				:duration="game.phase === 'question' ? 3000 : 0"
 				:lobby="lobby"
-				:answer="game.playersData[game.playersData.findLastIndex(playersAnswer => playersAnswer.id === user.id)]?.answers[game.currentQuestionIndex]"
+				:answer="getPlayerAnswerByIndex"
 				@answer="submitAnswer($event)"
 				@good-answer="result = true"
 				@bad-answer="result = false"
 				@ended="game.phase === 'question' && nextQuestion()"
-				@next="isHost ? nextPlayerCorrection() : ''"
+				@next="isHost && nextPlayerCorrection()"
 			>
 				<template v-if="game.phase === 'correction'" #header>
 					<div class="fixed end-6 top-1/2 flex -translate-y-1/2 flex-col gap-4">
@@ -45,9 +45,13 @@
 					<span class="absolute start-1/2 top-0 -translate-x-1/2 text-3xl font-semibold">{{ lobby.players.find(player => player.id === game?.playersData[game.currentPlayerIndex]?.id)?.username }}</span>
 				</template>
 			</QuestionBoard>
-			<pre v-else class="overflow-auto">
-				{{ game }}
-			</pre>
+			<div v-else-if="game.phase === 'adjustment'" class="flex justify-center">
+				<div class="grid w-fit auto-cols-auto grid-cols-6 gap-12">
+					<PlayerAdjustment v-for="playerData in game.playersData" :key="playerData.id" v-model="playerData.score.adjustment" :player="new User(lobby.players.find((player: User) => player.id === playerData.id))" />
+					<NextButton title="Terminer" description="Voir les résultats" @click="changePhase('scoreboard')" />
+				</div>
+			</div>
+			<Scoreboard v-else-if="game.phase === 'scoreboard'" :game="game" :players="lobby.players" />
 		</template>
 		<template v-else>
 			<h1 class="mb-16 text-center text-5xl font-semibold">
@@ -262,49 +266,71 @@ async function submitAnswer(newAnswer: string) {
 
 async function nextPlayerCorrection() {
 	if (game.value) {
-		if (game.value?.currentQuestionIndex != null && game.value?.currentQuestionIndex < game.value?.questions.length - 1) {
-			const isLastPlayer = game.value?.playersData ? game.value?.currentPlayerIndex === game.value?.playersData.length - 1 : false
-			console.log(isLastPlayer)
+		const isLastPlayer = game.value?.playersData ? game.value?.currentPlayerIndex === game.value?.playersData.length - 1 : false
+		const newDefaultScore = result.value ? game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0 + (game.value?.currentQuestionIndex != null ? game.value?.questions[game.value?.currentQuestionIndex]?.points : 0) : game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0
+		console.log(newDefaultScore)
 
-			const { error } = await supabase
-				.rpc("next_player_correction", {
-					p_game_id: game.value?.id,
-					p_player_id: game.value?.playersData[game.value?.currentPlayerIndex].id,
-					p_new_default_score: result.value ? game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0 + (game.value?.currentQuestionIndex != null ? game.value?.questions[game.value?.currentQuestionIndex]?.points : 0) : game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0,
-					p_new_player_index: isLastPlayer ? 0 : game.value.currentPlayerIndex || 0 + 1,
-					p_new_question_index: isLastPlayer ? (game.value?.currentQuestionIndex + 1) % game.value?.questions.length : game.value?.currentQuestionIndex,
-				})
+		const { error } = await supabase
+			.rpc("next_player_correction", {
+				p_game_id: game.value?.id,
+				p_player_id: game.value?.playersData[game.value?.currentPlayerIndex].id,
+				p_new_default_score: newDefaultScore,
+				p_new_player_index: isLastPlayer ? 0 : game.value.currentPlayerIndex || 0 + 1,
+				p_new_question_index: isLastPlayer ? (game.value?.currentQuestionIndex + 1) % game.value?.questions.length : game.value?.currentQuestionIndex,
+			})
 
-			if (error) {
-				console.error(error)
-				toast.error(`Erreur ${error.code}`, {
-					description: error.message,
-				})
-			}
+		if (error) {
+			console.error(error)
+			toast.error(`Erreur ${error.code}`, {
+				description: error.message,
+			})
 		}
-		else {
-			changePhase("adjustement")
+		else if (isLastPlayer) {
+			changePhase("adjustment")
 		}
 	}
 }
 
-async function changePhase(phase: "question" | "correction" | "adjustement") {
-	const { error } = await supabase
-		.from("games")
-		.update({
-			current_question_index: 0,
-			current_player_index: 0,
-			phase: phase,
-		})
-		.eq("id", game.value?.id)
+async function changePhase(phase: "start" | "question" | "correction" | "adjustment" | "scoreboard" | "end") {
+	if (phase === "scoreboard") {
+		console.log(game.value?.playersData)
+		const { error } = await supabase
+			.from("games")
+			.update({
+				phase: phase,
+				current_player_index: 0,
+				current_question_index: 0,
+				players_data: game.value?.playersData,
+			})
+			.eq("id", game.value?.id)
 
-	if (error) {
-		console.error(error)
-		toast.error(`Erreur ${error.code}`, {
-			description: error.details,
-		})
+		if (error) {
+			console.error(error)
+			toast.error(`Erreur ${error.code}`, {
+				description: error.details,
+			})
+		}
+	}
+	else {
+		const { error } = await supabase
+			.from("games")
+			.update({
+				current_question_index: 0,
+				current_player_index: 0,
+				phase: phase,
+			})
+			.eq("id", game.value?.id)
+
+		if (error) {
+			console.error(error)
+			toast.error(`Erreur ${error.code}`, {
+				description: error.details,
+			})
+		}
 	}
 }
+
+const getPlayerAnswerByIndex = computed(() => game.value?.playersData[game.value?.currentPlayerIndex]?.answers[game.value?.currentQuestionIndex])
 
 watch(lobby, async () => {
 	const channel = ref<null | RealtimeChannel>()

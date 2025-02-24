@@ -6,7 +6,15 @@ export class Game {
 	createdAt: Date
 	phase: string | "start" | "question" | "correction" | "adjustment" | "scoreboard" | "end"
 	questions: Array<Quizz>
-	playersData: Array<{ id: string, answers: Array<string>, score: { default: number, adjustment: number } }>
+	playersData: Array<{
+		id: string
+		answers: Array<string>
+		score: {
+			default: number
+			adjustment: number
+		}
+	}>
+
 	currentQuestionIndex: number
 	currentPlayerIndex: number
 
