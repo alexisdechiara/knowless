@@ -30,7 +30,7 @@
 			<template v-if=" mode === 'multi' && phase === 'correction'">
 				<span v-if="content?.points" class="absolute right-0 top-0 text-xl font-semibold">{{ content.points }} {{ content.points > 1 ? 'points' : 'point' }}</span>
 			</template>
-			<slot name="header" />
+			<slot name="header" :status="status" />
 		</div>
 		<div class="relative mt-16 flex size-full flex-col items-center justify-start sm:mt-0 sm:justify-center">
 			<div class="flex flex-col gap-y-4 px-6 sm:w-1/2 sm:px-0">
@@ -96,7 +96,7 @@
 				</Tooltip>
 			</TooltipProvider>
 
-			<Button v-if=" status === 'correct' && showResult" variant="secondary" class="absolute bottom-0 right-0 flex h-fit py-4 pl-5 sm:bottom-8 sm:right-8" @click="emit('next')">
+			<Button v-if="((mode === 'solo' && status === 'correct') || (mode === 'multi' && phase === 'correction')) && showResult && showNext" variant="secondary" class="absolute bottom-0 right-0 flex h-fit py-4 pl-5 sm:bottom-8 sm:right-8" @click="emit('next')">
 				<div class="flex flex-col">
 					<span class="text-xl font-medium">Suivant</span>
 					<span v-if="nbQuestion" class="text-sm text-secondary-foreground/50">Question {{ nbQuestion + 1 }}</span>
@@ -117,7 +117,6 @@
 <script lang="ts" setup generic="UNUSED">
 import NumberFlow, { NumberFlowGroup } from "@number-flow/vue"
 import { watchDebounced } from "@vueuse/core"
-import type { Lobby } from "~/models/lobby"
 import type { Quizz } from "~/models/quizz"
 
 type QuestionBoardProps = {
@@ -128,7 +127,7 @@ type QuestionBoardProps = {
 	questionNumber?: number
 	showRestart?: boolean
 	showBack?: boolean
-	lobby?: never
+	showNext?: boolean
 	answer?: never
 } | {
 	mode: "multi"
@@ -138,13 +137,15 @@ type QuestionBoardProps = {
 	questionNumber?: number
 	showRestart?: never
 	showBack?: never
-	lobby?: Lobby | null
 	answer?: string
+	showNext?: boolean
 }
 
 const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "scoreBoard", "answer"])
 
-const props = defineProps<QuestionBoardProps>()
+const props = withDefaults(defineProps<QuestionBoardProps>(), {
+	showNext: true,
+})
 
 const nbQuestion = computed(() => props?.questionNumber || props?.questionNumber === 0 ? props.questionNumber + 1 : undefined)
 const remainingTime = ref(0)

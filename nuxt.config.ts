@@ -12,6 +12,7 @@ export default defineNuxtConfig({
 		"@nuxt/image",
 		"@nuxt/content",
 		"@nuxtjs/supabase",
+		"motion-v/nuxt",
 	],
 
 	ssr: false,

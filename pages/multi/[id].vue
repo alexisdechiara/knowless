@@ -12,6 +12,7 @@
 				:duration="game.phase === 'question' ? 3000 : 0"
 				:lobby="lobby"
 				:answer="getPlayerAnswerByIndex"
+				:show-next="isHost"
 				@answer="submitAnswer($event)"
 				@good-answer="result = true"
 				@bad-answer="result = false"
@@ -51,7 +52,7 @@
 					<NextButton title="Terminer" description="Voir les résultats" @click="changePhase('scoreboard')" />
 				</div>
 			</div>
-			<Scoreboard v-else-if="game.phase === 'scoreboard'" :game="game" :players="lobby.players" />
+			<Scoreboard v-else-if="game.phase === 'scoreboard'" :game="game" :players="lobby.players" :current-index="game.currentPlayerIndex" @next-player="nextPlayerScoreboard()" />
 		</template>
 		<template v-else>
 			<h1 class="mb-16 text-center text-5xl font-semibold">
@@ -215,6 +216,22 @@ async function startGame() {
 		.from("games")
 		.update({
 			phase: "question",
+		})
+		.eq("id", game.value?.id)
+
+	if (error) {
+		console.error(error)
+		toast.error("Une erreur est survenue lors de la mise a jour", {
+			description: error.details,
+		})
+	}
+}
+
+async function nextPlayerScoreboard() {
+	const { error } = await supabase
+		.from("games")
+		.update({
+			current_player_index: (game.value?.currentPlayerIndex || 0) + 1,
 		})
 		.eq("id", game.value?.id)
 
