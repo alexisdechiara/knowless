@@ -9,18 +9,19 @@
 				:phase="game.phase"
 				:content="game.questions[game.currentQuestionIndex]"
 				:question-number="game.currentQuestionIndex"
-				:duration="game.phase === 'question' ? 3000 : 0"
+				:duration="game.phase === 'question' ? 5000 : 0"
 				:lobby="lobby"
 				:answer="getPlayerAnswerByIndex"
 				:show-next="isHost"
 				@answer="submitAnswer($event)"
 				@good-answer="result = true"
 				@bad-answer="result = false"
+				@corrected="(correction: boolean) => result = correction"
 				@ended="game.phase === 'question' && nextQuestion()"
 				@next="isHost && nextPlayerCorrection()"
 			>
 				<template v-if="game.phase === 'correction'" #header>
-					<div class="fixed end-6 top-1/2 flex -translate-y-1/2 flex-col gap-4">
+					<!-- <div class="fixed end-6 top-1/2 flex -translate-y-1/2 flex-col gap-4">
 						<Avatar
 							v-for="player in lobby.players"
 							:key="player.id"
@@ -42,7 +43,7 @@
 							<AvatarImage :src=" player.avatar ? player.avatar : ''" alt="avatar" />
 							<AvatarFallback class="text-xl">{{ player.username }}</AvatarFallback>
 						</Avatar>
-					</div>
+					</div> -->
 					<span class="absolute start-1/2 top-0 -translate-x-1/2 text-3xl font-semibold">{{ lobby.players.find(player => player.id === game?.playersData[game.currentPlayerIndex]?.id)?.username }}</span>
 				</template>
 			</QuestionBoard>

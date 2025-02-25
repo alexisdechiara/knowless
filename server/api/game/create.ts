@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
 
 				if (!response.results.length) throw new Error("Aucune question reçue")
 
-				questions.push(new Quizz(response.results[0] as OpenQuizzDBResult, { points: 3 }))
+				questions.push(new Quizz(response.results[0] as OpenQuizzDBResult, { points: response.results[0].difficulte === "débutant" ? 1 : response.results[0].difficulte === "confirmé" ? 2 : 3, type: "open" }))
 				console.log(new Quizz(response.results[0] as OpenQuizzDBResult))
 			}
 			catch (error) {

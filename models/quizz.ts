@@ -42,13 +42,30 @@ export class Quizz {
 		this.wikipedia = data?.wikipedia
 		this.question = data.question
 		if ("autres_choix" in data && "reponse_correcte" in data) {
-			this.answers = shuffle<Answer>(data.autres_choix.map((answer: string) => ({ answer, isCorrect: false }))).concat({ answer: data.reponse_correcte, isCorrect: true })
+			this.answers = shuffle<Answer>([
+				...data.autres_choix.map((answer: string) => ({ answer, isCorrect: false })),
+				{ answer: data.reponse_correcte, isCorrect: true },
+			])
 		}
 		else {
 			this.answers = data.answers
 		}
 		this.anecdote = data?.anecdote
-		this.type = "four"
+		if (additionalData?.type) {
+			this.type = additionalData.type
+		}
+		else if (data?.type) {
+			this.type = data.type
+		}
+		else if ("autres_choix" in data && data.autres_choix.length > 2) {
+			this.type = "four"
+		}
+		else if ("autres_choix" in data && data.autres_choix.length === 1) {
+			this.type = "two"
+		}
+		else {
+			this.type = "open"
+		}
 		this.points = data?.points || additionalData?.points || 1
 	}
 }

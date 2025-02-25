@@ -36,7 +36,19 @@
 			<div class="flex flex-col gap-y-4 px-6 sm:w-1/2 sm:px-0">
 				<NuxtImg v-if="content?.image" class="aspect-video rounded-md" :src="content?.image?.url" :alt="content?.image?.alt" />
 				<span class="mb-4 text-pretty text-center text-2xl font-semibold sm:mb-8 sm:text-3xl">{{ content?.question }}</span>
-				<Input v-if="content?.type === 'open'" v-model="inputAnswer" type="text" />
+				<template v-if="content?.type === 'open'">
+					<span v-if="mode === 'multi' && phase === 'correction'" class="text-center">
+						<bold class="font-medium">Réponse : </bold>
+						{{ content.answers.filter((answer: Quizz["answers"][number]) => answer.isCorrect).map((answer : Quizz["answers"][number]) => answer.answer).join(', ') }}
+					</span>
+					<Input ref="openInput" v-model="inputAnswer" type="text" class="mx-auto max-w-xs" :disabled="mode === 'multi' && phase === 'correction'" />
+					<Switch v-if="mode === 'multi' && phase === 'correction'" v-model:checked="isCorrect" class="mx-auto data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500" @update:checked="emit('corrected', isCorrect)">
+						<template #thumb>
+							<Icon v-if="isCorrect" name="lucide:check" />
+							<Icon v-else name="lucide:x" />
+						</template>
+					</Switch>
+				</template>
 				<ToggleGroup v-else-if="content?.type === 'four' || content?.type === 'two'" v-model="selectedAnswer" :type="checkMultipleCorrectAnswers ? 'multiple' : 'single'" variant="outline" :class="{ 'pointer-events-none': showResult }" class="grid auto-rows-fr grid-cols-2 gap-4">
 					<ToggleGroupItem v-for="(choice, index) in content.answers" :key="`choice${index}`" :ref="`choice-${index}`" :data-result="showResult" :class="{ correctAnswerClass: choice.isCorrect, selectedAnswerClass: selectedAnswer === String(index) && !choice.isCorrect }" class="size-full py-4" :value="String(index)">
 						{{ choice.answer }}
@@ -116,7 +128,7 @@
 
 <script lang="ts" setup generic="UNUSED">
 import NumberFlow, { NumberFlowGroup } from "@number-flow/vue"
-import { watchDebounced } from "@vueuse/core"
+import { useFocus, watchDebounced } from "@vueuse/core"
 import type { Quizz } from "~/models/quizz"
 
 type QuestionBoardProps = {
@@ -141,7 +153,7 @@ type QuestionBoardProps = {
 	showNext?: boolean
 }
 
-const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "scoreBoard", "answer"])
+const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "scoreBoard", "answer", "corrected"])
 
 const props = withDefaults(defineProps<QuestionBoardProps>(), {
 	showNext: true,
@@ -154,9 +166,15 @@ const inputAnswer = ref<string>("")
 const emittedAnswer = ref<string>("")
 const status = ref<"correct" | "incorrect" | "pending" | undefined>(undefined)
 const showResult = ref(false)
+const isCorrect = ref<boolean>(false)
+const openInput = shallowRef<HTMLInputElement | null>()
+
+useFocus(openInput, { initialValue: true })
 
 if (props.answer) {
-	if (props.content?.type === "open") inputAnswer.value = props.answer
+	if (props.content?.type === "open") {
+		inputAnswer.value = props.answer
+	}
 	else selectedAnswer.value = String(props.content?.answers.findIndex(answer => answer.answer === props.answer))
 }
 
@@ -171,11 +189,16 @@ watchDebounced(inputAnswer, () => {
 }, { debounce: 1000 })
 
 onUnmounted(() => {
-	if (props.content?.type === "open" && emittedAnswer.value !== inputAnswer.value) {
-		emit("answer", inputAnswer.value)
+	if (inputAnswer.value === "" && selectedAnswer.value === "") {
+		emit("answer", "")
 	}
-	else if ((props.content?.type === "four" || props.content?.type === "two") && emittedAnswer.value !== selectedAnswer.value) {
-		emit("answer", String(props.content?.answers[Number(selectedAnswer.value)].answer))
+	else {
+		if (props.content?.type === "open" && emittedAnswer.value !== inputAnswer.value) {
+			emit("answer", inputAnswer.value)
+		}
+		else if ((props.content?.type === "four" || props.content?.type === "two") && emittedAnswer.value !== selectedAnswer.value) {
+			emit("answer", String(props.content?.answers[Number(selectedAnswer.value)].answer))
+		}
 	}
 })
 
@@ -201,7 +224,31 @@ function startTimer(nbMilliseconds: number) {
 	else {
 		if (props.mode === "solo" || (props.mode === "multi" && props.phase === "correction")) {
 			showResult.value = true
-			if (selectedAnswer.value === String(props.content?.answers.findIndex(answer => answer.isCorrect))) {
+			if (props.content?.type === "open") {
+				isCorrect.value = props.content.answers.some((answer) => {
+					// Fonction pour normaliser une chaîne: minuscules, sans accents, sans ponctuation, espaces normalisés
+					const normalizeString = (str: string) => {
+						return str
+							.toLowerCase() // Convertir en minuscules
+							.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
+							.replace(/[.,;:!?'"()[\]{}]/g, "") // Supprimer la ponctuation
+							.replace(/\s+/g, " ") // Normaliser les espaces multiples
+							.trim() // Supprimer les espaces de début et fin
+					}
+
+					// Normaliser les deux chaînes pour la comparaison
+					const formattedAnswer = normalizeString(answer.answer)
+					const formattedInput = normalizeString(inputAnswer.value)
+
+					// Vérification avec les chaînes normalisées
+					return formattedAnswer === formattedInput
+				})
+			}
+			else if (props.content?.type === "four" || props.content?.type === "two") {
+				isCorrect.value = selectedAnswer.value === String(props.content?.answers.findIndex(answer => answer.isCorrect))
+			}
+
+			if (isCorrect.value) {
 				status.value = "correct"
 				emit("goodAnswer")
 			}
