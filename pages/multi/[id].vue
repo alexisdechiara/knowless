@@ -21,30 +21,13 @@
 				@next="isHost && nextPlayerCorrection()"
 			>
 				<template v-if="game.phase === 'correction'" #header>
-					<!-- <div class="fixed end-6 top-1/2 flex -translate-y-1/2 flex-col gap-4">
-						<Avatar
-							v-for="player in lobby.players"
-							:key="player.id"
-							size="sm"
-							class="ring-2 ring-offset-1"
-							:class="[
-								game.questions[game.currentQuestionIndex].answers
-									.filter(answer => answer.isCorrect)
-									.map(answer => answer.answer)
-									.includes(
-										game.playersData[game.playersData.findLastIndex(playersAnswer => playersAnswer.id === player.id)]
-											?.answers[game.currentQuestionIndex],
-									)
-									? 'ring-green-500'
-									: 'ring-red-500',
-								game.playersData[game.currentPlayerIndex].id === player.id ? 'scale-110' : 'scale-90',
-							]"
-						>
+					<div class="fixed left-1/2 top-4 flex -translate-x-1/2 items-center gap-4">
+						<Avatar v-for="player in surroundingPlayers" :key="player.id" :size="game.playersData[game.currentPlayerIndex].id === player.id ? 'base' : 'sm'">
 							<AvatarImage :src=" player.avatar ? player.avatar : ''" alt="avatar" />
 							<AvatarFallback class="text-xl">{{ player.username }}</AvatarFallback>
 						</Avatar>
-					</div> -->
-					<span class="absolute start-1/2 top-0 -translate-x-1/2 text-3xl font-semibold">{{ lobby.players.find(player => player.id === game?.playersData[game.currentPlayerIndex]?.id)?.username }}</span>
+					</div>
+					<span class="absolute start-1/2 top-20 -translate-x-1/2 text-4xl font-semibold">{{ lobby.players.find(player => player.id === game?.playersData[game.currentPlayerIndex]?.id)?.username }}</span>
 				</template>
 			</QuestionBoard>
 			<div v-else-if="game.phase === 'adjustment'" class="flex justify-center">
@@ -71,7 +54,7 @@
 			</h1>
 			<div class="grid size-full grid-cols-5 gap-x-32">
 				<div class="col-span-2 flex w-fit flex-col">
-					<div class="flex items-center gap-4">
+					<div class="flex w-full max-w-lg items-center gap-4 overflow-auto">
 						<Avatar size="lg">
 							<AvatarImage :src="user.avatar ? user.avatar : ''" alt="avatar" />
 							<AvatarFallback class="text-xl">{{ user.username }}</AvatarFallback>
@@ -374,8 +357,12 @@ watch(lobby, async () => {
 					{ event: "*", schema: "public", table: "games", filter: `id=eq.${lobby.value?.gameId}` },
 					async (payload) => {
 						if (payload.new) {
-							game.value = new Game(payload.new)
-							console.log("new lobby :", game.value)
+							const updatedGame: Game = new Game(payload.new)
+							console.log(game.value?.phase === "question", updatedGame.phase === "question", JSON.stringify(updatedGame.playersData) !== JSON.stringify(game.value?.playersData))
+							if (!(game.value?.phase === "question" && updatedGame.phase === "question" && JSON.stringify(updatedGame.playersData) !== JSON.stringify(game.value?.playersData))) {
+								console.log("game updated")
+								game.value = updatedGame
+							}
 						}
 					},
 				)
@@ -384,6 +371,32 @@ watch(lobby, async () => {
 	}
 	else if (channel.value) {
 		supabase.removeChannel(channel.value as RealtimeChannel)
+	}
+})
+
+const surroundingPlayers = computed(() => {
+	if (game.value) {
+		let surroundingPlayerIds: Array<string> = []
+		if (game.value?.playersData && game.value.playersData.length > 12) {
+			if (game.value?.currentPlayerIndex == 0) {
+				surroundingPlayerIds = game.value?.playersData.slice(0, 12).map(player => player.id)
+			}
+			else if (game.value?.currentPlayerIndex == game.value?.playersData.length - 1) {
+				surroundingPlayerIds = game.value?.playersData.slice(-12).map(player => player.id)
+			}
+			else {
+				surroundingPlayerIds = game.value?.playersData.slice(game.value?.currentPlayerIndex - 5, game.value?.currentPlayerIndex + 6).map(player => player.id)
+			}
+		}
+		else {
+			surroundingPlayerIds = game.value?.playersData.map(player => player.id)
+		}
+		return lobby.value?.players.filter(player => surroundingPlayerIds.includes(player.id)).sort((a, b) => {
+			return surroundingPlayerIds.indexOf(a.id) - surroundingPlayerIds.indexOf(b.id)
+		})
+	}
+	else {
+		return []
 	}
 })
 
