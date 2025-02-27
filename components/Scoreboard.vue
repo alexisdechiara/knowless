@@ -32,7 +32,7 @@
 		</AnimatePresence>
 	</div>
 	<h1 v-else class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-16 text-5xl font-semibold">Voici les résutats ...</h1>
-	<NextButton v-if="sortedPlayersByScore.length - currentIndex > 0" title="Prochain joueur" :description="`Voir la ${sortedPlayersByScore.length - currentIndex}ᵉ place`" @click="$emit('next-player')" />
+	<NextButton :variant="sortedPlayersByScore.length - currentIndex > 0 ? 'outline' : 'default'" :title="sortedPlayersByScore.length - currentIndex > 0 ? 'Prochain joueur' : 'Retour au salon'" :description="`Voir la ${sortedPlayersByScore.length - currentIndex}ᵉ place`" @click="sortedPlayersByScore.length - currentIndex > 0 ? $emit('next-player') : $emit('end')" />
 </template>
 
 <script lang="ts" setup>
@@ -43,7 +43,7 @@ definePageMeta({
 	layout: "default",
 })
 
-defineEmits(["next-player"])
+defineEmits(["next-player", "end"])
 
 const props = defineProps<{
 	game: Game

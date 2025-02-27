@@ -42,7 +42,7 @@
 						{{ content.answers.filter((answer: Quizz["answers"][number]) => answer.isCorrect).map((answer : Quizz["answers"][number]) => answer.answer).join(', ') }}
 					</span>
 					<Input ref="openInput" v-model="inputAnswer" type="text" class="mx-auto max-w-xs" :disabled="mode === 'multi' && phase === 'correction'" />
-					<Switch v-if="mode === 'multi' && phase === 'correction'" v-model:checked="isCorrect" class="mx-auto data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500" @update:checked="emit('corrected', isCorrect)">
+					<Switch v-if="mode === 'multi' && phase === 'correction' && showSwitch" v-model:checked="isCorrect" class="mx-auto data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500" @update:checked="emit('corrected', isCorrect)">
 						<template #thumb>
 							<Icon v-if="isCorrect" name="lucide:check" />
 							<Icon v-else name="lucide:x" />
@@ -108,13 +108,17 @@
 				</Tooltip>
 			</TooltipProvider>
 
-			<Button v-if="((mode === 'solo' && status === 'correct') || (mode === 'multi' && phase === 'correction')) && showResult && showNext" variant="secondary" class="absolute bottom-0 right-0 flex h-fit py-4 pl-5 sm:bottom-8 sm:right-8" @click="emit('next')">
-				<div class="flex flex-col">
-					<span class="text-xl font-medium">Suivant</span>
-					<span v-if="nbQuestion" class="text-sm text-secondary-foreground/50">Question {{ nbQuestion + 1 }}</span>
-				</div>
-				<Icon name="lucide:arrow-right" class="text-3xl" />
-			</Button>
+			<template v-if="((mode === 'solo' && status === 'correct') || (mode === 'multi' && phase === 'correction')) && showResult && showNext">
+				<slot v-if="$slots.next" name="next" />
+
+				<Button v-else variant="secondary" class="absolute bottom-0 right-0 flex h-fit py-4 pl-5 sm:bottom-8 sm:right-8" @click="emit('next')">
+					<div class="flex flex-col">
+						<span class="text-xl font-medium">Suivant</span>
+						<span v-if="nbQuestion" class="text-sm text-secondary-foreground/50">Question {{ nbQuestion + 1 }}</span>
+					</div>
+					<Icon name="lucide:arrow-right" class="text-3xl" />
+				</Button>
+			</template>
 
 			<div v-if="status === 'incorrect' && showResult" class="absolute bottom-0 right-0 mt-16 flex justify-between gap-x-2 sm:bottom-8 sm:right-8">
 				<Button v-if="showBack" size="icon" variant="secondary" class="px-7 py-6 text-xl" @click="emit('back')">
@@ -140,6 +144,7 @@ type QuestionBoardProps = {
 	showRestart?: boolean
 	showBack?: boolean
 	showNext?: boolean
+	showSwitch?: boolean
 	answer?: never
 } | {
 	mode: "multi"
@@ -151,6 +156,7 @@ type QuestionBoardProps = {
 	showBack?: never
 	answer?: string
 	showNext?: boolean
+	showSwitch?: boolean
 }
 
 const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "scoreBoard", "answer", "corrected"])

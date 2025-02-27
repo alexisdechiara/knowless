@@ -13,6 +13,7 @@
 				:lobby="lobby"
 				:answer="getPlayerAnswerByIndex"
 				:show-next="isHost"
+				:show-switch="isHost"
 				@answer="submitAnswer($event)"
 				@good-answer="result = true"
 				@bad-answer="result = false"
@@ -29,6 +30,9 @@
 					</div>
 					<span class="absolute start-1/2 top-20 -translate-x-1/2 text-4xl font-semibold">{{ lobby.players.find(player => player.id === game?.playersData[game.currentPlayerIndex]?.id)?.username }}</span>
 				</template>
+				<template #next>
+					<NextButton :variant="isLastPlayer && game.currentQuestionIndex === game.questions.length - 1 ? 'default' : 'outline'" :title="isLastPlayer && game.currentQuestionIndex === game.questions.length - 1 ? 'Ajustements' : isLastPlayer ? 'Question suivante' : 'Joueur suivant'" @click="isHost && nextPlayerCorrection()" />
+				</template>
 			</QuestionBoard>
 			<div v-else-if="game.phase === 'adjustment'" class="flex justify-center">
 				<div class="grid w-fit auto-cols-auto grid-cols-6 gap-12">
@@ -36,7 +40,7 @@
 					<NextButton title="Terminer" description="Voir les résultats" @click="changePhase('scoreboard')" />
 				</div>
 			</div>
-			<Scoreboard v-else-if="game.phase === 'scoreboard'" :game="game" :players="lobby.players" :current-index="game.currentPlayerIndex" @next-player="nextPlayerScoreboard()" />
+			<Scoreboard v-else-if="game.phase === 'scoreboard'" :game="game" :players="lobby.players" :current-index="game?.currentPlayerIndex" @next-player="nextPlayerScoreboard()" @end="changePhase('end')" />
 		</template>
 		<template v-else>
 			<h1 class="mb-16 text-center text-5xl font-semibold">
@@ -183,7 +187,7 @@ async function startLobby() {
 	const { error } = await useFetch("/api/game/create", {
 		method: "POST",
 		query: {
-			nbQuestions: 1,
+			nbQuestions: 3,
 			lobbyId: route.params.id,
 		},
 	})
@@ -265,9 +269,10 @@ async function submitAnswer(newAnswer: string) {
 	}
 }
 
+const isLastPlayer = computed(() => game.value?.playersData ? game.value?.currentPlayerIndex === game.value?.playersData.length - 1 : false)
+
 async function nextPlayerCorrection() {
 	if (game.value) {
-		const isLastPlayer = game.value?.playersData ? game.value?.currentPlayerIndex === game.value?.playersData.length - 1 : false
 		const newDefaultScore = result.value ? game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0 + (game.value?.currentQuestionIndex != null ? game.value?.questions[game.value?.currentQuestionIndex]?.points : 0) : game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0
 		console.log(newDefaultScore)
 
@@ -276,8 +281,8 @@ async function nextPlayerCorrection() {
 				p_game_id: game.value?.id,
 				p_player_id: game.value?.playersData[game.value?.currentPlayerIndex].id,
 				p_new_default_score: newDefaultScore,
-				p_new_player_index: isLastPlayer ? 0 : game.value.currentPlayerIndex || 0 + 1,
-				p_new_question_index: isLastPlayer ? (game.value?.currentQuestionIndex + 1) % game.value?.questions.length : game.value?.currentQuestionIndex,
+				p_new_player_index: isLastPlayer.value ? 0 : game.value.currentPlayerIndex || 0 + 1,
+				p_new_question_index: isLastPlayer.value ? (game.value?.currentQuestionIndex + 1) % game.value?.questions.length : game.value?.currentQuestionIndex,
 			})
 
 		if (error) {
@@ -286,7 +291,7 @@ async function nextPlayerCorrection() {
 				description: error.message,
 			})
 		}
-		else if (isLastPlayer) {
+		else if (isLastPlayer.value && game.value?.currentQuestionIndex == game.value.questions.length - 1) {
 			changePhase("adjustment")
 		}
 	}
@@ -329,6 +334,27 @@ async function changePhase(phase: "start" | "question" | "correction" | "adjustm
 			})
 		}
 	}
+
+	if (phase === "end") {
+		const { data, error } = await supabase
+			.from("lobbies")
+			.update({
+				game_id: null,
+			})
+			.eq("id", lobby.value?.id)
+			.select()
+			.single()
+
+		if (error) {
+			console.error(error)
+			toast.error(`Erreur ${error.code}`, {
+				description: error.details,
+			})
+		}
+		else if (data) {
+			lobby.value = new Lobby(data)
+		}
+	}
 }
 
 const getPlayerAnswerByIndex = computed(() => game.value?.playersData[game.value?.currentPlayerIndex]?.answers[game.value?.currentQuestionIndex])
@@ -358,8 +384,7 @@ watch(lobby, async () => {
 					async (payload) => {
 						if (payload.new) {
 							const updatedGame: Game = new Game(payload.new)
-							console.log(game.value?.phase === "question", updatedGame.phase === "question", JSON.stringify(updatedGame.playersData) !== JSON.stringify(game.value?.playersData))
-							if (!(game.value?.phase === "question" && updatedGame.phase === "question" && JSON.stringify(updatedGame.playersData) !== JSON.stringify(game.value?.playersData))) {
+							if (!(game.value?.phase === "question" && updatedGame.phase === "question" && JSON.stringify(updatedGame.playersData) !== JSON.stringify(game.value?.playersData) && updatedGame.currentQuestionIndex === game.value?.currentQuestionIndex)) {
 								console.log("game updated")
 								game.value = updatedGame
 							}
@@ -371,21 +396,25 @@ watch(lobby, async () => {
 	}
 	else if (channel.value) {
 		supabase.removeChannel(channel.value as RealtimeChannel)
+		game.value = null
+	}
+	else {
+		game.value = null
 	}
 })
 
 const surroundingPlayers = computed(() => {
 	if (game.value) {
 		let surroundingPlayerIds: Array<string> = []
-		if (game.value?.playersData && game.value.playersData.length > 12) {
-			if (game.value?.currentPlayerIndex == 0) {
-				surroundingPlayerIds = game.value?.playersData.slice(0, 12).map(player => player.id)
+		if (game.value?.playersData && game.value.playersData.length > 5) {
+			if (game.value?.currentPlayerIndex < 5) {
+				surroundingPlayerIds = game.value?.playersData.slice(0, 5).map(player => player.id)
 			}
-			else if (game.value?.currentPlayerIndex == game.value?.playersData.length - 1) {
-				surroundingPlayerIds = game.value?.playersData.slice(-12).map(player => player.id)
+			else if (game.value?.currentPlayerIndex > game.value?.playersData.length - 6) {
+				surroundingPlayerIds = game.value?.playersData.slice(-5).map(player => player.id)
 			}
 			else {
-				surroundingPlayerIds = game.value?.playersData.slice(game.value?.currentPlayerIndex - 5, game.value?.currentPlayerIndex + 6).map(player => player.id)
+				surroundingPlayerIds = game.value?.playersData.slice(game.value?.currentPlayerIndex - 2, game.value?.currentPlayerIndex + 3).map(player => player.id)
 			}
 		}
 		else {
