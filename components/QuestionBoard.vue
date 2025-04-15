@@ -2,7 +2,10 @@
 	<div class="absolute inset-0 flex size-full flex-col gap-4 p-4">
 		<ProgressBar v-if=" mode === 'solo' || phase === 'question'" :value="convertMillisecondsToPercentage" :duration="0" tickness="xl" />
 		<div class="relative h-9 w-full">
-			<Badge :class="content?.difficulty === 'easy' ? 'bg-emerald-500' : content?.difficulty === 'hard' ? 'bg-red-500' : 'bg-amber-500'" class="pointer-events-none absolute start-0 top-0 px-4 py-1 text-sm capitalize">{{ content?.difficulty }}</Badge>
+			<div class="pointer-events-none absolute start-0 top-0 inline-flex gap-x-4 capitalize">
+				<Badge :class="content?.difficulty === 'easy' ? 'bg-emerald-500' : content?.difficulty === 'hard' ? 'bg-red-500' : 'bg-amber-500'" class="px-4 py-1 text-sm">{{ content?.difficulty }}</Badge>
+				<!-- <span class="inline-flex items-center py-1 align-middle text-sm font-medium"><Icon name="lucide:gamepad" class="mr-1 size-4" /> {{ content?.category }}</span> -->
+			</div>
 			<template v-if=" mode === 'solo' || phase === 'question'">
 				<span class="absolute start-1/2 top-0 -translate-x-1/2 text-3xl font-semibold">Question {{ nbQuestion }}</span>
 				<div class="absolute right-0 top-0 font-semibold">
@@ -32,14 +35,15 @@
 			</template>
 			<slot name="header" :status="status" />
 		</div>
-		<div class="relative mt-16 flex size-full flex-col items-center justify-start sm:mt-0 sm:justify-center">
+		<div class="relative -mt-16 flex size-full flex-col items-center justify-start sm:justify-center">
 			<div class="flex flex-col gap-y-4 px-6 sm:w-1/2 sm:px-0">
+				<span v-if="props.content?.theme" class="pb-16 text-center text-5xl font-bold sm:pb-16"> {{ content?.theme }} </span>
 				<NuxtImg v-if="content?.image" class="aspect-video rounded-md" :src="content?.image?.url" :alt="content?.image?.alt" />
-				<span class="mb-4 text-pretty text-center text-2xl font-semibold sm:mb-8 sm:text-3xl">{{ content?.question }}</span>
+				<span class="mb-4 text-balance text-center text-2xl font-semibold sm:mb-8 sm:text-3xl">{{ content?.question }}</span>
 				<template v-if="content?.type === 'open'">
 					<span v-if="mode === 'multi' && phase === 'correction'" class="text-center">
 						<bold class="font-medium">Réponse : </bold>
-						{{ content.answers.filter((answer: Quizz["answers"][number]) => answer.isCorrect).map((answer : Quizz["answers"][number]) => answer.answer).join(', ') }}
+						{{ content.answers.filter((answer: Quizz["answers"][number]) => answer.isCorrect).map((answer : Quizz["answers"][number]) => answer.value).join(', ') }}
 					</span>
 					<Input ref="openInput" v-model="inputAnswer" type="text" class="mx-auto max-w-xs" :disabled="mode === 'multi' && phase === 'correction'" />
 					<Switch v-if="mode === 'multi' && phase === 'correction' && showSwitch" v-model:checked="isCorrect" class="mx-auto data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500" @update:checked="emit('corrected', isCorrect)">
@@ -51,7 +55,7 @@
 				</template>
 				<ToggleGroup v-else-if="content?.type === 'four' || content?.type === 'two'" v-model="selectedAnswer" :type="checkMultipleCorrectAnswers ? 'multiple' : 'single'" variant="outline" :class="{ 'pointer-events-none': showResult }" class="grid auto-rows-fr grid-cols-2 gap-4">
 					<ToggleGroupItem v-for="(choice, index) in content.answers" :key="`choice${index}`" :ref="`choice-${index}`" :data-result="showResult" :class="{ correctAnswerClass: choice.isCorrect, selectedAnswerClass: selectedAnswer === String(index) && !choice.isCorrect }" class="size-full py-4" :value="String(index)">
-						{{ choice.answer }}
+						{{ choice.value }}
 					</ToggleGroupItem>
 				</ToggleGroup>
 			</div>
@@ -181,11 +185,11 @@ if (props.answer) {
 	if (props.content?.type === "open") {
 		inputAnswer.value = props.answer
 	}
-	else selectedAnswer.value = String(props.content?.answers.findIndex(answer => answer.answer === props.answer))
+	else selectedAnswer.value = String(props.content?.answers.findIndex(answer => answer.value === props.answer))
 }
 
 watchDebounced(selectedAnswer, () => {
-	emittedAnswer.value = String(props.content?.answers[Number(selectedAnswer.value)].answer)
+	emittedAnswer.value = String(props.content?.answers[Number(selectedAnswer.value)].value)
 	emit("answer", emittedAnswer.value)
 }, { debounce: 1000 })
 
@@ -195,7 +199,7 @@ watchDebounced(inputAnswer, () => {
 }, { debounce: 1000 })
 
 onUnmounted(() => {
-	if (inputAnswer.value === "" && selectedAnswer.value === "") {
+	if ((inputAnswer.value === "" || inputAnswer.value == null) && (selectedAnswer.value === "" || selectedAnswer.value == null)) {
 		emit("answer", "")
 	}
 	else {
@@ -203,7 +207,7 @@ onUnmounted(() => {
 			emit("answer", inputAnswer.value)
 		}
 		else if ((props.content?.type === "four" || props.content?.type === "two") && emittedAnswer.value !== selectedAnswer.value) {
-			emit("answer", String(props.content?.answers[Number(selectedAnswer.value)].answer))
+			emit("answer", String(props.content?.answers[Number(selectedAnswer.value)].value))
 		}
 	}
 })
@@ -243,7 +247,7 @@ function startTimer(nbMilliseconds: number) {
 					}
 
 					// Normaliser les deux chaînes pour la comparaison
-					const formattedAnswer = normalizeString(answer.answer)
+					const formattedAnswer = normalizeString(answer.value)
 					const formattedInput = normalizeString(inputAnswer.value)
 
 					// Vérification avec les chaînes normalisées

@@ -9,7 +9,7 @@
 				:phase="game.phase"
 				:content="game.questions[game.currentQuestionIndex]"
 				:question-number="game.currentQuestionIndex"
-				:duration="game.phase === 'question' ? 5000 : 0"
+				:duration="game.phase === 'question' ? 10000 : 0"
 				:lobby="lobby"
 				:answer="getPlayerAnswerByIndex"
 				:show-next="isHost"

@@ -1,19 +1,22 @@
-import { z } from "zod"
+import { any, z } from "zod"
 import { Quizz } from "./../../../models/quizz"
-import type { OpenQuizzDB, OpenQuizzDBResult } from "~/models/openquizzdb"
 import { serverSupabaseClient } from "#supabase/server"
 import { Lobby } from "~/models/lobby"
 import type { Game } from "~/models/game"
+import { defaultCategories, getRandomCategory } from "~/utils/categories"
 
 const querySchema = z.object({
 	lobbyId: z.string().length(4),
-	nbQuestions: z.number({ coerce: true }).min(1).max(20).default(20).optional(),
+	nbQuestions: z.coerce.number().min(1).max(20).default(20).optional(),
+	categories: z.string().array().default(defaultCategories).optional(),
 })
 
 export default defineEventHandler(async (event) => {
 	const supabase = await serverSupabaseClient(event)
-	const { nbQuestions = 20, lobbyId } = await getValidatedQuery(event, querySchema.parse)
-	const questions: Array<Quizz> = []
+	const { nbQuestions = 20, lobbyId, categories = defaultCategories } = await getValidatedQuery(event, querySchema.parse)
+	console.log(categories)
+
+	let questions: Array<Quizz> = []
 
 	if (!lobbyId) {
 		throw createError({
@@ -45,22 +48,23 @@ export default defineEventHandler(async (event) => {
 
 	if (lobbyData) {
 		let lobby = new Lobby(lobbyData)
-		for (let i = 0; i < nbQuestions; i++) {
-			try {
-				const response = await $fetch<OpenQuizzDB>("/api/placeholder/openquizzdb", {
-					retry: 5,
-					retryDelay: 500,
+		try {
+			const { data: responses, error } = await supabase
+				.rpc("get_random_quizzes", {
+					p_categories: categories,
+					p_language: "fr",
+					p_limit: nbQuestions,
 				})
 
-				if (!response.results.length) throw new Error("Aucune question reçue")
+			if (error) throw error
+			if (!responses || responses.length === 0) throw new Error("Aucune question reçue")
 
-				questions.push(new Quizz(response.results[0] as OpenQuizzDBResult, { points: response.results[0].difficulte === "débutant" ? 1 : response.results[0].difficulte === "confirmé" ? 2 : 3, type: "open" }))
-				console.log(new Quizz(response.results[0] as OpenQuizzDBResult))
-			}
-			catch (error) {
-				console.error(error)
-				throw error
-			}
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			questions = responses.map((response: any) => new Quizz(response, { type: "open" }))
+		}
+		catch (error) {
+			console.error(error)
+			throw error
 		}
 
 		const playersData: Game["playersData"] = []

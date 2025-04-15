@@ -77,31 +77,33 @@ const stats = reactive({
 	bestScore: player.stats[difficulty].best_score || 0,
 })
 
-const category = ref<string | null>(localCategoryToOpenQuizzCategory(getRandomCategory(player.categories)))
+const category = ref<string>(getRandomCategory(player.categories))
 
 const getNewCategory = () => {
-	category.value = localCategoryToOpenQuizzCategory(getRandomCategory(player.categories))
+	category.value = getRandomCategory(player.categories)
 }
 
-const { data, status, error, execute, refresh } = useLazyFetch(`${config.public.openQuizzDbApiUrl || "https://api.openquizzdb.org"}`, {
-	query: {
-		key: config.public.openQuizzDbApiKey,
-		diff: difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3,
-		categ: computed(() => category.value),
-		anec: 1,
-		wiki: 1,
-		lang: player.language,
-	},
-	transform: (data: OpenQuizzDB) => new Quizz(data.results[0] as OpenQuizzDBResult),
-	server: false,
-	immediate: false,
-	cache: "no-cache",
-	watch: [category],
-})
+// const { data, status, error, execute, refresh } = useLazyFetch(`${config.public.openQuizzDbApiUrl || "https://api.openquizzdb.org"}`, {
+// 	query: {
+// 		key: config.public.openQuizzDbApiKey,
+// 		diff: difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3,
+// 		categ: computed(() => category.value),
+// 		anec: 1,
+// 		wiki: 1,
+// 		lang: player.language,
+// 	},
+// 	transform: (data: OpenQuizzDB) => new Quizz(data.results[0] as OpenQuizzDBResult),
+// 	server: false,
+// 	immediate: false,
+// 	cache: "no-cache",
+// 	watch: [category],
+// })
+
+const { data, status, error, execute, refresh } = useQuizz(category.value, player.language)
 
 watch(error, () => {
 	console.error(error.value)
-	toast.error(`Erreur ${error.value?.statusCode}`, {
+	toast.error(`Erreur ${error.value}`, {
 		description: error.value?.message,
 		action: {
 			label: "Actualiser",
@@ -112,6 +114,7 @@ watch(error, () => {
 
 watch(roundKey, () => {
 	getNewCategory()
+	refresh()
 })
 
 function incrementScore() {
