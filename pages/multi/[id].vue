@@ -160,6 +160,71 @@ const { copy, copied, isSupported } = useClipboard({ source: code })
 const lobby = ref<Lobby>(new Lobby())
 const game = ref<Game | null>(null)
 const result = ref<boolean>(false)
+const channel = ref<null | RealtimeChannel>()
+
+onUnmounted(() => {
+	window.removeEventListener("beforeunload", handleBeforeUnload)
+	window.removeEventListener("unload", handleUnload)
+	if (channel.value) {
+		supabase.removeChannel(channel.value)
+	}
+})
+
+onMounted(async () => {
+	window.addEventListener("beforeunload", handleBeforeUnload)
+	window.addEventListener("unload", handleUnload)
+
+	const { data, error } = await supabase
+		.from("lobbies")
+		.select()
+		.eq("id", route.params.id)
+		.single()
+
+	if (error) {
+		throw showError({
+			statusCode: 404,
+			statusMessage: "Le lobby n'existe pas",
+		})
+	}
+	else if (data) {
+		const { data: fetchedPlayers } = await supabase
+			.from("players")
+			.select("*")
+			.in("id", data.players)
+
+		lobby.value = new Lobby(data, fetchedPlayers)
+
+		if (user.id !== lobby.value?.host && !lobby.value?.playerIds.includes(user.id)) {
+			navigateTo(`/multi/join`)
+		}
+		else if (lobby.value?.invitedPlayersId && lobby.value?.invitedPlayersId.includes(user.id) && lobby.value?.maxPlayers > lobby.value?.players.length) {
+			navigateTo(`/multi/join`)
+		}
+
+		channel.value = supabase
+			.channel(`lobby-${route.params.id}-updates`)
+			.on(
+				"postgres_changes",
+				{ event: "*", schema: "public", table: "lobbies", filter: `id=eq.${route.params.id}` },
+				async (payload) => {
+					if (payload.new) {
+						const newLobby: Lobby = new Lobby(payload.new)
+						lobby.value = newLobby
+						lobby.value.players = await getPlayers(newLobby.playerIds)
+					}
+				},
+			)
+			.subscribe()
+	}
+})
+
+async function handleUnload() {
+	navigator.sendBeacon(`/api/lobby/leave`, JSON.stringify({ lobby: { id: lobby.value?.id, host: lobby.value?.host, playerIds: lobby.value?.playerIds.filter(playerId => playerId !== user.id) }, userId: user.id }))
+}
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+	event.preventDefault()
+}
 
 watch(copied, (value) => {
 	if (value) {
@@ -182,17 +247,20 @@ async function leaveLobby() {
 }
 
 async function startLobby() {
-	const { error } = await useFetch("/api/game/create", {
-		method: "POST",
-		query: {
-			nbQuestions: 3,
-			lobbyId: route.params.id,
-		},
-	})
-
-	if (error.value) {
+	try {
+		await $fetch("/api/game/create", {
+			method: "POST",
+			query: {
+				nbQuestions: 3,
+				lobbyId: route.params.id,
+			},
+		})
+	}
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	catch (error: any) {
+		console.error("Erreur lors de la création de la partie:", error)
 		toast.error("Une erreur est survenue lors de la création de la partie", {
-			description: error.value?.message,
+			description: error.data?.message || error.message || "Erreur inconnue",
 		})
 	}
 }
@@ -431,75 +499,4 @@ const surroundingPlayers = computed(() => {
 		return []
 	}
 })
-
-onMounted(async () => {
-	const { data, error } = await supabase
-		.from("lobbies")
-		.select()
-		.eq("id", route.params.id)
-		.single()
-
-	if (error) {
-		throw showError({
-			statusCode: 404,
-			statusMessage: "Le lobby n'existe pas",
-		})
-	}
-	else if (data) {
-		const { data: fetchedPlayers } = await supabase
-			.from("players")
-			.select("*")
-			.in("id", data.players)
-
-		lobby.value = new Lobby(data, fetchedPlayers)
-
-		if (user.id !== lobby.value?.host && !lobby.value?.playerIds.includes(user.id)) {
-			navigateTo(`/multi/join`)
-		}
-		else if (lobby.value?.invitedPlayersId && lobby.value?.invitedPlayersId.includes(user.id) && lobby.value?.maxPlayers > lobby.value?.players.length) {
-			navigateTo(`/multi/join`)
-		}
-
-		const channel = supabase
-			.channel(`lobby-${route.params.id}-updates`)
-			.on(
-				"postgres_changes",
-				{ event: "*", schema: "public", table: "lobbies", filter: `id=eq.${route.params.id}` },
-				async (payload) => {
-					if (payload.new) {
-						const newLobby: Lobby = new Lobby(payload.new)
-						lobby.value = newLobby
-						lobby.value.players = await getPlayers(newLobby.playerIds)
-					}
-				},
-			)
-			.subscribe()
-
-		onUnmounted(() => {
-			supabase.removeChannel(channel)
-		})
-	}
-})
-
-async function handleUnload() {
-	navigator.sendBeacon(`/api/lobby/leave`, JSON.stringify({ lobby: { id: lobby.value?.id, host: lobby.value?.host, playerIds: lobby.value?.playerIds.filter(playerId => playerId !== user.id) }, userId: user.id }))
-}
-
-function handleBeforeUnload(event: BeforeUnloadEvent) {
-	event.preventDefault()
-}
-
-onMounted(() => {
-	window.addEventListener("beforeunload", handleBeforeUnload)
-	window.addEventListener("unload", handleUnload)
-})
-
-onUnmounted(() => {
-	window.removeEventListener("beforeunload", handleBeforeUnload)
-	window.removeEventListener("unload", handleUnload)
-})
 </script>
-
-<style scoped>
-
-</style>

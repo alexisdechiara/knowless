@@ -17,38 +17,6 @@ const { handleSubmit, setFieldValue, values, setErrors } = useForm({
 	validationSchema: formSchema,
 })
 
-const onSubmit = handleSubmit(async () => {
-	const { data, error } = await supabase.from("lobbies").select("*").eq("id", values?.pin?.join("")).single()
-
-	if (error) {
-		setErrors({ pin: "Le lobby n'existe pas" })
-	}
-	else if (data) {
-		const lobbyByCode = new Lobby(data)
-
-		if (lobbyByCode.securityLevel.includes("code")) {
-			joinLobby(lobbyByCode)
-		}
-		else {
-			toast.error("Ce lobby interdit l'accès par code")
-			setErrors({ pin: "" })
-		}
-	}
-})
-
-const lobbies = ref<Array<Lobby>>([])
-const { data, error } = await supabase.from("lobbies").select("*")
-
-if (error) {
-	toast.error(`Erreur ${error.code}`, {
-		description: error.message,
-	})
-}
-else {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	lobbies.value = data.map((lobby: any) => new Lobby(lobby))
-}
-
 onMounted(() => {
 	const channel = supabase
 		.channel(`lobby-updates`)
@@ -80,6 +48,38 @@ onMounted(() => {
 		supabase.removeChannel(channel)
 	})
 })
+
+const onSubmit = handleSubmit(async () => {
+	const { data, error } = await supabase.from("lobbies").select("*").eq("id", values?.pin?.join("")).single()
+
+	if (error) {
+		setErrors({ pin: "Le lobby n'existe pas" })
+	}
+	else if (data) {
+		const lobbyByCode = new Lobby(data)
+
+		if (lobbyByCode.securityLevel.includes("code")) {
+			joinLobby(lobbyByCode)
+		}
+		else {
+			toast.error("Ce lobby interdit l'accès par code")
+			setErrors({ pin: "" })
+		}
+	}
+})
+
+const lobbies = ref<Array<Lobby>>([])
+const { data, error } = await supabase.from("lobbies").select("*")
+
+if (error) {
+	toast.error(`Erreur ${error.code}`, {
+		description: error.message,
+	})
+}
+else {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	lobbies.value = data.map((lobby: any) => new Lobby(lobby))
+}
 </script>
 
 <template>

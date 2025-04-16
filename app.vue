@@ -11,6 +11,14 @@ import { Toaster } from "@/components/ui/sonner"
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+onMounted(() => {
+	updateActivity()
+	setInterval(updateActivity, 30000) // Ping toutes les 30s
+	window.addEventListener("unload", () => {
+		navigator.sendBeacon("/api/players/status", JSON.stringify({ id: user.value?.id, status: "offline" }))
+	})
+})
+
 async function updateActivity() {
 	if (!user.value) return
 
@@ -26,12 +34,4 @@ async function updateActivity() {
 		console.error(error)
 	}
 }
-
-onMounted(() => {
-	updateActivity()
-	setInterval(updateActivity, 30000) // Ping toutes les 30s
-	window.addEventListener("unload", () => {
-		navigator.sendBeacon("/api/players/status", JSON.stringify({ id: user.value?.id, status: "offline" }))
-	})
-})
 </script>

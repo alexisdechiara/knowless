@@ -42,7 +42,7 @@
 				<span class="mb-4 text-balance text-center text-2xl font-semibold sm:mb-8 sm:text-3xl">{{ content?.question }}</span>
 				<template v-if="content?.type === 'open'">
 					<span v-if="mode === 'multi' && phase === 'correction'" class="text-center">
-						<bold class="font-medium">Réponse : </bold>
+						<b class="font-medium">Réponse : </b>
 						{{ content.answers.filter((answer: Quizz["answers"][number]) => answer.isCorrect).map((answer : Quizz["answers"][number]) => answer.value).join(', ') }}
 					</span>
 					<Input ref="openInput" v-model="inputAnswer" type="text" class="mx-auto max-w-xs" :disabled="mode === 'multi' && phase === 'correction'" />
@@ -181,6 +181,28 @@ const showResult = ref(false)
 const validationStatus = ref<"correct" | "uncertain" | "incorrect">("incorrect")
 const isCorrect = ref<boolean>(false)
 const openInput = shallowRef<HTMLInputElement | null>()
+const timeoutId = ref<NodeJS.Timeout | undefined>(undefined)
+
+onUnmounted(() => {
+	// ... (logique onUnmounted inchangée) ...
+	if ((inputAnswer.value === "" || inputAnswer.value == null) && (selectedAnswer.value === "" || selectedAnswer.value == null)) {
+		emit("answer", "")
+	}
+	else {
+		if (props.content?.type === "open" && emittedAnswer.value !== inputAnswer.value) {
+			emit("answer", inputAnswer.value)
+		}
+		else if ((props.content?.type === "four" || props.content?.type === "two") && emittedAnswer.value !== selectedAnswer.value) {
+			emit("answer", String(props.content?.answers[Number(selectedAnswer.value)].value))
+		}
+	}
+
+	if (timeoutId.value) clearTimeout(timeoutId.value)
+})
+
+onMounted(() => {
+	startTimer(props.duration)
+})
 
 useFocus(openInput, { initialValue: true })
 
@@ -201,20 +223,7 @@ watchDebounced(inputAnswer, () => {
 	emit("answer", emittedAnswer.value)
 }, { debounce: 1000 })
 
-onUnmounted(() => {
-	// ... (logique onUnmounted inchangée) ...
-	if ((inputAnswer.value === "" || inputAnswer.value == null) && (selectedAnswer.value === "" || selectedAnswer.value == null)) {
-		emit("answer", "")
-	}
-	else {
-		if (props.content?.type === "open" && emittedAnswer.value !== inputAnswer.value) {
-			emit("answer", inputAnswer.value)
-		}
-		else if ((props.content?.type === "four" || props.content?.type === "two") && emittedAnswer.value !== selectedAnswer.value) {
-			emit("answer", String(props.content?.answers[Number(selectedAnswer.value)].value))
-		}
-	}
-})
+watch(status, () => emit("status", status.value))
 
 const convertMillisecondsToPercentage = computed(() => {
 	if (remainingTime.value <= 0) return 100
@@ -222,67 +231,40 @@ const convertMillisecondsToPercentage = computed(() => {
 	return ((props.duration - remainingTime.value) / props.duration) * 100
 })
 
-// --- Logique Fuse.js ---
-// MODIFIÉ: Préparer la liste des réponses correctes incluant les variantes
 const correctAnswers = computed(() => {
-	// Vérifie si props.content et props.content.answers existent
 	if (!props.content?.answers) {
-		return [] // Retourne un tableau vide si pas de données
+		return []
 	}
-
-	// Utilise filter pour ne garder que les réponses correctes
-	// Utilise flatMap pour créer une liste unique de toutes les chaînes valides
 	return props.content.answers
 		.filter((answer): answer is Quizz["answers"][number] & { isCorrect: true } => answer.isCorrect) // Garde seulement les réponses correctes (avec type guard)
 		.flatMap((answer) => {
-			// Crée un tableau pour chaque réponse correcte:
-			// Commence avec la valeur principale
 			const validStrings = [answer.value]
-
-			// Si 'variants' existe et est un tableau, ajoute ses éléments
 			if (Array.isArray(answer.variants)) {
 				validStrings.push(...answer.variants)
 			}
-
-			// Retourne le tableau [valeur_principale, variante1, variante2, ...]
-			// flatMap va ensuite fusionner tous ces tableaux en un seul
-			// Optionnel: filtrer les chaînes vides ou non valides si nécessaire
 			return validStrings.filter(str => typeof str === "string" && str.length > 0)
 		})
 })
 
-// 2. Configurer Fuse.js
 const fuseOptions = computed(() => ({
 	fuseOptions: {
-		// keys: ['value'], // Pas nécessaire si correctAnswers est un tableau de strings
-		includeScore: true, // Pour obtenir le score de similarité
-		threshold: 0.6, // Seuil de tolérance (0 = exact, 1 = tout match). Ajustez selon vos besoins.
-		ignoreLocation: true, // Ignore où se trouve la correspondance dans la chaîne
+		includeScore: true,
+		threshold: 0.6,
+		ignoreLocation: true,
 	},
-	matchAllWhenSearchEmpty: false, // Ne retourne rien si l'input est vide
+	matchAllWhenSearchEmpty: false,
 }))
 
-// 3. Initialiser useFuse
-//    inputAnswer est la ref contenant la saisie du joueur
-//    correctAnswers est la ref calculée contenant les bonnes réponses
 const { results } = useFuse(inputAnswer, correctAnswers, fuseOptions)
-
-// --- Fin Logique Fuse.js ---
-
-onMounted(() => {
-	startTimer(props.duration)
-})
 
 function startTimer(nbMilliseconds: number) {
 	remainingTime.value = nbMilliseconds
 	status.value = "pending"
 	emit("started")
 	if (nbMilliseconds > 0) {
-		const timeoutId = setTimeout(() => {
+		timeoutId.value = setTimeout(() => {
 			startTimer(nbMilliseconds - 10)
 		}, 10)
-		// Optionnel: Nettoyer le timeout si le composant est détruit avant la fin
-		onUnmounted(() => clearTimeout(timeoutId))
 	}
 	else {
 		// --- Évaluation de la réponse à la fin du timer ---
@@ -325,8 +307,6 @@ function startTimer(nbMilliseconds: number) {
 		emit("ended")
 	}
 }
-
-watch(status, () => emit("status", status.value))
 
 const checkMultipleCorrectAnswers = computed(() => props.content?.answers && props.content.answers.filter(answer => answer.isCorrect).length > 1)
 const remainingSeconds = computed(() => Math.floor(remainingTime.value / 1000))
