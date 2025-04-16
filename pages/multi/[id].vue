@@ -9,7 +9,7 @@
 				:phase="game.phase"
 				:content="game.questions[game.currentQuestionIndex]"
 				:question-number="game.currentQuestionIndex"
-				:duration="game.phase === 'question' ? 10000 : 0"
+				:duration="game.phase === 'question' ? 3000 : 0"
 				:lobby="lobby"
 				:answer="getPlayerAnswerByIndex"
 				:show-next="isHost"
@@ -145,8 +145,6 @@
 </template>
 
 <script lang="ts" setup>
-import { useClipboard } from "@vueuse/core"
-
 import { toast } from "vue-sonner"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 import { Lobby } from "~/models/lobby"
@@ -273,8 +271,13 @@ const isLastPlayer = computed(() => game.value?.playersData ? game.value?.curren
 
 async function nextPlayerCorrection() {
 	if (game.value) {
-		const newDefaultScore = result.value ? game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0 + (game.value?.currentQuestionIndex != null ? game.value?.questions[game.value?.currentQuestionIndex]?.points : 0) : game.value?.playersData[game.value?.currentPlayerIndex]?.score?.default || 0
-		console.log(newDefaultScore)
+		const currentPlayerIndex = game.value?.currentPlayerIndex ?? 0
+		const currentQuestionIndex = game.value?.currentQuestionIndex ?? 0
+
+		const baseScore = game.value?.playersData[currentPlayerIndex]?.score?.default ?? 0
+		const questionPoints = game.value?.questions[currentQuestionIndex]?.points ?? 0
+
+		const newDefaultScore = result.value ? baseScore + questionPoints : baseScore
 
 		const { error } = await supabase
 			.rpc("next_player_correction", {

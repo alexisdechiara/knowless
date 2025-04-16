@@ -109,6 +109,7 @@ export class Quizz {
 type Answer = {
 	value: string
 	isCorrect: boolean
+	variants?: Array<string>
 	[key: string]: any
 }
 

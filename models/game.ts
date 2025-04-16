@@ -23,7 +23,6 @@ export class Game {
 		this.createdAt = new Date(data.created_at)
 		this.phase = data?.phase || "start"
 
-		// TODO: corriger le bug des answers des questions qui ne sont pas ajoutés
 		if (data?.questions && Array.isArray(data?.questions)) {
 			this.questions = data?.questions.map((question: any) => new Quizz(question))
 		}

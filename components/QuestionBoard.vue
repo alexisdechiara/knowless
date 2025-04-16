@@ -46,9 +46,10 @@
 						{{ content.answers.filter((answer: Quizz["answers"][number]) => answer.isCorrect).map((answer : Quizz["answers"][number]) => answer.value).join(', ') }}
 					</span>
 					<Input ref="openInput" v-model="inputAnswer" type="text" class="mx-auto max-w-xs" :disabled="mode === 'multi' && phase === 'correction'" />
-					<Switch v-if="mode === 'multi' && phase === 'correction' && showSwitch" v-model:checked="isCorrect" class="mx-auto data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500" @update:checked="emit('corrected', isCorrect)">
+					<Switch v-if="mode === 'multi' && phase === 'correction' && showSwitch" v-model:checked="isCorrect" class="mx-auto data-[state=checked]:bg-emerald-500" :class="validationStatus === 'uncertain' ? 'data-[state=unchecked]:bg-amber-500' : 'data-[state=unchecked]:bg-red-500'" @update:checked="validationStatus = isCorrect ? 'correct' : 'incorrect'; emit('corrected', isCorrect)">
 						<template #thumb>
 							<Icon v-if="isCorrect" name="lucide:check" />
+							<Icon v-else-if="validationStatus === 'uncertain'" name="ic:round-question-mark" />
 							<Icon v-else name="lucide:x" />
 						</template>
 					</Switch>
@@ -135,10 +136,11 @@
 </template>
 
 <script lang="ts" setup generic="UNUSED">
+import { useFuse } from "@vueuse/integrations/useFuse"
 import NumberFlow, { NumberFlowGroup } from "@number-flow/vue"
-import { useFocus, watchDebounced } from "@vueuse/core"
 import type { Quizz } from "~/models/quizz"
 
+// ... (le reste des types et props reste inchangé) ...
 type QuestionBoardProps = {
 	mode: "solo"
 	phase?: never
@@ -172,10 +174,11 @@ const props = withDefaults(defineProps<QuestionBoardProps>(), {
 const nbQuestion = computed(() => props?.questionNumber || props?.questionNumber === 0 ? props.questionNumber + 1 : undefined)
 const remainingTime = ref(0)
 const selectedAnswer = ref<string>()
-const inputAnswer = ref<string>("")
+const inputAnswer = ref<string>("") // La réponse du joueur
 const emittedAnswer = ref<string>("")
 const status = ref<"correct" | "incorrect" | "pending" | undefined>(undefined)
 const showResult = ref(false)
+const validationStatus = ref<"correct" | "uncertain" | "incorrect">("incorrect")
 const isCorrect = ref<boolean>(false)
 const openInput = shallowRef<HTMLInputElement | null>()
 
@@ -199,6 +202,7 @@ watchDebounced(inputAnswer, () => {
 }, { debounce: 1000 })
 
 onUnmounted(() => {
+	// ... (logique onUnmounted inchangée) ...
 	if ((inputAnswer.value === "" || inputAnswer.value == null) && (selectedAnswer.value === "" || selectedAnswer.value == null)) {
 		emit("answer", "")
 	}
@@ -218,6 +222,53 @@ const convertMillisecondsToPercentage = computed(() => {
 	return ((props.duration - remainingTime.value) / props.duration) * 100
 })
 
+// --- Logique Fuse.js ---
+// MODIFIÉ: Préparer la liste des réponses correctes incluant les variantes
+const correctAnswers = computed(() => {
+	// Vérifie si props.content et props.content.answers existent
+	if (!props.content?.answers) {
+		return [] // Retourne un tableau vide si pas de données
+	}
+
+	// Utilise filter pour ne garder que les réponses correctes
+	// Utilise flatMap pour créer une liste unique de toutes les chaînes valides
+	return props.content.answers
+		.filter((answer): answer is Quizz["answers"][number] & { isCorrect: true } => answer.isCorrect) // Garde seulement les réponses correctes (avec type guard)
+		.flatMap((answer) => {
+			// Crée un tableau pour chaque réponse correcte:
+			// Commence avec la valeur principale
+			const validStrings = [answer.value]
+
+			// Si 'variants' existe et est un tableau, ajoute ses éléments
+			if (Array.isArray(answer.variants)) {
+				validStrings.push(...answer.variants)
+			}
+
+			// Retourne le tableau [valeur_principale, variante1, variante2, ...]
+			// flatMap va ensuite fusionner tous ces tableaux en un seul
+			// Optionnel: filtrer les chaînes vides ou non valides si nécessaire
+			return validStrings.filter(str => typeof str === "string" && str.length > 0)
+		})
+})
+
+// 2. Configurer Fuse.js
+const fuseOptions = computed(() => ({
+	fuseOptions: {
+		// keys: ['value'], // Pas nécessaire si correctAnswers est un tableau de strings
+		includeScore: true, // Pour obtenir le score de similarité
+		threshold: 0.6, // Seuil de tolérance (0 = exact, 1 = tout match). Ajustez selon vos besoins.
+		ignoreLocation: true, // Ignore où se trouve la correspondance dans la chaîne
+	},
+	matchAllWhenSearchEmpty: false, // Ne retourne rien si l'input est vide
+}))
+
+// 3. Initialiser useFuse
+//    inputAnswer est la ref contenant la saisie du joueur
+//    correctAnswers est la ref calculée contenant les bonnes réponses
+const { results } = useFuse(inputAnswer, correctAnswers, fuseOptions)
+
+// --- Fin Logique Fuse.js ---
+
 onMounted(() => {
 	startTimer(props.duration)
 })
@@ -227,46 +278,50 @@ function startTimer(nbMilliseconds: number) {
 	status.value = "pending"
 	emit("started")
 	if (nbMilliseconds > 0) {
-		setTimeout(() => {
+		const timeoutId = setTimeout(() => {
 			startTimer(nbMilliseconds - 10)
 		}, 10)
+		// Optionnel: Nettoyer le timeout si le composant est détruit avant la fin
+		onUnmounted(() => clearTimeout(timeoutId))
 	}
 	else {
-		if (props.mode === "solo" || (props.mode === "multi" && props.phase === "correction")) {
-			showResult.value = true
-			if (props.content?.type === "open") {
-				isCorrect.value = props.content.answers.some((answer) => {
-					// Fonction pour normaliser une chaîne: minuscules, sans accents, sans ponctuation, espaces normalisés
-					const normalizeString = (str: string) => {
-						return str
-							.toLowerCase() // Convertir en minuscules
-							.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
-							.replace(/[.,;:!?'"()[\]{}]/g, "") // Supprimer la ponctuation
-							.replace(/\s+/g, " ") // Normaliser les espaces multiples
-							.trim() // Supprimer les espaces de début et fin
-					}
-
-					// Normaliser les deux chaînes pour la comparaison
-					const formattedAnswer = normalizeString(answer.value)
-					const formattedInput = normalizeString(inputAnswer.value)
-
-					// Vérification avec les chaînes normalisées
-					return formattedAnswer === formattedInput
-				})
-			}
-			else if (props.content?.type === "four" || props.content?.type === "two") {
-				isCorrect.value = selectedAnswer.value === String(props.content?.answers.findIndex(answer => answer.isCorrect))
-			}
-
-			if (isCorrect.value) {
-				status.value = "correct"
-				emit("goodAnswer")
+		// --- Évaluation de la réponse à la fin du timer ---
+		showResult.value = true
+		if (props.content?.type === "open") {
+			if (results.value.length > 0) {
+				const bestMatchScore = results.value[0].score
+				if (bestMatchScore != null && bestMatchScore <= 0.3) {
+					validationStatus.value = "correct"
+					console.log("Status: Exactement Correct")
+				}
+				else if (bestMatchScore != null && bestMatchScore <= fuseOptions.value.fuseOptions.threshold) {
+					validationStatus.value = "uncertain"
+					console.log("Status: peut-être correct")
+				}
+				else {
+					validationStatus.value = "incorrect" // Trop différent (faux)
+					console.log("Status: Incorrect (Score trop élevé)")
+				}
 			}
 			else {
-				status.value = "incorrect"
-				emit("badAnswer")
+				validationStatus.value = "incorrect" // Pas de match (faux)
+				console.log("Status: Incorrect (Pas de match Fuse)")
 			}
 		}
+		else if (props.content?.type === "four" || props.content?.type === "two") {
+			const correctIndex = props.content?.answers.findIndex(answer => answer.isCorrect)
+			isCorrect.value = selectedAnswer.value === String(correctIndex)
+		}
+
+		isCorrect.value = validationStatus.value === "correct"
+		status.value = isCorrect.value ? "correct" : "incorrect"
+		if (status.value === "correct") {
+			emit("goodAnswer")
+		}
+		else {
+			emit("badAnswer")
+		}
+
 		emit("ended")
 	}
 }

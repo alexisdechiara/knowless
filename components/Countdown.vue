@@ -7,7 +7,6 @@
 
 <script lang="ts" setup>
 import NumberFlow from "@number-flow/vue"
-import { useCountdown } from "@vueuse/core"
 
 const countdown = ref(3)
 const emit = defineEmits(["finished", "remaining"])

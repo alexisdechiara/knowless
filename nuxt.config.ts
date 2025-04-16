@@ -13,6 +13,7 @@ export default defineNuxtConfig({
 		"@nuxt/content",
 		"@nuxtjs/supabase",
 		"motion-v/nuxt",
+		"@vueuse/nuxt",
 	],
 
 	ssr: false,
@@ -55,13 +56,13 @@ export default defineNuxtConfig({
 
 	shadcn: {
 		/**
-		* Prefix for all the imported component
-		*/
+								* Prefix for all the imported component
+								*/
 		prefix: "",
 		/**
-		* Directory that the component lives in.
-		* @default "./components/ui"
-		*/
+								* Directory that the component lives in.
+								* @default "./components/ui"
+								*/
 		componentDir: "./components/ui",
 	},
 
