@@ -23,44 +23,19 @@ export class Quizz {
 	}
 
 	constructor(data: OpenQuizzDBResult | any, additionalData?: Record<string, any>) {
-		this.themeId = data?.theme_id
+		this.themeId = data?.theme_id || data?.themeId
 		this.theme = data?.theme
 		this.language = data?.language || "fr"
-		if (data?.categorie) {
-			this.category = data.categorie
-		}
-		else {
-			this.category = data?.category
-		}
-		if (data && typeof data.difficulte === "string") {
-			switch (data.difficulte) {
-				case "débutant": this.difficulty = "easy"
-					break
-				case "confirmé": this.difficulty = "medium"
-					break
-				case "expert": this.difficulty = "hard"
-					break
-				default: this.difficulty = data?.difficulty
-			}
-		}
-		else {
-			this.difficulty = data?.difficulty
-		}
+		this.category = data.categorie
+		this.category = data?.category
+		this.difficulty = data?.difficulty
 		this.wikipedia = data?.wikipedia || data?.wiki
 		this.question = data.question
-		if ("autres_choix" in data && "reponse_correcte" in data) {
-			this.answers = shuffle<Answer>([
-				...data.autres_choix.map((answer: string) => ({ answer, isCorrect: false })),
-				{ answer: data.reponse_correcte, isCorrect: true },
-			])
+		if (data.answers && Array.isArray(data.answers)) {
+			this.answers = shuffle<Answer>(data.answers)
 		}
 		else {
-			if (data.answers && Array.isArray(data.answers)) {
-				this.answers = shuffle<Answer>(data.answers)
-			}
-			else {
-				this.answers = []
-			}
+			this.answers = []
 		}
 		this.anecdote = data?.anecdote
 		if (additionalData?.type) {
@@ -68,12 +43,6 @@ export class Quizz {
 		}
 		else if (data?.type) {
 			this.type = data.type
-		}
-		else if ("autres_choix" in data && data.autres_choix.length > 2) {
-			this.type = "four"
-		}
-		else if ("autres_choix" in data && data.autres_choix.length === 1) {
-			this.type = "two"
 		}
 		else {
 			this.type = "open"
@@ -95,7 +64,7 @@ export class Quizz {
 				default: this.points = 1
 			}
 		}
-		this.nbCount = data?.nb_count
+		this.nbCount = data?.nb_count || data?.nbCount
 		if (data?.image) {
 			this.image = {
 				url: data.image.url,

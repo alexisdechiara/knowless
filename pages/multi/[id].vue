@@ -3,13 +3,13 @@
 		<template v-if="game">
 			<Countdown v-if="game.phase === 'start'" @finished="startGame()" />
 			<QuestionBoard
-				v-else-if="game.phase === 'question' || game.phase === 'correction' && game?.questions[game?.currentQuestionIndex]"
+				v-else-if="(game.phase === 'question' || game.phase === 'correction') && game?.questions[game?.currentQuestionIndex]"
 				:key="`${game.phase}-${game.currentQuestionIndex}-${game.currentPlayerIndex}`"
 				mode="multi"
 				:phase="game.phase"
 				:content="game.questions[game.currentQuestionIndex]"
 				:question-number="game.currentQuestionIndex"
-				:duration="game.phase === 'question' ? 3000 : 0"
+				:duration="game.phase === 'question' ? 10000 : 0"
 				:lobby="lobby"
 				:answer="getPlayerAnswerByIndex"
 				:show-next="isHost"
@@ -251,7 +251,7 @@ async function startLobby() {
 		await $fetch("/api/game/create", {
 			method: "POST",
 			query: {
-				nbQuestions: 3,
+				nbQuestions: 20,
 				lobbyId: route.params.id,
 			},
 		})
@@ -272,6 +272,8 @@ async function startGame() {
 			phase: "question",
 		})
 		.eq("id", game.value?.id)
+
+	console.log(game.value)
 
 	if (error) {
 		console.error(error)
@@ -439,6 +441,8 @@ watch(lobby, async () => {
 			.eq("id", lobby.value.gameId)
 			.single()
 
+		console.log("watch lobby :", data)
+
 		if (error) {
 			throw showError({
 				statusCode: 404,
@@ -452,12 +456,39 @@ watch(lobby, async () => {
 				.on(
 					"postgres_changes",
 					{ event: "*", schema: "public", table: "games", filter: `id=eq.${lobby.value?.gameId}` },
-					async (payload) => {
-						if (payload.new) {
-							const updatedGame: Game = new Game(payload.new)
-							if (!(game.value?.phase === "question" && updatedGame.phase === "question" && JSON.stringify(updatedGame.playersData) !== JSON.stringify(game.value?.playersData) && updatedGame.currentQuestionIndex === game.value?.currentQuestionIndex)) {
-								console.log("game updated")
-								game.value = updatedGame
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					async (payload: any) => {
+						if (payload.new && game.value) {
+							let updated = false
+							if (payload.new.phase !== undefined && game.value.phase !== payload.new.phase) {
+								game.value.phase = payload.new.phase
+								updated = true
+							}
+							if (payload.new.current_question_index !== undefined && game.value.currentQuestionIndex !== payload.new.current_question_index) {
+								game.value.currentQuestionIndex = payload.new.current_question_index
+								updated = true
+							}
+							if (payload.new.current_player_index !== undefined && game.value.currentPlayerIndex !== payload.new.current_player_index) {
+								game.value.currentPlayerIndex = payload.new.current_player_index
+								updated = true
+							}
+							if (payload.new.players_data !== undefined && JSON.stringify(game.value.playersData) !== JSON.stringify(payload.new.players_data)) {
+								game.value.playersData = payload.new.players_data
+								updated = true
+							}
+
+							console.log("Game state AFTER merge:", JSON.stringify(game.value))
+
+							if (updated) {
+								if (!(game.value?.phase === "question" && payload.new.phase === "question" && JSON.stringify(payload.new.players_data) !== JSON.stringify(game.value?.playersData) && payload.new.currentQuestionIndex === game.value?.currentQuestionIndex)) {
+									console.log("Game state updated via merge.")
+								}
+								else {
+									console.log("Game update applied, but skipped by complex condition logic.")
+								}
+							}
+							else {
+								console.log("No relevant changes detected in payload.")
 							}
 						}
 					},

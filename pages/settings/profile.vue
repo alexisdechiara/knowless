@@ -115,7 +115,7 @@ const categoryList = [
 	{
 		title: "Culture en vrac",
 		descriton: "Un mélange de faits intéressants et de connaissances variées",
-		value: "random_culture",
+		value: "bulk_culture",
 		icon: "lucide:layers",
 	},
 	{

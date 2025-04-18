@@ -3,7 +3,7 @@ import { Quizz } from "./../../../models/quizz"
 import { serverSupabaseClient } from "#supabase/server"
 import { Lobby } from "~/models/lobby"
 import type { Game } from "~/models/game"
-import { defaultCategories, getRandomCategory } from "~/utils/categories"
+import { defaultCategories } from "~/utils/categories"
 
 const querySchema = z.object({
 	lobbyId: z.string().length(4),
@@ -14,7 +14,6 @@ const querySchema = z.object({
 export default defineEventHandler(async (event) => {
 	const supabase = await serverSupabaseClient(event)
 	const { nbQuestions = 20, lobbyId, categories = defaultCategories } = await getValidatedQuery(event, querySchema.parse)
-	console.log(categories)
 
 	let questions: Array<Quizz> = []
 
@@ -59,8 +58,58 @@ export default defineEventHandler(async (event) => {
 			if (error) throw error
 			if (!responses || responses.length === 0) throw new Error("Aucune question reçue")
 
+			const keywords = [
+				// fr
+				"laquelle", "lequel", "lesquels", "lesquelles", "parmi",
+				"choisir", "choisis", "choisit", "choisissons", "choisissez", "choisissent",
+				"sélectionner", "sélectionne", "sélectionnes", "sélectionnons", "sélectionnez", "sélectionnent",
+				"trouver", "trouve", "trouves", "trouvons", "trouvez", "trouvent",
+				"le bon", "la bonne", "les bonnes", "la bonne réponse", "bonne réponse",
+
+				// en
+				"which", "among",
+				"choose", "chooses", "choosing", "chosen",
+				"select", "selects", "selecting", "selected",
+				"pick", "picks", "picking", "picked",
+				"find", "finds", "finding", "found",
+				"the right answer", "correct answer", "right option", "correct one",
+
+				// de
+				"welche", "welcher", "welches", "welchen", "unter",
+				"wählen", "wähle", "wählst", "wählt", "wählten", "gewählt",
+				"finden", "finde", "findest", "findet", "fanden", "gefunden",
+				"die richtige", "richtige antwort", "die korrekte antwort",
+
+				// es
+				"cuál", "cuáles", "entre",
+				"elegir", "elige", "eliges", "elegimos", "elegís", "eligen", "eligió", "elegido",
+				"seleccionar", "selecciona", "seleccionas", "seleccionamos", "seleccionáis", "seleccionan",
+				"encontrar", "encuentra", "encuentras", "encontramos", "encontráis", "encuentran", "encontró", "encontrado",
+				"la correcta", "respuesta correcta",
+
+				// it
+				"quale", "quali", "tra", "fra",
+				"scegliere", "scegli", "sceglie", "scegliamo", "scegliete", "scelgono", "scelto",
+				"selezionare", "seleziona", "selezioni", "selezioniamo", "selezionate", "selezionano",
+				"trovare", "trova", "trovi", "troviamo", "trovate", "trovano", "trovato",
+				"la risposta giusta", "quella giusta", "risposta corretta",
+
+				// nl
+				"welke", "onder",
+				"kiezen", "kies", "kiest", "koos", "gekozen",
+				"selecteren", "selecteer", "selecteert", "selecteerde", "geselecteerd",
+				"vinden", "vind", "vindt", "vonden", "gevonden",
+				"het juiste antwoord", "correct antwoord", "goede antwoord",
+			]
+
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			questions = responses.map((response: any) => new Quizz(response, { type: "open" }))
+			questions = responses.map((response: any) => {
+				const questionText = response.question?.toLowerCase() ?? ""
+
+				return keywords.some(word => questionText.includes(word))
+					? new Quizz(response)
+					: new Quizz(response, { type: "open" })
+			})
 		}
 		catch (error) {
 			console.error(error)
