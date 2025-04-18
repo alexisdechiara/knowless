@@ -184,7 +184,6 @@ const openInput = shallowRef<HTMLInputElement | null>()
 const timeoutId = ref<NodeJS.Timeout | undefined>(undefined)
 
 onUnmounted(() => {
-	// ... (logique onUnmounted inchangée) ...
 	if ((inputAnswer.value === "" || inputAnswer.value == null) && (selectedAnswer.value === "" || selectedAnswer.value == null)) {
 		emit("answer", "")
 	}
@@ -289,13 +288,14 @@ function startTimer(nbMilliseconds: number) {
 				validationStatus.value = "incorrect" // Pas de match (faux)
 				console.log("Status: Incorrect (Pas de match Fuse)")
 			}
+			isCorrect.value = validationStatus.value === "correct"
 		}
 		else if (props.content?.type === "four" || props.content?.type === "two") {
 			const correctIndex = props.content?.answers.findIndex(answer => answer.isCorrect)
 			isCorrect.value = selectedAnswer.value === String(correctIndex)
+			console.log(isCorrect.value = selectedAnswer.value === String(correctIndex))
 		}
 
-		isCorrect.value = validationStatus.value === "correct"
 		status.value = isCorrect.value ? "correct" : "incorrect"
 		if (status.value === "correct") {
 			emit("goodAnswer")

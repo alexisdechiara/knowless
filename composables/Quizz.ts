@@ -1,7 +1,7 @@
 import { ref } from "vue"
 import { Quizz } from "~/models/quizz"
 
-export const useQuizz = (cat?: string, lang: string = "fr") => {
+export const useQuizz = (cat?: Array<string>, lang: string = "fr") => {
 	const supabase = useSupabaseClient()
 	const data = ref<Quizz | null>(null)
 	const error = ref<Error | null>(null)
@@ -11,11 +11,11 @@ export const useQuizz = (cat?: string, lang: string = "fr") => {
 		status.value = "pending"
 		error.value = null
 
-		const { data: raw, error: err } = await supabase.rpc("get_random_quiz", {
-			p_category: cat,
+		const { data: raw, error: err } = await supabase.rpc("get_random_quizzes", {
+			p_categories: cat,
 			p_language: lang,
-		})
-			.single()
+			p_limit: 1,
+		}).single()
 
 		if (err) {
 			error.value = err

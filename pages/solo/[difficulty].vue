@@ -53,10 +53,6 @@
 
 <script lang="ts" setup>
 import { toast } from "vue-sonner"
-import type { OpenQuizzDB, OpenQuizzDBResult } from "~/models/openquizzdb"
-import { Quizz } from "~/models/quizz"
-
-const config = useRuntimeConfig()
 
 const isPlaying = ref(false)
 const isFinished = ref(false)
@@ -83,23 +79,7 @@ const getNewCategory = () => {
 	category.value = getRandomCategory(player.categories)
 }
 
-// const { data, status, error, execute, refresh } = useLazyFetch(`${config.public.openQuizzDbApiUrl || "https://api.openquizzdb.org"}`, {
-// 	query: {
-// 		key: config.public.openQuizzDbApiKey,
-// 		diff: difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3,
-// 		categ: computed(() => category.value),
-// 		anec: 1,
-// 		wiki: 1,
-// 		lang: player.language,
-// 	},
-// 	transform: (data: OpenQuizzDB) => new Quizz(data.results[0] as OpenQuizzDBResult),
-// 	server: false,
-// 	immediate: false,
-// 	cache: "no-cache",
-// 	watch: [category],
-// })
-
-const { data, status, error, execute, refresh } = useQuizz(category.value, player.language)
+const { data, status, error, execute, refresh } = useQuizz(player.categories, player.language)
 
 watch(error, () => {
 	console.error(error.value)
