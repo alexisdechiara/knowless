@@ -79,7 +79,7 @@ const getNewCategory = () => {
 	category.value = getRandomCategory(player.categories)
 }
 
-const { data, status, error, execute, refresh } = useQuizz(player.categories, player.language)
+const { data, status, error, execute, refresh } = useQuizz(player.categories, player.language, difficulty)
 
 watch(error, () => {
 	console.error(error.value)

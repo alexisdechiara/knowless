@@ -95,9 +95,9 @@ const categoryList = [
 		icon: "lucide:palette",
 	},
 	{
-		title: "BD",
-		descriton: "Univers, personnages et histoires emblématiques de la bande dessinée",
-		value: "comics",
+		title: "Œuvres graphiques et animées",
+		descriton: "Univers, personnages et histoires emblématiques de la bande dessinée (BD, comics et manga) ou de l'animation (dessin animé, cartoon et animes)",
+		value: "graphic_and_animated",
 		icon: "lucide:book-open",
 	},
 	{
@@ -132,7 +132,7 @@ const categoryList = [
 	},
 	{
 		title: "Géographie",
-		descriton: "Pays, continents et phénomènes géographiques fascinants",
+		descriton: "Pays, continents et villes",
 		value: "geography",
 		icon: "lucide:map",
 	},
@@ -155,9 +155,9 @@ const categoryList = [
 		icon: "lucide:feather",
 	},
 	{
-		title: "Loisirs",
-		descriton: "Activités, jeux et divertissements pour tous les goûts",
-		value: "hobbies",
+		title: "Jeux",
+		descriton: "Jeux vidéo, consoles et jeux de société",
+		value: "games",
 		icon: "lucide:gamepad",
 	},
 	{
@@ -171,12 +171,6 @@ const categoryList = [
 		descriton: "Écosystèmes, phénomènes naturels et merveilles de la biodiversité",
 		value: "nature",
 		icon: "lucide:leaf",
-	},
-	{
-		title: "Pays du monde",
-		descriton: "Capitaux, cultures et particularités des nations du globe",
-		value: "countries",
-		icon: "lucide:earth",
 	},
 	{
 		title: "Pour adultes",
