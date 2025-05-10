@@ -1,6 +1,6 @@
 <!-- eslint-disable tailwindcss/no-custom-classname -->
 <template>
-	<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="fixed left-1/2 top-1/2 flex size-full -translate-x-1/2 -translate-y-1/2 flex-col sm:size-2/3 sm:shadow-md">
+	<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="fixed left-1/2 top-1/2 flex size-full -translate-x-1/2 -translate-y-1/2 flex-col sm:h-3/4 sm:w-2/3 sm:shadow-md">
 		<CardHeader v-if="$slots.header">
 			<slot name="header" />
 		</CardHeader>

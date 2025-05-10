@@ -14,6 +14,7 @@ export default defineNuxtConfig({
 		"@nuxtjs/supabase",
 		"motion-v/nuxt",
 		"@vueuse/nuxt",
+		"@formkit/auto-animate/nuxt",
 	],
 
 	ssr: false,

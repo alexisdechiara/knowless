@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import * as z from "zod"
 import { createAvatar } from "@dicebear/core"
 import { bigEars } from "@dicebear/collection"
 import { toast } from "vue-sonner"
-import type { GenericObject } from "vee-validate"
-import { toTypedSchema } from "@vee-validate/zod"
 import FormLabel from "~/components/ui/form/FormLabel.vue"
 
 const languages = [
@@ -20,30 +17,12 @@ const seeds = ["Avery", "Mason", "George", "Liam", "Riley", "Oliver", "Amaya", "
 
 const randomTagNumber: string = String(1000 + Math.floor(Math.random() * 9000))
 
-const username = ref<string>("")
 const tagInput = ref<string>(randomTagNumber)
 const selectedLanguage = ref<string>("fr")
 
 const supabase = useSupabaseClient()
 
-const profileSchema = z.object({
-	username: z.string().min(2).max(50).nonempty(),
-	tag: z.string().min(0).default(randomTagNumber),
-	language: z.enum(["en", "fr", "es", "it", "de", "nl"]).default("fr"),
-})
-
-const accountSchema = z
-	.object({
-		email: z.string().email(),
-		password: z.string().min(6).max(50),
-		confirmPassword: z.string(),
-	})
-	.refine(values => values.password === values.confirmPassword, {
-		message: "Les mots de passe doivent correspondre !",
-		path: ["confirmPassword"],
-	})
-
-const profileCompleted = ref(false)
+const formStep = ref<number>(0)
 
 const formatTag = () => {
 	if (tagInput.value.length < 4) {
@@ -61,17 +40,47 @@ const getAvatarUrl = computed(() => `https://api.dicebear.com/6.x/big-ears/svg?s
 
 const selectedAvatarSeed = ref<string>(seeds[Math.floor(Math.random() * seeds.length)])
 
-const profileValues: GenericObject = {}
+const {
+	handleSubmit,
+	setFieldValue,
+	validateProfileStep,
+	meta,
+	values,
+	isFieldValid,
+} = useRegisterForm(randomTagNumber, getAvatarUrl.value)
 
-async function createAnonymousAccount() {
-	console.log("Création de compte anonyme")
+const isProfileStepValid = computed(() => {
+	return (
+		isFieldValid("username")
+		&& isFieldValid("usertag")
+		&& isFieldValid("avatar")
+		&& isFieldValid("language")
+	)
+})
+
+const goToNextStep = async () => {
+	const isValid = await validateProfileStep()
+	if (isValid && isProfileStepValid.value) {
+		formStep.value = 1
+	}
+}
+
+watch(selectedAvatarSeed, () => setFieldValue("avatar", getAvatarUrl.value))
+
+const createAnonymousAccount = async () => {
+	const isValid = await validateProfileStep()
+
+	if (!isValid || !isProfileStepValid.value) {
+		throw new Error("Formulaire non valide")
+	}
+
 	const { data, error } = await supabase.auth.signInAnonymously({
 		options: {
 			data: {
-				username: username.value,
-				usertag: tagInput.value,
-				language: selectedLanguage.value,
-				avatar: getAvatarUrl.value,
+				username: values.username,
+				usertag: values.usertag,
+				language: values.language,
+				avatar: values.avatar,
 			},
 		},
 	})
@@ -88,18 +97,16 @@ async function createAnonymousAccount() {
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function onSubmit(values: any) {
-	console.log("Création de compte")
+const createAccount = handleSubmit(async (values) => {
 	const { data, error } = await supabase.auth.signUp({
 		email: values.email,
 		password: values.password,
 		options: {
 			data: {
-				username: username.value,
-				usertag: tagInput.value,
-				language: selectedLanguage.value,
-				avatar: getAvatarUrl.value,
+				username: values.username,
+				usertag: values.usertag,
+				language: values.language,
+				avatar: values.avatar,
 			},
 		},
 	})
@@ -114,27 +121,13 @@ async function onSubmit(values: any) {
 		})
 		await navigateTo("/")
 	}
-}
+})
 </script>
 
 <template>
 	<Auth register>
-		<Form
-			v-show="!profileCompleted"
-			v-slot="{ meta, values, validate }"
-			keep-values
-			:validation-schema="toTypedSchema(profileSchema)"
-		>
-			<form
-				@submit="(e) => {
-					e.preventDefault()
-					validate()
-					if (meta.valid) {
-						profileCompleted = true
-						profileValues = values
-					}
-				}"
-			>
+		<form @submit.prevent="createAccount">
+			<div v-show="formStep === 0">
 				<div class="mt-4 flex flex-col gap-4">
 					<div class="flex flex-col space-y-2 text-center">
 						<h1 class="text-2xl font-semibold tracking-tight">
@@ -144,17 +137,9 @@ async function onSubmit(values: any) {
 							Entrez votre nom d'utilisateur et choisissez un avatar pour commencer.
 						</p>
 					</div>
-					<FormField v-slot="{ componentField }" name="avatar">
+					<FormField name="avatar">
 						<FormItem class="flex w-full flex-1 justify-center">
 							<FormControl class="w-full flex-1">
-								<Input
-									id="avatar"
-									v-model="selectedAvatarSeed"
-									class="sr-only"
-									type="text"
-									v-bind="componentField"
-								/>
-
 								<Popover>
 									<PopoverTrigger class="group relative">
 										<span class="absolute right-2 top-2 z-20 flex aspect-square size-fit items-center justify-center rounded-full border-2 border-background bg-foreground p-2">
@@ -181,37 +166,51 @@ async function onSubmit(values: any) {
 							<FormMessage />
 						</FormItem>
 					</FormField>
-					<div class="flex gap-0">
-						<FormField v-slot="{ componentField }" name="username" class="w-full flex-1">
-							<FormItem class="z-10 w-full flex-1">
-								<FormLabel>Nom d'utilisateur *</FormLabel>
-								<FormControl class="w-full flex-1">
-									<Input
-										id="username"
-										v-model="username"
-										class="w-full flex-1 rounded-r-none"
-										placeholder="Username"
-										type="text"
-										v-bind="componentField"
-									/>
-								</FormControl>
-							</FormItem>
-						</FormField>
+					<div class="relative">
+						<div class="flex gap-0">
+							<FormField v-slot="{ componentField }" name="username" class="w-full flex-1">
+								<FormItem class="z-10 w-full flex-1">
+									<FormLabel>Nom d'utilisateur *</FormLabel>
+									<FormControl class="w-full flex-1">
+										<Input
+											id="username"
+											class="w-full flex-1 rounded-r-none"
+											placeholder="Username"
+											type="text"
+											v-bind="componentField"
+										/>
+									</FormControl>
+								</FormItem>
+							</FormField>
 
-						<FormField v-slot="{ componentField }" name="tag">
-							<FormItem class="focus-within:z-10">
-								<FormLabel class="invisible">Tag</FormLabel>
-								<FormControl class="relative w-full max-w-20 items-center">
-									<div>
-										<Input id="tag" v-bind="componentField" v-model="tagInput" type="text" maxlength="4" class="relative rounded-l-none border-l-0 pl-7 uppercase tracking-widest" @blur="formatTag" />
-										<span class="absolute inset-y-0 start-0 flex items-center justify-center ps-2">
-											<Icon name="heroicons:hashtag" class="size-4 text-muted-foreground" />
-										</span>
-									</div>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						</FormField>
+							<FormField v-slot="{ componentField }" name="usertag">
+								<FormItem class="focus-within:z-10">
+									<FormLabel class="invisible">Tag</FormLabel>
+									<FormControl class="relative w-full max-w-20 items-center">
+										<div>
+											<Input id="usertag" v-bind="componentField" v-model="tagInput" type="text" maxlength="4" class="relative rounded-l-none border-l-0 pl-7 uppercase tracking-widest" @blur="formatTag" />
+											<span class="absolute inset-y-0 start-0 flex items-center justify-center ps-2">
+												<Icon name="heroicons:hashtag" class="size-4 text-muted-foreground" />
+											</span>
+										</div>
+									</FormControl>
+								</FormItem>
+							</FormField>
+						</div>
+
+						<!-- Message d'erreur après les deux champs -->
+						<div v-auto-animate="{ duration: 150 }">
+							<FormField v-slot="{ errorMessage }" name="username">
+								<p v-if="errorMessage" class="mt-1 text-sm text-destructive">
+									{{ errorMessage }}
+								</p>
+							</FormField>
+							<FormField v-slot="{ errorMessage }" name="usertag">
+								<p v-if="errorMessage" class="mt-1 text-sm text-destructive">
+									{{ errorMessage }}
+								</p>
+							</FormField>
+						</div>
 					</div>
 
 					<FormField v-slot="{ componentField }" name="language">
@@ -238,30 +237,14 @@ async function onSubmit(values: any) {
 				</div>
 
 				<div class="mt-4 flex items-center justify-between">
-					<Button disabled variant="outline" class="absolute bottom-4 left-4 md:bottom-8 md:left-8" @click="profileCompleted = false">
-						Back
-					</Button>
 					<div class="flex items-center gap-3">
-						<Button type="submit" class="absolute bottom-4 right-4 md:bottom-8 md:right-8" :disabled="!meta.valid" @click="profileCompleted = true">
-							Next
+						<Button type="button" class="absolute bottom-4 right-4 md:bottom-8 md:right-8" :disabled="!isProfileStepValid" @click="goToNextStep">
+							Suivant
 						</Button>
 					</div>
 				</div>
-			</form>
-		</Form>
-		<Form
-			v-show="profileCompleted"
-			v-slot="{ meta, values, validate }"
-			keep-values
-			:validation-schema="toTypedSchema(accountSchema)"
-		>
-			<form
-				@submit="(e) => {
-					e.preventDefault()
-					validate()
-					onSubmit(values)
-				}"
-			>
+			</div>
+			<div v-show="formStep === 1">
 				<div class="mt-4 flex flex-col gap-4">
 					<div class="flex flex-col space-y-2 text-center">
 						<h1 class="text-2xl font-semibold tracking-tight">
@@ -328,12 +311,12 @@ async function onSubmit(values: any) {
 					</p>
 				</div>
 				<div class="mt-4 flex items-center justify-between">
-					<Button variant="outline" type="button" class="absolute bottom-4 left-4 md:bottom-8 md:left-8" @click="profileCompleted = false">
-						Back
+					<Button variant="outline" type="button" class="absolute bottom-4 left-4 md:bottom-8 md:left-8" @click="formStep = 0">
+						Retour
 					</Button>
 				</div>
-			</form>
-		</Form>
+			</div>
+		</form>
 	</Auth>
 </template>
 

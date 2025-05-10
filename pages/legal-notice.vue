@@ -1,6 +1,6 @@
 <template>
 	<div class="flex h-screen w-screen items-center justify-center">
-		<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="flex size-full flex-col sm:size-2/3 sm:shadow-md">
+		<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="flex size-full flex-col sm:h-3/4 sm:w-2/3 sm:shadow-md">
 			<CardContent class="mb-8 flex size-full justify-center overflow-auto scroll-smooth p-8">
 				<Tabs default-value="notice" class="flex size-full flex-col items-center">
 					<TabsList class="mb-6">

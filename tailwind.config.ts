@@ -1,5 +1,6 @@
 import animate from "tailwindcss-animate"
 import typography from "@tailwindcss/typography"
+import { setupInspiraUI } from "@inspira-ui/plugins"
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -83,5 +84,5 @@ module.exports = {
 			},
 		},
 	},
-	plugins: [animate, typography],
+	plugins: [animate, typography, setupInspiraUI],
 }
