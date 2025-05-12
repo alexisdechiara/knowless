@@ -18,6 +18,13 @@ export default defineNuxtConfig({
 	],
 
 	ssr: false,
+
+	components: [
+		{
+			path: "~/components",
+			pathPrefix: false,
+		},
+	],
 	devtools: {
 		enabled: true,
 	},
@@ -57,13 +64,13 @@ export default defineNuxtConfig({
 
 	shadcn: {
 		/**
-								* Prefix for all the imported component
-								*/
+		* Prefix for all the imported component
+		*/
 		prefix: "",
 		/**
-								* Directory that the component lives in.
-								* @default "./components/ui"
-								*/
+		* Directory that the component lives in.
+		* @default "./components/ui"
+		*/
 		componentDir: "./components/ui",
 	},
 

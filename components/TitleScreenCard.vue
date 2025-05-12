@@ -51,4 +51,30 @@ withDefaults(defineProps<{
 	showSettings: true,
 	showFriends: true,
 })
+
+const icons = [
+	"lucide:paw-print",
+	"lucide:landmark",
+	"lucide:palette",
+	"lucide:book-open",
+	"lucide:star",
+	"lucide:film",
+	"lucide:layers",
+	"lucide:book-open-text",
+	"lucide:utensils-crossed",
+	"lucide:map",
+	"lucide:castle",
+	"lucide:monitor",
+	"lucide:feather",
+	"lucide:gamepad",
+	"lucide:tv",
+	"lucide:music",
+	"lucide:leaf",
+	"lucide:user-x",
+	"lucide:home",
+	"lucide:microscope",
+	"lucide:dumbbell",
+	"lucide:globe",
+	"lucide:luggage",
+]
 </script>
