@@ -2,12 +2,25 @@
 <template>
 	<div class="relative flex h-screen w-screen items-center justify-start ps-16">
 		<ClientOnly>
+			<!-- <InteractiveGridPattern
+			class="fixed right-0 top-0 z-0"
+			:height="64"
+			:width="64"
+			:squares="[64, 64]"
+			:class="[
+				'[mask-image:radial-gradient(650px_circle_at_center,white,transparent)]',
+				'size-full skew-y-6 scale-110',
+			]"
+		/> -->
+			<!--
+				<Globe
+			/> -->
 			<Tetris
-				class="absolute inset-0 z-0 size-full [mask-image:radial-gradient(650px_circle_at_center,#00C16A,transparent)]"
+				class="fixed right-0 top-1/3 z-0 size-full -translate-y-1/4 translate-x-1/4 scale-125 [mask-image:radial-gradient(450px_circle_at_center,#00C16A,transparent)]"
 				:base="25"
 			/>
 		</ClientOnly>
-		<ul class="flex flex-col gap-y-2 text-7xl font-semibold italic text-foreground">
+		<ul class="flex flex-col gap-y-2 text-6xl font-semibold italic text-foreground">
 			<li class="z-50">
 				<h1 class="pointer-events-none left-1/2 mb-16 w-fit text-8xl font-bold not-italic leading-none tracking-wider">Knowless</h1>
 			</li>
@@ -17,14 +30,19 @@
 			<li>
 				<NuxtLink to="/multi"> Multijoueur</NuxtLink>
 			</li>
-			<li class="!my-0 text-3xl">
+			<li class="!my-0 text-2xl">
 				<NuxtLink to="/settings"> Options</NuxtLink>
 			</li>
-			<li class="!my-0 text-3xl">
-				<NuxtLink to="/social"> Social</NuxtLink>
+			<li class="!my-0 text-2xl">
+				<FriendListPopover>
+					<a>Social</a>
+				</FriendListPopover>
 			</li>
-			<li class="!my-0 text-3xl">
+			<li class="!my-0 text-2xl">
 				<NuxtLink to="/legal-notice"> Mentions légales</NuxtLink>
+			</li>
+			<li class="!my-0 text-2xl">
+				<NuxtLink to="/register" class="text-destructive" @click="supabase.auth.signOut()"> Déconnexion</NuxtLink>
 			</li>
 		</ul>
 		<div class="absolute bottom-8 right-8 flex gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all">
@@ -48,7 +66,7 @@
 					</TabsTrigger>
 				</TabsList>
 			</TabsRoot>
-			<Button size="icon" :variant="selectedGame ? 'destructive' : 'default'" class="z-50 size-12 rounded-full p-3" @click="selectedGame === 'snake' ? turnOffGame() : selectedGame = 'snake'">
+			<Button v-if="isMotionable" size="icon" :variant="selectedGame ? 'destructive' : 'default'" class="z-50 size-12 rounded-full p-3" @click="selectedGame === 'snake' ? turnOffGame() : selectedGame = 'snake'">
 				<Icon name="bx:bxs-joystick-button" class="size-full transition-transform" :class="selectedGame !== null && selectedGame !== '' ? 'rotate-45' : ''" />
 			</Button>
 		</div>
@@ -60,10 +78,15 @@
 
 <script lang="ts" setup>
 import { TabsIndicator, TabsList, TabsRoot, TabsTrigger } from "radix-vue"
+import { breakpointsTailwind, useBreakpoints } from "@vueuse/core"
 
 definePageMeta({
 	middleware: "auth",
 })
+
+const supabase = useSupabaseClient()
+const breakpoints = useBreakpoints(breakpointsTailwind)
+const isMotionable = computed(() => breakpoints.greaterOrEqual("lg") && useDevice().isDesktopOrTablet && usePreferredReducedMotion())
 
 const selectedGame = ref<string | null>("")
 const isPoweringOff = ref(false)
@@ -80,15 +103,6 @@ function turnOffGame() {
 <style scoped>
 li:has(a) {
 	@apply z-50 my-1 w-fit transition-all hover:-translate-y-1 hover:translate-x-4 hover:scale-110 hover:font-bold;
-}
-
-a, h1 {
-	&:is(.dark *) {
-		-webkit-text-stroke: 8px hsl(222.2,84%,4.9%);
-	}
-
-	-webkit-text-stroke: 8px hsl(0,0%,100%);
-	paint-order: stroke fill;
 }
 
 @keyframes flicker {

@@ -132,7 +132,7 @@ onMounted(() => {
 		clearColumn()
 		moveCellsDown()
 		createNewCell()
-	}, 1000)
+	}, 800)
 })
 
 onUnmounted(() => {

@@ -143,5 +143,8 @@ else {
 				</TableBody>
 			</Table>
 		</Card>
+		<Button as="a" href="/multi" variant="default" size="icon" class="fixed bottom-4 left-4 size-12 md:bottom-8 md:left-8">
+			<Icon name="lucide:chevron-left" class="text-xl" />
+		</Button>
 	</div>
 </template>
