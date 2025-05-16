@@ -2,48 +2,25 @@
 <template>
 	<div class="relative flex h-screen w-screen items-center justify-start ps-16">
 		<ClientOnly>
-			<!-- <InteractiveGridPattern
-			class="fixed right-0 top-0 z-0"
-			:height="64"
-			:width="64"
-			:squares="[64, 64]"
-			:class="[
-				'[mask-image:radial-gradient(650px_circle_at_center,white,transparent)]',
-				'size-full skew-y-6 scale-110',
-			]"
-		/> -->
-			<!--
-				<Globe
-			/> -->
 			<Tetris
 				class="fixed right-0 top-1/3 z-0 size-full -translate-y-1/4 translate-x-1/4 scale-125 [mask-image:radial-gradient(450px_circle_at_center,#00C16A,transparent)]"
 				:base="25"
 			/>
 		</ClientOnly>
-		<ul class="flex flex-col gap-y-2 text-6xl font-semibold italic text-foreground">
-			<li class="z-50">
-				<h1 class="pointer-events-none left-1/2 mb-16 w-fit text-8xl font-bold not-italic leading-none tracking-wider">Knowless</h1>
-			</li>
+		<ul class="z-50 flex w-fit flex-col gap-y-2 font-semibold italic text-foreground">
 			<li>
-				<NuxtLink to="/solo"> Solo</NuxtLink>
+				<h1 class="pointer-events-none mb-16 w-fit text-8xl font-bold not-italic leading-none tracking-wider">Knowless</h1>
 			</li>
-			<li>
-				<NuxtLink to="/multi"> Multijoueur</NuxtLink>
-			</li>
-			<li class="!my-0 text-2xl">
-				<NuxtLink to="/settings"> Options</NuxtLink>
-			</li>
-			<li class="!my-0 text-2xl">
-				<FriendListPopover>
-					<a>Social</a>
-				</FriendListPopover>
-			</li>
-			<li class="!my-0 text-2xl">
-				<NuxtLink to="/legal-notice"> Mentions légales</NuxtLink>
-			</li>
-			<li class="!my-0 text-2xl">
-				<NuxtLink to="/register" class="text-destructive" @click="supabase.auth.signOut()"> Déconnexion</NuxtLink>
-			</li>
+			<NavLink label="Solo" :link="{ to: '/solo' }" size="lg" />
+			<NavLink label="Multijoueurs" :link="{ to: '/multi' }" size="lg" />
+			<DialogSettings>
+				<NavLink label="Options" size="sm" />
+			</DialogSettings>
+			<FriendListPopover>
+				<NavLink label="Social" size="sm" />
+			</FriendListPopover>
+			<NavLink label="Mentions légales" :link="{ to: '/legal-notice' }" size="sm" />
+			<NavLink label="Déconnexion" class="text-destructive" size="sm" :link="{ to: '/register' }" @click="supabase.auth.signOut()" />
 		</ul>
 		<div class="absolute bottom-8 right-8 flex gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all">
 			<TabsRoot v-if="selectedGame != null && selectedGame !== ''" v-model="selectedGame" default-value="snake">
@@ -101,10 +78,6 @@ function turnOffGame() {
 </script>
 
 <style scoped>
-li:has(a) {
-	@apply z-50 my-1 w-fit transition-all hover:-translate-y-1 hover:translate-x-4 hover:scale-110 hover:font-bold;
-}
-
 @keyframes flicker {
   0% {
     opacity: 0.27861;
@@ -170,6 +143,7 @@ li:has(a) {
     opacity: 0.24387;
   }
 }
+
 @keyframes textShadow {
   0% {
     text-shadow: 0.4389924193300864px 0 1px rgba(0,30,255,0.5), -0.4389924193300864px 0 1px rgba(255,0,80,0.3), 0 0 3px;
