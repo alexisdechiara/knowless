@@ -19,7 +19,14 @@
 			<FriendListPopover>
 				<NavLink label="Social" size="sm" />
 			</FriendListPopover>
-			<NavLink label="Mentions légales" :link="{ to: '/legal-notice' }" size="sm" />
+			<Dialog>
+				<DialogTrigger>
+					<NavLink label="Mentions légales" size="sm" />
+				</DialogTrigger>
+				<DialogContent class="h-3/4 max-w-4xl">
+					<LegalNotice class="overflow-y-auto" />
+				</DialogContent>
+			</Dialog>
 			<NavLink label="Déconnexion" class="text-destructive" size="sm" :link="{ to: '/register' }" @click="supabase.auth.signOut()" />
 		</ul>
 		<div class="absolute bottom-8 right-8 flex gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all">

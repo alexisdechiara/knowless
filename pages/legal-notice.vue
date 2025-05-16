@@ -1,28 +1,15 @@
 <template>
-	<div class="flex h-screen w-screen items-center justify-center">
-		<component :is="breakpoints.greater('sm').value ? Card : 'div'" class="flex size-full flex-col sm:h-3/4 sm:w-2/3 sm:shadow-md">
-			<CardContent class="mb-8 flex size-full justify-center overflow-auto scroll-smooth p-8">
-				<Tabs default-value="notice" class="flex size-full flex-col items-center">
-					<TabsList class="mb-6">
-						<TabsTrigger value="notice" class="w-full">
-							Mentions légales
-						</TabsTrigger>
-						<TabsTrigger value="lincenses" class="w-full">
-							Lincence
-						</TabsTrigger>
-					</TabsList>
-					<TabsContent value="notice" class="flex size-full">
-						<ContentDoc class="prose max-w-none prose-headings:text-2xl sm:text-justify" />
-					</TabsContent>
-					<TabsContent value="lincenses" class="flex size-full items-center justify-center" />
-				</tabs>
-			</CardContent>
-		</component>
+	<div class="pb-32 pt-16">
+		<h2 class="mb-24 text-center text-5xl font-bold">Mentions légales</h2>
+		<ContentRenderer v-if="data" :value="data" class="prose mx-auto prose-headings:text-2xl sm:text-justify" />
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { Card } from "~/components/ui/card"
+<script setup>
+const { data } = await useAsyncData("legal-notice", () => queryCollection("content").first())
 
-const breakpoints = useScreenSize()
+useSeoMeta({
+	title: data.value?.title,
+	description: data.value?.description,
+})
 </script>
