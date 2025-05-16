@@ -18,7 +18,7 @@
 			</div>
 		</div>
 		<div v-if="gameOver" class="animate-fade-in absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-black/90 text-white">
-			<div class="text-3xl font-bold">Vous avez perdu</div>
+			<div class="text-3xl font-bold">Game Over</div>
 			<div class="text-xl">Votre score est de : {{ score }}</div>
 			<div class="text-md">Meilleur score : {{ bestScore }}</div>
 			<button class="inline-flex p-1 underline underline-offset-2 hover:bg-white hover:text-black hover:no-underline" @click="restartGame">Rejouer</button>

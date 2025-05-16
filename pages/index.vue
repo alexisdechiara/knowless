@@ -72,6 +72,10 @@
 		</div>
 		<div v-if="selectedGame != null && selectedGame !== ''" class="crt absolute bottom-32 right-32 h-[480px] w-[720px] overflow-hidden rounded-[8%]" :class="{ 'animate-crt-power-on': selectedGame && !isPoweringOff, 'animate-crt-power-off': isPoweringOff }">
 			<SnakeGame v-if="selectedGame === 'snake'" />
+			<TicTacToeGame v-else-if="selectedGame === 'ticTacToe'" />
+			<!-- <TetrisGame v-else-if="selectedGame === 'tetris'" /> -->
+			<FlappyBirdGame v-else-if="selectedGame === 'flappyBird'" />
+			<!-- <LightOutGame v-else-if="selectedGame === 'lightOut'" /> -->
 		</div>
 	</div>
 </template>
