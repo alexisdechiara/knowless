@@ -18,7 +18,7 @@
 			<div class="text-3xl font-bold">Game Over</div>
 			<div class="text-xl">Votre score est de : {{ score }}</div>
 			<div class="text-md">Meilleur score : {{ bestScore }}</div>
-			<button class="inline-flex p-1 underline underline-offset-2 hover:bg-white hover:text-black hover:no-underline" @click="restartGame">
+			<button class="inline-flex p-2 underline underline-offset-2 hover:bg-white hover:text-black hover:no-underline" @click="restartGame">
 				Rejouer
 			</button>
 		</div>

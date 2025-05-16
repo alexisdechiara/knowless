@@ -17,7 +17,7 @@
 		>
 			<div class="text-3xl font-bold">{{ resultMessage }}</div>
 			<button
-				class="inline-flex p-1 underline underline-offset-2 hover:bg-white hover:text-black hover:no-underline"
+				class="inline-flex p-2 underline underline-offset-2 hover:bg-white hover:text-black hover:no-underline"
 				@click="restartGame"
 			>
 				Rejouer

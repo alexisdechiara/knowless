@@ -48,7 +48,7 @@
 		<div class="absolute bottom-8 right-8 flex gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all">
 			<TabsRoot v-if="selectedGame != null && selectedGame !== ''" v-model="selectedGame" default-value="snake">
 				<TabsList class="relative flex flex-wrap text-background ">
-					<TabsIndicator :class="selectedGame === 'lightOut' ? 'w-20 h-12' : 'size-12'" class="absolute translate-x-[--radix-tabs-indicator-position] rounded-full bg-background p-2 transition-[width,transform] duration-300" />
+					<TabsIndicator :class="selectedGame === 'flappyBird' ? 'w-20 h-12' : 'size-12'" class="absolute translate-x-[--radix-tabs-indicator-position] rounded-full bg-background p-2 transition-[width,transform] duration-300" />
 					<TabsTrigger value="snake" class="size-12 rounded-full">
 						<Icon name="mdi:snake" class="text-white mix-blend-difference" />
 					</TabsTrigger>
@@ -58,24 +58,20 @@
 					<TabsTrigger value="ticTacToe" class="size-12 rounded-full">
 						<Icon name="hugeicons:tic-tac-toe" class="text-white mix-blend-difference" />
 					</TabsTrigger>
-					<TabsTrigger value="flappyBird" class="size-12 rounded-full">
+					<TabsTrigger value="flappyBird" class="size-12 rounded-full transition-[margin]" :class="selectedGame === 'flappyBird' ? '-me-4' : 'me-0'">
 						<Icon name="icon-park-solid:bird" class="text-white mix-blend-difference" />
-					</TabsTrigger>
-					<TabsTrigger value="lightOut" class="size-12 rounded-full transition-[margin]" :class="selectedGame === 'lightOut' ? '-me-4' : 'me-0'">
-						<Icon name="bi:grid-3x3-gap-fill" class="text-white mix-blend-difference" />
 					</TabsTrigger>
 				</TabsList>
 			</TabsRoot>
-			<Button v-if="isMotionable" size="icon" :variant="selectedGame ? 'destructive' : 'default'" class="z-50 size-12 rounded-full p-3" @click="selectedGame === 'snake' ? turnOffGame() : selectedGame = 'snake'">
+			<Button v-if="isMotionable" size="icon" :variant="selectedGame ? 'destructive' : 'default'" class="z-50 size-12 rounded-full p-3" @click="selectedGame !== null && selectedGame !== '' ? turnOffGame() : selectedGame = 'snake'">
 				<Icon name="bx:bxs-joystick-button" class="size-full transition-transform" :class="selectedGame !== null && selectedGame !== '' ? 'rotate-45' : ''" />
 			</Button>
 		</div>
 		<div v-if="selectedGame != null && selectedGame !== ''" class="crt absolute bottom-32 right-32 h-[480px] w-[720px] overflow-hidden rounded-[8%]" :class="{ 'animate-crt-power-on': selectedGame && !isPoweringOff, 'animate-crt-power-off': isPoweringOff }">
 			<SnakeGame v-if="selectedGame === 'snake'" />
 			<TicTacToeGame v-else-if="selectedGame === 'ticTacToe'" />
-			<!-- <TetrisGame v-else-if="selectedGame === 'tetris'" /> -->
+			<TetrisGame v-else-if="selectedGame === 'tetris'" />
 			<FlappyBirdGame v-else-if="selectedGame === 'flappyBird'" />
-			<!-- <LightOutGame v-else-if="selectedGame === 'lightOut'" /> -->
 		</div>
 	</div>
 </template>
