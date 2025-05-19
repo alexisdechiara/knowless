@@ -1,5 +1,6 @@
 ---
-title: 'Mentions légales et licences'
+slug: legal-notice
+title: 'Mentions légales'
 description: ''
 ---
 
@@ -26,10 +27,5 @@ Les données personnelles collectées sur ce site sont traitées conformément �
 Le contenu de ce site est protégé par le droit d'auteur. Tous les éléments de design, textes, codes sources et autres créations originales sont la propriété exclusive de De Chiara Alexis (EI), sauf indication contraire.
 \
 \
-La section **«Partie Solo»** utilise des données fournies par [OpenQuizzDB](https://openquizzdb.org), publiée sous licence [Creative Commons Attribution - ShareAlike 4.0 (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/). En outre, l'ensemble de ce site et son code source sont distribués sous licence [GNU General Public License version 3 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html). Cela signifie que :  
-
-- Vous êtes libre d'utiliser, de modifier et de redistribuer le code du site, à condition de respecter les termes de la GPLv3.
-- Toute redistribution ou modification doit être accompagnée du code source et conserver la même licence.
-- Vous devez indiquer clairement les modifications que vous avez effectuées si vous redistribuez une version modifiée.  
-
-Pour toute utilisation commerciale, veuillez me contacter pour obtenir une autorisation spécifique.
+La base de données utilises des questions fournies par [OpenQuizzDB](https://openquizzdb.org), publiée sous licence [Creative Commons Attribution - ShareAlike 4.0 (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/). En outre, l'ensemble de ce site et son code source sont distribués sous licence [GNU General Public License version 3 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).
+Pour en savoir plus, dirigez-vous vers la section destinée aux licences.

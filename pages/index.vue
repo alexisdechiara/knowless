@@ -17,14 +17,14 @@
 				<NavLink label="Options" size="sm" />
 			</DialogSettings>
 			<FriendListPopover>
-				<NavLink label="Social" size="sm" />
+				<NavLink label="Social" class="italic" size="sm" />
 			</FriendListPopover>
 			<Dialog>
 				<DialogTrigger>
-					<NavLink label="Mentions légales" size="sm" />
+					<NavLink label="Légal" class="italic" size="sm" />
 				</DialogTrigger>
 				<DialogContent class="h-3/4 max-w-4xl">
-					<LegalNotice class="overflow-y-auto" />
+					<LegalDialog class="overflow-y-auto" />
 				</DialogContent>
 			</Dialog>
 			<NavLink label="Déconnexion" class="text-destructive" size="sm" :link="{ to: '/register' }" @click="supabase.auth.signOut()" />
@@ -63,10 +63,6 @@
 <script lang="ts" setup>
 import { TabsIndicator, TabsList, TabsRoot, TabsTrigger } from "radix-vue"
 import { breakpointsTailwind, useBreakpoints } from "@vueuse/core"
-
-definePageMeta({
-	middleware: "auth",
-})
 
 const supabase = useSupabaseClient()
 const breakpoints = useBreakpoints(breakpointsTailwind)

@@ -24,10 +24,6 @@ const { handleSubmit } = useForm({
 const onSubmit = handleSubmit((values) => {
 
 })
-
-definePageMeta({
-	layout: "settings",
-})
 </script>
 
 <template>

@@ -19,6 +19,7 @@ const randomTagNumber: string = String(1000 + Math.floor(Math.random() * 9000))
 
 const tagInput = ref<string>(randomTagNumber)
 const selectedLanguage = ref<string>("fr")
+const acceptTermsAndConditions = ref<boolean>(false)
 
 const supabase = useSupabaseClient()
 
@@ -198,7 +199,6 @@ const createAccount = handleSubmit(async (values) => {
 							</FormField>
 						</div>
 
-						<!-- Message d'erreur après les deux champs -->
 						<div v-auto-animate="{ duration: 150 }">
 							<FormField v-slot="{ errorMessage }" name="username">
 								<p v-if="errorMessage" class="mt-1 text-sm text-destructive">
@@ -293,7 +293,18 @@ const createAccount = handleSubmit(async (values) => {
 						</FormItem>
 					</FormField>
 
-					<Button variant="outline" size="lg" class="mt-2" type="submit" :disabled="!meta.valid">
+					<div class="flex items-center gap-x-4">
+						<Checkbox id="acceptTermsAndConditions" :checked="acceptTermsAndConditions" @update:checked="acceptTermsAndConditions = $event" />
+						<label for="acceptTermsAndConditions" class="sr-only">J'accepte les termes et conditions</label>
+						<p class="text-xs text-muted-foreground">
+							En cochant cette case, vous acceptez notre
+							<a href="/terms" class="underline underline-offset-4 hover:text-primary"> Conditions d'utilisation</a>
+							et
+							<a href="/privacy" class="underline underline-offset-4 hover:text-primary"> Politique de confidentialité</a>.
+						</p>
+					</div>
+
+					<Button variant="outline" size="lg" class="mt-2" type="submit" :disabled="!meta.valid || !acceptTermsAndConditions">
 						S'inscrire avec un email
 					</Button>
 
@@ -302,13 +313,6 @@ const createAccount = handleSubmit(async (values) => {
 					<Button size="lg" class="mb-6" type="button" @click.self="createAnonymousAccount">
 						Continuer sans inscription
 					</Button>
-
-					<p class="px-8 text-center text-sm text-muted-foreground">
-						En vous inscrivant, vous acceptez notre
-						<a href="/terms" class="underline underline-offset-4 hover:text-primary"> Conditions d'utilisation</a>
-						et
-						<a href="/privacy" class="underline underline-offset-4 hover:text-primary"> Politique de confidentialité</a>.
-					</p>
 				</div>
 				<div class="mt-4 flex items-center justify-between">
 					<Button variant="outline" type="button" class="absolute bottom-4 left-4 md:bottom-8 md:left-8" @click="formStep = 0">

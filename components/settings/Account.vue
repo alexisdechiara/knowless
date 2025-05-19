@@ -40,10 +40,6 @@ const onSubmit = handleSubmit(async (values) => {
 		description: `Vous avez mis à jour votre compte`,
 	})
 })
-
-definePageMeta({
-	layout: "settings",
-})
 </script>
 
 <template>

@@ -9,6 +9,7 @@ import { Lobby } from "~/models/lobby"
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+
 const formSchema = toTypedSchema(z.object({
 	pin: z.array(z.coerce.string()),
 }))

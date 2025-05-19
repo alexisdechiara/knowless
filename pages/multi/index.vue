@@ -4,7 +4,3 @@
 		<SelectionCard title="Rejoindre" description="Si vous possédez un code d’invitation pour rejoindre une partie personnalisée" to="/multi/join" />
 	</NuxtLayout>
 </template>
-
-<script lang="ts" setup>
-
-</script>

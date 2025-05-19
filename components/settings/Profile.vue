@@ -215,10 +215,6 @@ const categoryList = [
 		icon: "lucide:globe",
 	},
 ]
-
-definePageMeta({
-	layout: "settings",
-})
 </script>
 
 <template>
