@@ -64,6 +64,15 @@ export default defineNuxtConfig({
 		},
 	},
 
+	icon: {
+		customCollections: [
+			{
+				prefix: "custom",
+				dir: "./assets/icons",
+			},
+		],
+	},
+
 	shadcn: {
 		/**
 		* Prefix for all the imported component
@@ -81,7 +90,7 @@ export default defineNuxtConfig({
 		redirectOptions: {
 			login: "/register",
 			callback: "/",
-			exclude: ["/login", "/register", "/terms", "/privacy", "/legal-notice"],
+			exclude: ["/login", "/register", "/forgot-password", "/reset-password", "/terms", "/privacy", "/legal-notice"],
 		},
 	},
 })

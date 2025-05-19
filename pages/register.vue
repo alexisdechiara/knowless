@@ -1,8 +1,212 @@
+<template>
+	<form @submit.prevent="createAccount">
+		<div v-show="formStep === 0">
+			<div class="mt-4 flex flex-col gap-4">
+				<div class="flex flex-col space-y-2 text-center">
+					<h1 class="text-2xl font-semibold tracking-tight">
+						Personnalisez votre profil
+					</h1>
+					<p class="text-sm text-muted-foreground">
+						Entrez votre nom d'utilisateur et choisissez un avatar pour commencer.
+					</p>
+				</div>
+				<FormField name="avatar">
+					<FormItem class="flex w-full flex-1 justify-center">
+						<FormControl class="w-full flex-1">
+							<Popover>
+								<PopoverTrigger class="group relative">
+									<span class="absolute right-2 top-2 z-20 flex aspect-square size-fit items-center justify-center rounded-full border-2 border-background bg-foreground p-2">
+										<Icon name="lucide:pencil" class="size-4 text-background" />
+									</span>
+									<div class="absolute inset-0 z-10 rounded-full bg-primary opacity-0 transition-opacity group-hover:opacity-25" />
+									<Avatar shape="circle" size="xl" class="relative">
+										<AvatarImage :src="getAvatarUri" alt="avatar" />
+									</Avatar>
+								</PopoverTrigger>
+								<PopoverContent side="left" :side-offset="8" class="w-full">
+									<ToggleGroup :model-value="selectedAvatarSeed" type="single" class="grid grid-cols-2 gap-3 p-6 sm:grid-cols-4 sm:gap-6 sm:p-0" @update:model-value="(seed) => { if (seed) selectedAvatarSeed = seed as string }">
+										<div v-for="seed in seeds" :key="seed">
+											<ToggleGroupItem :value="seed" class="flex aspect-square size-full items-center justify-center rounded-full p-2 ring-primary transition-colors duration-75 hover:bg-inherit data-[state=on]:ring">
+												<Avatar shape="circle" size="sm">
+													<AvatarImage :src="createAvatar(bigEars, { seed: seed }).toDataUri()" alt="avatar" />
+												</Avatar>
+											</ToggleGroupItem>
+										</div>
+									</ToggleGroup>
+								</PopoverContent>
+							</Popover>
+						</FormControl>
+						<FormMessage />
+					</FormItem>
+				</FormField>
+				<div class="relative">
+					<div class="flex gap-0">
+						<FormField v-slot="{ componentField }" name="username" class="w-full flex-1">
+							<FormItem class="z-10 w-full flex-1">
+								<FormLabel>Nom d'utilisateur *</FormLabel>
+								<FormControl class="w-full flex-1">
+									<Input
+										id="username"
+										class="w-full flex-1 rounded-r-none"
+										placeholder="xXDarkLordXx"
+										type="text"
+										v-bind="componentField"
+									/>
+								</FormControl>
+							</FormItem>
+						</FormField>
+
+						<FormField v-slot="{ componentField }" name="usertag">
+							<FormItem class="focus-within:z-10">
+								<FormLabel class="invisible">Tag</FormLabel>
+								<FormControl class="relative w-full max-w-20 items-center">
+									<div>
+										<Input id="usertag" v-bind="componentField" v-model="tagInput" type="text" maxlength="4" class="relative rounded-l-none border-l-0 pl-7 uppercase tracking-widest" @blur="formatTag" />
+										<span class="absolute inset-y-0 start-0 flex items-center justify-center ps-2">
+											<Icon name="heroicons:hashtag" class="size-4 text-muted-foreground" />
+										</span>
+									</div>
+								</FormControl>
+							</FormItem>
+						</FormField>
+					</div>
+
+					<div v-auto-animate="{ duration: 150 }">
+						<FormField v-slot="{ errorMessage }" name="username">
+							<p v-if="errorMessage" class="mt-1 text-sm text-destructive">
+								{{ errorMessage }}
+							</p>
+						</FormField>
+						<FormField v-slot="{ errorMessage }" name="usertag">
+							<p v-if="errorMessage" class="mt-1 text-sm text-destructive">
+								{{ errorMessage }}
+							</p>
+						</FormField>
+					</div>
+				</div>
+
+				<FormField v-slot="{ componentField }" name="language">
+					<FormItem>
+						<FormLabel class="sr-only">Langue</FormLabel>
+						<Select v-bind="componentField">
+							<FormControl>
+								<SelectTrigger>
+									<SelectValue v-model="selectedLanguage" placeholder="Sélectionnez une langue" />
+								</SelectTrigger>
+							</FormControl>
+							<SelectContent>
+								<SelectGroup>
+									<SelectItem v-for="language in languages" :key="language.label" :value="language.value">
+										{{ language.label }}
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+						<FormMessage />
+						<FormDescription />
+					</FormItem>
+				</FormField>
+			</div>
+
+			<div class="mt-4 flex items-center justify-between">
+				<div class="flex items-center gap-3">
+					<Button type="button" class="absolute bottom-4 right-4 md:bottom-8 md:right-8" :disabled="!isProfileStepValid" @click="goToNextStep">
+						Suivant
+					</Button>
+				</div>
+			</div>
+		</div>
+		<div v-show="formStep === 1">
+			<div class="mt-4 flex flex-col gap-4">
+				<div class="flex flex-col space-y-2 text-center">
+					<h1 class="text-2xl font-semibold tracking-tight">
+						Choisissez le type de compte
+					</h1>
+					<p class="text-sm text-muted-foreground">
+						Sélectionnez si vous préférez un compte anonyme sans enregistrement ou un compte classique.
+					</p>
+				</div>
+
+				<FormField v-slot="{ componentField }" name="email">
+					<FormItem>
+						<FormLabel>Courriel *</FormLabel>
+						<FormControl>
+							<Input
+								id="email"
+								placeholder="nom@gmail.com"
+								type="email"
+								auto-capitalize="none"
+								auto-complete="email"
+								auto-correct="off"
+								v-bind="componentField"
+							/>
+							<FormMessage />
+						</FormControl>
+					</FormItem>
+				</FormField>
+
+				<FormField v-slot="{ componentField }" name="password">
+					<FormItem>
+						<FormLabel>Mot de passe *</FormLabel>
+						<FormControl>
+							<Input id="password" type="password" v-bind="componentField" />
+							<FormMessage />
+						</FormControl>
+					</FormItem>
+				</FormField>
+
+				<FormField v-slot="{ componentField }" name="confirmPassword">
+					<FormItem>
+						<FormLabel>Confirmer le mot de passe *</FormLabel>
+						<FormControl>
+							<Input id="confirmPassword" type="password" v-bind="componentField" />
+							<FormMessage />
+						</FormControl>
+					</FormItem>
+				</FormField>
+
+				<div class="flex items-center gap-x-4">
+					<Checkbox id="acceptTermsAndConditions" :checked="acceptTermsAndConditions" @update:checked="acceptTermsAndConditions = $event" />
+					<label for="acceptTermsAndConditions" class="sr-only">J'accepte les termes et conditions</label>
+					<p class="text-xs text-muted-foreground">
+						En cochant cette case, vous acceptez notre
+						<a href="/terms" class="underline underline-offset-4 hover:text-primary"> Conditions d'utilisation</a>
+						et
+						<a href="/privacy" class="underline underline-offset-4 hover:text-primary"> Politique de confidentialité</a>.
+					</p>
+				</div>
+
+				<Button variant="outline" size="lg" class="mt-2" type="submit" :disabled="!meta.valid || !acceptTermsAndConditions">
+					S'inscrire avec un email
+				</Button>
+
+				<Separator label="Ou" class="my-6 uppercase" />
+
+				<Button size="lg" class="mb-6" type="button" @click.self="createAnonymousAccount">
+					Continuer sans inscription
+				</Button>
+			</div>
+			<div class="mt-4 flex items-center justify-between">
+				<Button variant="outline" type="button" class="absolute bottom-4 left-4 md:bottom-8 md:left-8" @click="formStep = 0">
+					Retour
+				</Button>
+			</div>
+		</div>
+	</form>
+</template>
+
 <script setup lang="ts">
 import { createAvatar } from "@dicebear/core"
 import { bigEars } from "@dicebear/collection"
 import { toast } from "vue-sonner"
 import FormLabel from "~/components/ui/form/FormLabel.vue"
+
+definePageMeta({
+	layout: "auth",
+	title: "Inscription",
+	description: "Créez votre compte",
+	noIndex: true,
+})
 
 const languages = [
 	{ value: "en", label: "English" },
@@ -124,205 +328,6 @@ const createAccount = handleSubmit(async (values) => {
 	}
 })
 </script>
-
-<template>
-	<Auth register>
-		<form @submit.prevent="createAccount">
-			<div v-show="formStep === 0">
-				<div class="mt-4 flex flex-col gap-4">
-					<div class="flex flex-col space-y-2 text-center">
-						<h1 class="text-2xl font-semibold tracking-tight">
-							Personnalisez votre profil
-						</h1>
-						<p class="text-sm text-muted-foreground">
-							Entrez votre nom d'utilisateur et choisissez un avatar pour commencer.
-						</p>
-					</div>
-					<FormField name="avatar">
-						<FormItem class="flex w-full flex-1 justify-center">
-							<FormControl class="w-full flex-1">
-								<Popover>
-									<PopoverTrigger class="group relative">
-										<span class="absolute right-2 top-2 z-20 flex aspect-square size-fit items-center justify-center rounded-full border-2 border-background bg-foreground p-2">
-											<Icon name="lucide:pencil" class="size-4 text-background" />
-										</span>
-										<div class="absolute inset-0 z-10 rounded-full bg-primary opacity-0 transition-opacity group-hover:opacity-25" />
-										<Avatar shape="circle" size="xl" class="relative">
-											<AvatarImage :src="getAvatarUri" alt="avatar" />
-										</Avatar>
-									</PopoverTrigger>
-									<PopoverContent side="left" :side-offset="8" class="w-full">
-										<ToggleGroup :model-value="selectedAvatarSeed" type="single" class="grid grid-cols-2 gap-3 p-6 sm:grid-cols-4 sm:gap-6 sm:p-0" @update:model-value="(seed) => { if (seed) selectedAvatarSeed = seed as string }">
-											<div v-for="seed in seeds" :key="seed">
-												<ToggleGroupItem :value="seed" class="flex aspect-square size-full items-center justify-center rounded-full p-2 ring-primary transition-colors duration-75 hover:bg-inherit data-[state=on]:ring">
-													<Avatar shape="circle" size="sm">
-														<AvatarImage :src="createAvatar(bigEars, { seed: seed }).toDataUri()" alt="avatar" />
-													</Avatar>
-												</ToggleGroupItem>
-											</div>
-										</ToggleGroup>
-									</PopoverContent>
-								</Popover>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					</FormField>
-					<div class="relative">
-						<div class="flex gap-0">
-							<FormField v-slot="{ componentField }" name="username" class="w-full flex-1">
-								<FormItem class="z-10 w-full flex-1">
-									<FormLabel>Nom d'utilisateur *</FormLabel>
-									<FormControl class="w-full flex-1">
-										<Input
-											id="username"
-											class="w-full flex-1 rounded-r-none"
-											placeholder="Username"
-											type="text"
-											v-bind="componentField"
-										/>
-									</FormControl>
-								</FormItem>
-							</FormField>
-
-							<FormField v-slot="{ componentField }" name="usertag">
-								<FormItem class="focus-within:z-10">
-									<FormLabel class="invisible">Tag</FormLabel>
-									<FormControl class="relative w-full max-w-20 items-center">
-										<div>
-											<Input id="usertag" v-bind="componentField" v-model="tagInput" type="text" maxlength="4" class="relative rounded-l-none border-l-0 pl-7 uppercase tracking-widest" @blur="formatTag" />
-											<span class="absolute inset-y-0 start-0 flex items-center justify-center ps-2">
-												<Icon name="heroicons:hashtag" class="size-4 text-muted-foreground" />
-											</span>
-										</div>
-									</FormControl>
-								</FormItem>
-							</FormField>
-						</div>
-
-						<div v-auto-animate="{ duration: 150 }">
-							<FormField v-slot="{ errorMessage }" name="username">
-								<p v-if="errorMessage" class="mt-1 text-sm text-destructive">
-									{{ errorMessage }}
-								</p>
-							</FormField>
-							<FormField v-slot="{ errorMessage }" name="usertag">
-								<p v-if="errorMessage" class="mt-1 text-sm text-destructive">
-									{{ errorMessage }}
-								</p>
-							</FormField>
-						</div>
-					</div>
-
-					<FormField v-slot="{ componentField }" name="language">
-						<FormItem>
-							<FormLabel class="sr-only">Langue</FormLabel>
-							<Select v-bind="componentField">
-								<FormControl>
-									<SelectTrigger>
-										<SelectValue v-model="selectedLanguage" placeholder="Sélectionnez une langue" />
-									</SelectTrigger>
-								</FormControl>
-								<SelectContent>
-									<SelectGroup>
-										<SelectItem v-for="language in languages" :key="language.label" :value="language.value">
-											{{ language.label }}
-										</SelectItem>
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-							<FormMessage />
-							<FormDescription>Correspond à l'ensemble du site et si disponibles aux questions posées</FormDescription>
-						</FormItem>
-					</FormField>
-				</div>
-
-				<div class="mt-4 flex items-center justify-between">
-					<div class="flex items-center gap-3">
-						<Button type="button" class="absolute bottom-4 right-4 md:bottom-8 md:right-8" :disabled="!isProfileStepValid" @click="goToNextStep">
-							Suivant
-						</Button>
-					</div>
-				</div>
-			</div>
-			<div v-show="formStep === 1">
-				<div class="mt-4 flex flex-col gap-4">
-					<div class="flex flex-col space-y-2 text-center">
-						<h1 class="text-2xl font-semibold tracking-tight">
-							Choisissez le type de compte
-						</h1>
-						<p class="text-sm text-muted-foreground">
-							Sélectionnez si vous préférez un compte anonyme sans enregistrement ou un compte classique.
-						</p>
-					</div>
-
-					<FormField v-slot="{ componentField }" name="email">
-						<FormItem>
-							<FormLabel>Courriel *</FormLabel>
-							<FormControl>
-								<Input
-									id="email"
-									placeholder="nom@gmail.com"
-									type="email"
-									auto-capitalize="none"
-									auto-complete="email"
-									auto-correct="off"
-									v-bind="componentField"
-								/>
-								<FormMessage />
-							</FormControl>
-						</FormItem>
-					</FormField>
-
-					<FormField v-slot="{ componentField }" name="password">
-						<FormItem>
-							<FormLabel>Mot de passe *</FormLabel>
-							<FormControl>
-								<Input id="password" type="password" v-bind="componentField" />
-								<FormMessage />
-							</FormControl>
-						</FormItem>
-					</FormField>
-
-					<FormField v-slot="{ componentField }" name="confirmPassword">
-						<FormItem>
-							<FormLabel>Confirmer le mot de passe *</FormLabel>
-							<FormControl>
-								<Input id="confirmPassword" type="password" v-bind="componentField" />
-								<FormMessage />
-							</FormControl>
-						</FormItem>
-					</FormField>
-
-					<div class="flex items-center gap-x-4">
-						<Checkbox id="acceptTermsAndConditions" :checked="acceptTermsAndConditions" @update:checked="acceptTermsAndConditions = $event" />
-						<label for="acceptTermsAndConditions" class="sr-only">J'accepte les termes et conditions</label>
-						<p class="text-xs text-muted-foreground">
-							En cochant cette case, vous acceptez notre
-							<a href="/terms" class="underline underline-offset-4 hover:text-primary"> Conditions d'utilisation</a>
-							et
-							<a href="/privacy" class="underline underline-offset-4 hover:text-primary"> Politique de confidentialité</a>.
-						</p>
-					</div>
-
-					<Button variant="outline" size="lg" class="mt-2" type="submit" :disabled="!meta.valid || !acceptTermsAndConditions">
-						S'inscrire avec un email
-					</Button>
-
-					<Separator label="Ou" class="my-6 uppercase" />
-
-					<Button size="lg" class="mb-6" type="button" @click.self="createAnonymousAccount">
-						Continuer sans inscription
-					</Button>
-				</div>
-				<div class="mt-4 flex items-center justify-between">
-					<Button variant="outline" type="button" class="absolute bottom-4 left-4 md:bottom-8 md:left-8" @click="formStep = 0">
-						Retour
-					</Button>
-				</div>
-			</div>
-		</form>
-	</Auth>
-</template>
 
 <style scoped>
 /* Chrome, Safari, Edge, Opera */

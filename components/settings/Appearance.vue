@@ -54,7 +54,7 @@ const onSubmit = handleSubmit((values) => {
 					</SelectContent>
 				</Select>
 				<FormMessage />
-				<FormDescription>Correspond à l'ensemble du site et si disponibles aux questions posées</FormDescription>
+				<FormDescription />
 			</FormItem>
 		</FormField>
 
