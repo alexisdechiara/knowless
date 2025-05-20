@@ -19,14 +19,13 @@ export default defineNuxtConfig({
 		"@nuxtjs/seo",
 	],
 
-	ssr: false,
-
 	components: [
 		{
 			path: "~/components",
 			pathPrefix: false,
 		},
 	],
+
 	devtools: {
 		enabled: true,
 	},
@@ -45,6 +44,14 @@ export default defineNuxtConfig({
 		public: {
 			openQuizzDbApiKey: process.env.NUXT_PUBLIC_OPEN_QUIZZ_DB_API_KEY,
 			openQuizzDbApiUrl: process.env.NUXT_PUBLIC_OPEN_QUIZZ_DB_API_URL,
+		},
+	},
+
+	routeRules: {
+		"/**": {
+			ogImage: {
+				component: "Default",
+			},
 		},
 	},
 
@@ -73,15 +80,29 @@ export default defineNuxtConfig({
 		],
 	},
 
+	ogImage: {
+		debug: true,
+	},
+
+	robots: {
+		disallow: ["/test"],
+		sitemap: "https://knowless.vercel.app/sitemap.xml",
+	},
+
+	seo: {
+		meta: {
+			themeColor: [
+				{ content: "#020817", media: "(prefers-color-scheme: dark)" },
+				{ content: "white", media: "(prefers-color-scheme: light)" },
+			],
+			author: "Alexis De Chiara",
+			colorScheme: "dark light",
+			ogLocale: "fr_FR",
+		},
+	},
+
 	shadcn: {
-		/**
-		* Prefix for all the imported component
-		*/
 		prefix: "",
-		/**
-		* Directory that the component lives in.
-		* @default "./components/ui"
-		*/
 		componentDir: "./components/ui",
 	},
 

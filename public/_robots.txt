@@ -1,1 +1,6 @@
+# Allow all crawlers
+User-agent: *
+Disallow:
 
+# Optionally point to your sitemap
+Sitemap: https://knowless.vercel.app/sitemap.xml

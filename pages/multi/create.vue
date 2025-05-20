@@ -12,6 +12,10 @@
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+definePageMeta({
+	title: "Multijoueurs - Création d'un salon",
+})
+
 const statuses = [
 	{
 		title: "Public",

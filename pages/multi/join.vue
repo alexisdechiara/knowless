@@ -1,3 +1,70 @@
+<template>
+	<div class="mx-auto flex size-full max-w-xl flex-col items-center justify-center">
+		<form class="scale-150 py-64" @submit="onSubmit">
+			<FormField v-slot="{ componentField, value }" name="pin">
+				<FormItem>
+					<FormLabel class="inline-flex w-full justify-center text-lg">
+						Code du salon
+					</FormLabel>
+					<FormControl>
+						<PinInput
+							id="pin-input"
+							:model-value="value"
+							placeholder="○"
+							class="mt-1 flex items-center gap-2"
+							otp
+							type="number"
+							:name="componentField.name"
+							@update:model-value="(arrStr) => {
+								setFieldValue('pin', arrStr.filter(Boolean))
+							}"
+							@complete="onSubmit()"
+						>
+							<PinInputGroup>
+								<PinInputInput
+									v-for="(id, index) in 4"
+									:key="id"
+									:index="index"
+								/>
+							</PinInputGroup>
+						</PinInput>
+					</FormControl>
+					<FormMessage />
+				</FormItem>
+			</FormField>
+		</form>
+		<Card v-if="lobbies && lobbies.length > 0" class="mb-16 w-full">
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead class="pointer-events-none text-base">
+							Parties publiques
+						</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					<template v-for="lobby in lobbies" :key="lobby.id">
+						<TableRow v-if="lobby.isPublic" class="flex items-center">
+							<TableCell class="w-fit font-medium"> {{ lobby.title }} </TableCell>
+							<TableCell class="flex-1 text-right"> {{ lobby.playerIds.length }} / {{ lobby.maxPlayers }} </TableCell>
+							<TableCell class="w-fit text-center">
+								<Button :disabled="lobby.playerIds.length >= lobby.maxPlayers || (user && lobby.bannedPlayersId.includes(user?.id))" @click="joinLobby(lobby)">
+									{{ lobby.playerIds.length >= lobby.maxPlayers ? "Complet"
+										: user && lobby.bannedPlayersId.includes(user?.id) ? "Banni"
+											: "Rejoindre" }}
+								</Button>
+							</TableCell>
+						</TableRow>
+					</template>
+				</TableBody>
+			</Table>
+		</Card>
+		<Button as="a" href="/multi" variant="default" size="icon" class="fixed bottom-4 left-4 size-12 md:bottom-8 md:left-8">
+			<Icon name="lucide:chevron-left" class="text-xl" />
+		</Button>
+	</div>
+</template>
+
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
 import { useForm } from "vee-validate"
@@ -6,9 +73,12 @@ import * as z from "zod"
 import Card from "~/components/ui/card/Card.vue"
 import { Lobby } from "~/models/lobby"
 
+definePageMeta({
+	title: "Multijoueurs - Listes des salons",
+})
+
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-
 
 const formSchema = toTypedSchema(z.object({
 	pin: z.array(z.coerce.string()),
@@ -82,70 +152,3 @@ else {
 	lobbies.value = data.map((lobby: any) => new Lobby(lobby))
 }
 </script>
-
-<template>
-	<div class="mx-auto flex size-full max-w-xl flex-col items-center justify-center">
-		<form class="scale-150 py-64" @submit="onSubmit">
-			<FormField v-slot="{ componentField, value }" name="pin">
-				<FormItem>
-					<FormLabel class="inline-flex w-full justify-center text-lg">
-						Code du lobby
-					</FormLabel>
-					<FormControl>
-						<PinInput
-							id="pin-input"
-							:model-value="value"
-							placeholder="○"
-							class="mt-1 flex items-center gap-2"
-							otp
-							type="number"
-							:name="componentField.name"
-							@update:model-value="(arrStr) => {
-								setFieldValue('pin', arrStr.filter(Boolean))
-							}"
-							@complete="onSubmit()"
-						>
-							<PinInputGroup>
-								<PinInputInput
-									v-for="(id, index) in 4"
-									:key="id"
-									:index="index"
-								/>
-							</PinInputGroup>
-						</PinInput>
-					</FormControl>
-					<FormMessage />
-				</FormItem>
-			</FormField>
-		</form>
-		<Card v-if="lobbies && lobbies.length > 0" class="mb-16 w-full">
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead class="pointer-events-none text-base">
-							Parties publiques
-						</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					<template v-for="lobby in lobbies" :key="lobby.id">
-						<TableRow v-if="lobby.isPublic" class="flex items-center">
-							<TableCell class="w-fit font-medium"> {{ lobby.title }} </TableCell>
-							<TableCell class="flex-1 text-right"> {{ lobby.playerIds.length }} / {{ lobby.maxPlayers }} </TableCell>
-							<TableCell class="w-fit text-center">
-								<Button :disabled="lobby.playerIds.length >= lobby.maxPlayers || (user && lobby.bannedPlayersId.includes(user?.id))" @click="joinLobby(lobby)">
-									{{ lobby.playerIds.length >= lobby.maxPlayers ? "Complet"
-										: user && lobby.bannedPlayersId.includes(user?.id) ? "Banni"
-											: "Rejoindre" }}
-								</Button>
-							</TableCell>
-						</TableRow>
-					</template>
-				</TableBody>
-			</Table>
-		</Card>
-		<Button as="a" href="/multi" variant="default" size="icon" class="fixed bottom-4 left-4 size-12 md:bottom-8 md:left-8">
-			<Icon name="lucide:chevron-left" class="text-xl" />
-		</Button>
-	</div>
-</template>

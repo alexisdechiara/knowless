@@ -175,7 +175,7 @@ const handleUpdate = (value: boolean) => {
 						<FormItem class="col-span-2">
 							<FormLabel>
 								Mot de passe
-								<HelpTooltip content="Permet de restreindre l'accès aux joueurs qui possède le mot de passe, il est recommandé d'utiliser uniquement le code du lobby en partie privée." />
+								<HelpTooltip content="Permet de restreindre l'accès aux joueurs qui possède le mot de passe, il est recommandé d'utiliser uniquement le code du salon en partie privée." />
 							</FormLabel>
 							<FormControl>
 								<Input type="password" v-bind="componentField" />

@@ -66,6 +66,10 @@ const difficulty = useRoute().params.difficulty.toString()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+useHead({
+	title: `Solo - ${difficulty === "easy" ? "Facile" : difficulty === "medium" ? "Moyen" : "Difficile"}`,
+})
+
 const { data: player } = await supabase.from("players").select("categories, stats, language").eq("id", user.value?.id).single()
 const stats = reactive({
 	nbGames: player.stats[difficulty].nb_games || 0,

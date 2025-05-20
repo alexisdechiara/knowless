@@ -15,6 +15,11 @@
 </template>
 
 <script lang="ts" setup>
+definePageMeta({
+	title: "Solo",
+	description: "Jouer en solo",
+})
+
 const difficulties = [
 	{
 		title: "Facile",

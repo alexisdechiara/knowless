@@ -4,3 +4,11 @@
 		<SelectionCard title="Rejoindre" description="Si vous possédez un code d’invitation pour rejoindre une partie personnalisée" to="/multi/join" />
 	</NuxtLayout>
 </template>
+
+<script setup lang="ts">
+definePageMeta({
+	layout: "selection",
+	title: "Multijoueur",
+	description: "Créez ou rejoignez une partie personnalisée",
+})
+</script>

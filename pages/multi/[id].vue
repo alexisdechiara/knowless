@@ -1,5 +1,5 @@
 <template>
-	<div class="fixed inset-0 flex flex-col px-64 py-32">
+	<div class="fixed inset-0 flex flex-col px-32 py-24">
 		<template v-if="game">
 			<Countdown v-if="game.phase === 'start'" @finished="startGame()" />
 			<QuestionBoard
@@ -51,7 +51,7 @@
 							<Icon class="ms-2 cursor-pointer text-3xl text-muted-foreground" name="lucide:lock" />
 						</TooltipTrigger>
 						<TooltipContent :side-offset="16">
-							Le lobby est en privé, il ne sera pas visible dans la liste des parties.
+							Le salon est en privé, il ne sera pas visible dans la liste des salons.
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
@@ -65,7 +65,7 @@
 						</Avatar>
 						<div class="flex flex-col text-2xl leading-normal">
 							<span class="font-semibold text-primary">{{ user.username }}</span>
-							<span class="italic text-muted-foreground">{{ lobby?.host === user.id ? 'Hôte de la partie' : 'Joueur' }}</span>
+							<span class="italic text-muted-foreground">{{ lobby?.host === user.id ? 'Hôte du salon' : 'Joueur' }}</span>
 						</div>
 					</div>
 					<div v-if="isHost" class="mt-auto flex flex-col gap-y-2 pt-4">
@@ -106,7 +106,7 @@
 								</Avatar>
 								<div class="flex flex-col text-sm leading-tight">
 									<span class="font-semibold text-primary">{{ player.username }}</span>
-									<span class="italic text-muted-foreground">{{ lobby?.host === player.id ? 'Hôte de la partie' : 'Joueur' }}</span>
+									<span class="italic text-muted-foreground">{{ lobby?.host === player.id ? 'Hôte du salon' : 'Joueur' }}</span>
 								</div>
 								<DropdownMenu v-if="isHost">
 									<DropdownMenuTrigger as-child>
@@ -162,6 +162,14 @@ const game = ref<Game | null>(null)
 const result = ref<boolean>(false)
 const channel = ref<null | RealtimeChannel>()
 
+const lobbyTitle = computed(() => {
+	return lobby.value?.title || "Multijoueurs - Salon"
+})
+
+useHead({
+	title: lobbyTitle,
+})
+
 onUnmounted(() => {
 	window.removeEventListener("beforeunload", handleBeforeUnload)
 	window.removeEventListener("unload", handleUnload)
@@ -183,7 +191,7 @@ onMounted(async () => {
 	if (error) {
 		throw showError({
 			statusCode: 404,
-			statusMessage: "Le lobby n'existe pas",
+			statusMessage: "Le salon n'existe pas",
 		})
 	}
 	else if (data) {
@@ -258,8 +266,8 @@ async function startLobby() {
 	}
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any) {
-		console.error("Erreur lors de la création de la partie:", error)
-		toast.error("Une erreur est survenue lors de la création de la partie", {
+		console.error("Erreur lors de la création du salon:", error)
+		toast.error("Une erreur est survenue lors de la création du salon", {
 			description: error.data?.message || error.message || "Erreur inconnue",
 		})
 	}
@@ -446,7 +454,7 @@ watch(lobby, async () => {
 		if (error) {
 			throw showError({
 				statusCode: 404,
-				statusMessage: "La partie n'existe pas",
+				statusMessage: "Le salon n'existe pas",
 			})
 		}
 		else if (data) {
