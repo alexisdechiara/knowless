@@ -126,7 +126,7 @@
 			</template>
 
 			<div v-if="status === 'incorrect' && showResult" class="absolute bottom-0 right-0 mt-16 flex justify-between gap-x-2 sm:bottom-8 sm:right-8">
-				<Button v-if="showBack" size="icon" variant="secondary" class="px-7 py-6 text-xl" @click="emit('back')">
+				<Button v-if="showBack" size="icon" variant="outline" class="px-7 py-6 text-xl" @click="emit('back')">
 					<Icon name="lucide:arrow-left" class="aspect-square" />
 				</Button>
 				<Button v-if="showRestart" size="lg" class="w-full px-5 py-6 text-lg" @click="emit('restart')">Recommencer</Button>

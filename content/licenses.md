@@ -1,34 +1,27 @@
 ---
-slug: 'licenses'
 title: 'Licences'
-description: ''
+updatedAt: '2025-05-21'
 ---
 
 ## 1. Code source
 
-Le code source du site est distribué sous la licence [GNU General Public License version 3 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).
+Le code source du site est publié sous [licence GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
 
-**Résumé de la licence :**
+**Principes clés :**
+- Usage, modification et redistribution autorisés
+- Obligation d’inclure le code source avec toute redistribution
+- Les versions modifiées doivent conserver la même licence (GPLv3)
+- Toute modification doit être clairement indiquée
 
-* Vous pouvez librement utiliser, modifier et redistribuer le code.
-* Toute redistribution (modifiée ou non) doit inclure le code source complet.
-* Vous devez conserver la même licence (GPLv3) pour toute version modifiée.
-* Vous devez indiquer clairement les changements apportés par rapport à la version originale.
+## 2. Questions (contenu)
 
-Pour un usage commercial ou spécifique, n'hésitez pas à me contacter.
+Les questions proviennent de [OpenQuizzDB](https://openquizzdb.org) et sont sous [licence Creative Commons CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
-## 2. Contenu des questions (base de données)
+**Principes clés :**
+- Partage, modification et adaptation autorisés
+- Attribution à OpenQuizzDB requise
+- Œuvres dérivées à partager sous la même licence
 
-Les questions affichées sur ce site proviennent de [OpenQuizzDB](https://openquizzdb.org), un projet librement accessible.
-Elles sont distribuées sous la licence [Creative Commons Attribution - ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
-
-**Résumé de la licence :**
-
-* Vous êtes libre de partager, copier et redistribuer les questions.
-* Vous pouvez adapter, modifier ou transformer les questions.
-* Vous devez créditer la source (OpenQuizzDB) de manière appropriée.
-* Toute œuvre dérivée doit être partagée sous la même licence (CC BY-SA 4.0).
-
-## 3. Autres bibliothèques ou ressources
+## 3. Bibliothèques et ressources tierces
 
 ::package-licenses

@@ -9,7 +9,10 @@
 		</ClientOnly>
 		<ul class="z-50 flex w-fit flex-col gap-y-2 font-semibold italic text-foreground">
 			<li>
-				<h1 class="pointer-events-none mb-16 w-fit text-8xl font-bold not-italic leading-none tracking-wider">Knowless</h1>
+				<h1 class="pointer-events-none mb-16 inline-flex w-fit items-center gap-x-2 text-8xl font-bold not-italic leading-none tracking-wide">
+					Knowless
+					<span class="mt-6 rounded-xl bg-foreground px-4 py-2 text-2xl leading-none tracking-normal text-background">Beta</span>
+				</h1>
 			</li>
 			<NavLink label="Solo" :link="{ to: '/solo' }" size="lg" />
 			<NavLink label="Multijoueurs" :link="{ to: '/multi' }" size="lg" />
@@ -51,7 +54,7 @@
 				<Icon name="bx:bxs-joystick-button" class="size-full transition-transform" :class="selectedGame !== null && selectedGame !== '' ? 'rotate-45' : ''" />
 			</Button>
 		</div>
-		<div v-if="selectedGame != null && selectedGame !== ''" class="crt absolute bottom-32 right-32 h-[480px] w-[720px] overflow-hidden rounded-[8%]" :class="{ 'animate-crt-power-on': selectedGame && !isPoweringOff, 'animate-crt-power-off': isPoweringOff }">
+		<div v-if="selectedGame != null && selectedGame !== ''" class="crt absolute bottom-32 right-32 h-[480px] w-[720px] overflow-hidden rounded-[8%] z-50" :class="{ 'animate-crt-power-on': selectedGame && !isPoweringOff, 'animate-crt-power-off': isPoweringOff }">
 			<SnakeGame v-if="selectedGame === 'snake'" />
 			<TicTacToeGame v-else-if="selectedGame === 'ticTacToe'" />
 			<TetrisGame v-else-if="selectedGame === 'tetris'" />

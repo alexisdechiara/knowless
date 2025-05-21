@@ -1,31 +1,32 @@
 ---
-slug: legal-notice
 title: 'Mentions légales'
-description: ''
+updatedAt: '2025-05-21'
 ---
 
-## 1. Informations sur l'éditeur
+## 1. Éditeur du site
 
-**Entreprise :** De Chiara Alexis (entrepreneur individuel)\
-**Adresse :** 50 boulevard Stalingrad, 06300, Nice,\
-**N° de SIRET :** 97827363900010 Assigné au RCS de Nice\
-**Courriel :** [pro@alexisdechiara.fr](mailto:pro@alexisdechiara.fr).
+**Nom :** De Chiara Alexis (entrepreneur individuel)  
+**Adresse :** 50 boulevard Stalingrad, 06300 Nice, France  
+**SIRET :** 978 273 639 00010 — RCS de Nice  
+**Contact :** [pro@alexisdechiara.fr](mailto:pro@alexisdechiara.fr)
 
-## 2. Hébergement du site
+## 2. Hébergement
 
-**Entreprise :** Vercel Inc.\
-**Adresse :** 340 S Lemon Ave #4133 Walnut, CA 91789\
-**Tél :** (559) 288-7060.\
-**Courriel :** [privacy@vercel.com](mailto:privacy@vercel.com)
+**Prestataire :** Vercel Inc.  
+**Adresse :** 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis  
+**Téléphone :** +1 (559) 288-7060  
+**Email :** [privacy@vercel.com](mailto:privacy@vercel.com)
 
-## 3. Protection des données
+## 3. Données personnelles
 
-Les données personnelles collectées sur ce site sont traitées conformément à notre Politique de confidentialité et en conformité avec le RGPD. Les utilisateurs ont le droit d'accéder, de modifier et de supprimer leurs données personnelles.
+Les données collectées sont traitées conformément à notre [politique de confidentialité](/privacy), en conformité avec le Règlement général sur la protection des données (RGPD). Vous disposez d’un droit d’accès, de modification et de suppression de vos données à tout moment.
 
 ## 4. Propriété intellectuelle
 
-Le contenu de ce site est protégé par le droit d'auteur. Tous les éléments de design, textes, codes sources et autres créations originales sont la propriété exclusive de De Chiara Alexis (EI), sauf indication contraire.
-\
-\
-La base de données utilises des questions fournies par [OpenQuizzDB](https://openquizzdb.org), publiée sous licence [Creative Commons Attribution - ShareAlike 4.0 (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/). En outre, l'ensemble de ce site et son code source sont distribués sous licence [GNU General Public License version 3 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).
-Pour en savoir plus, dirigez-vous vers la section destinée aux licences.
+L’ensemble du contenu du site (textes, design, code source...) est protégé par le droit d’auteur. Sauf mention contraire, il est la propriété exclusive de De Chiara Alexis (EI).
+
+Le site utilise :
+- Du code source distribué sous [licence GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
+- Des questions issues de [OpenQuizzDB](https://openquizzdb.org), publiées sous [licence CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+Pour plus d’informations, consultez la page [Licences](/licenses).

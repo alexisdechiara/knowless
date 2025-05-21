@@ -29,7 +29,7 @@
 						<span class="inline-flex font-medium">{{ stats.bestScore }}</span>
 					</div>
 					<div v-if="isFinished" class="mt-16 flex justify-between gap-x-4">
-						<Button size="xl" variant="secondary" @click="navigateTo('/solo')">
+						<Button size="xl" variant="outline" @click="navigateTo('/solo')">
 							<Icon name="lucide:arrow-left" class="aspect-square" />
 						</Button>
 						<Button size="xl" class="w-full" @click="restart">Recommencer</Button>

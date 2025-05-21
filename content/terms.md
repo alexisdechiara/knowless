@@ -1,45 +1,43 @@
 ---
 title: "Conditions Générales d’Utilisation"
-description: ""
+updatedAt: '2025-05-21'
 ---
-**Dernière mise à jour : \[19/05/2025]**
 
-En accédant au site [https://knowless.vercel.app](https://knowless.vercel.app), vous acceptez les présentes conditions d'utilisation.
+En accédant à [https://knowless.vercel.app](https://knowless.vercel.app), vous acceptez les présentes conditions générales d’utilisation (CGU).
 
 ## 1. Objet
 
-Knowless est un jeu de quiz en ligne proposant des modes **solo** et **multijoueur**, avec ou sans création de compte.
+**Knowless** est un jeu de quiz accessible en ligne, en mode **solo** ou **multijoueur**, avec ou sans création de compte.
 
-## 2. Accès au service
+## 2. Accès
 
-L’accès est libre, gratuit, et sans inscription. Cependant vous pouvez créer un compte à l'aide d'une adresse de courriel pour sauvegarder vos paramètres.
+L’accès au site est libre, gratuit et possible sans inscription. Un compte peut être créé avec une adresse email pour sauvegarder vos préférences.
 
-## 3. Comportement des utilisateurs
+## 3. Comportement attendu
 
-* Vous vous engagez à utiliser le service de manière respectueuse.
-* Dans les parties multijoueur, les **réponses aux questions** sont la seule forme d’interaction entre joueurs.
-* Toute tentative de communication inappropriée, même via les réponses, peut entraîner un bannissement.
+- Utilisez le service de manière respectueuse.
+- En multijoueur, les réponses aux questions sont la **seule forme d’interaction**.
+- Tout comportement abusif ou détourné peut entraîner une exclusion.
 
 ## 4. Création de salons
 
-L’utilisateur peut :
-
-* Créer un salon privé ou public
-* Inviter d'autres joueurs
-* Être responsable de la modération de sa partie
+Les utilisateurs peuvent :
+- Créer des salons (privés ou publics)
+- Inviter d’autres joueurs
+- Gérer/modérer leur propre session
 
 ## 5. Propriété intellectuelle
 
-Les contenus du site (interface, questions, design, etc.) sont protégés. Toute reproduction ou usage non autorisé est interdit.
+L’ensemble des éléments du site (contenus, design, code...) est protégé. Toute reproduction ou utilisation non autorisée est interdite.
 
-## 6. Limites de responsabilité
+## 6. Responsabilité
 
-Knowless ne garantit pas une disponibilité constante du service. L’éditeur ne pourra être tenu responsable en cas d’erreurs techniques, interruptions, ou pertes de données liées à un usage inapproprié.
+Knowless ne garantit pas une disponibilité permanente du service. L’éditeur ne peut être tenu responsable en cas de dysfonctionnement, interruption ou perte de données.
 
-## 7. Modification des CGU
+## 7. Modifications
 
-Knowless se réserve le droit de modifier les présentes CGU. La version à jour sera toujours disponible sur le site.
+Les CGU peuvent être modifiées à tout moment. La version en vigueur est consultable à tout moment sur le site.
 
-## 8. Loi applicable
+## 8. Droit applicable
 
-Les présentes conditions sont soumises au droit français. En cas de litige, les tribunaux compétents seront ceux du lieu de résidence de l'éditeur du site.
+Les présentes conditions sont régies par le droit français. En cas de litige, les tribunaux compétents seront ceux du domicile de l’éditeur.

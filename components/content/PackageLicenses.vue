@@ -1,6 +1,6 @@
 <template>
 	<Table v-if="packages.length">
-		<TableHeader>
+		<TableHeader class="text-sm">
 			<TableRow>
 				<TableHead>Nom</TableHead>
 				<TableHead>Version</TableHead>

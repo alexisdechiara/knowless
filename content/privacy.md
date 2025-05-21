@@ -1,73 +1,68 @@
 ---
 title: "Politique de confidentialité"
-description: ""
+updatedAt: '2025-05-21'
 ---
 
-**Dernière mise à jour : \[19/05/2025]**
-
-La présente politique de confidentialité décrit comment **Knowless** (https://knowless.vercel.app) collecte, utilise et protège vos données personnelles, conformément au Règlement Général sur la Protection des Données (RGPD).
-
+Cette politique décrit comment **Knowless** ([https://knowless.vercel.app](https://knowless.vercel.app)) collecte, utilise et protège vos données personnelles, en conformité avec le RGPD.
 
 ## 1. Responsable du traitement
 
-Le responsable du traitement est l’éditeur du site Knowless. Pour toute demande relative à vos données personnelles, vous pouvez nous contacter à l’adresse suivante : [ton email ou lien de contact].
+Le traitement des données est assuré par l’éditeur du site. Pour toute demande : [pro@alexisdechiara.fr](mailto:pro@alexisdechiara.fr).
 
 ## 2. Données collectées
 
-Selon votre utilisation du site, nous collectons les données suivantes :
-
-### Si vous créez un compte avec votre adresse email :
+### Si vous créez un compte :
 - Adresse email
-- Pseudonyme (nom d’utilisateur choisi)
+- Pseudonyme
 - Langue préférée
-- Image de profil sélectionnée parmi une liste prédéfinie
+- Image de profil (parmi une sélection)
 
-### Si vous jouez en mode anonyme :
+### Si vous jouez anonymement :
 - Pseudonyme temporaire
 - Langue sélectionnée
-- Image de profil prédéfinie
+- Image de profil (pré-définie)
 
-## 3. Finalités du traitement
+## 3. Finalités
 
-Ces données sont collectées pour les raisons suivantes :
-- Permettre l’inscription, la connexion et l’accès au site
-- Personnaliser l’expérience utilisateur (langue, pseudo, avatar)
-- Assurer le bon fonctionnement des modes de jeu solo et multijoueur
-- Gérer les salons et les sessions de quiz
+Les données collectées servent à :
+- Gérer les comptes et connexions
+- Personnaliser l’expérience utilisateur
+- Assurer le bon fonctionnement des quiz solo et multijoueur
+- Gérer les salons et sessions
 
-Aucune donnée n’est utilisée à des fins publicitaires ou commerciales.
+Aucune donnée n’est utilisée à des fins commerciales ou publicitaires.
 
 ## 4. Base légale
 
 Le traitement repose sur :
-- **Votre consentement explicite**, donné lors de l’inscription ou de la participation en tant qu’utilisateur anonyme
-- L’intérêt légitime de garantir le bon fonctionnement du service
+- **Votre consentement**, exprimé lors de l’utilisation du service
+- **L’intérêt légitime** lié au bon fonctionnement du site
 
 ## 5. Durée de conservation
 
-- **Comptes créés par email** : les données sont conservées tant que le compte est actif. Vous pouvez demander leur suppression à tout moment.
-- **Comptes anonymes** : les données sont conservées pendant une durée maximale de **1 mois**, puis automatiquement supprimées.
-- **Sessions de jeu** : les données liées à une partie (réponses, résultats) sont stockées temporairement pour l’affichage des résultats, puis supprimées.
+- **Comptes avec email :** conservation jusqu’à suppression par l’utilisateur
+- **Utilisateurs anonymes :** données conservées 1 mois maximum
+- **Données de session :** supprimées après affichage des résultats
 
 ## 6. Images de profil
 
-Les images de profil sont **choisies parmi une sélection prédéfinie** disponible sur le site. Il n’est pas possible de téléverser une image personnelle. Aucune donnée biométrique n’est collectée.
+Les images sont choisies parmi des avatars proposés. Aucun téléversement d’image n’est possible. Aucune donnée biométrique n’est collectée.
 
 ## 7. Sécurité
 
-Les données sont stockées dans un environnement sécurisé. Des mesures techniques sont mises en place pour prévenir toute perte, accès non autorisé ou usage abusif des informations.
+Des mesures techniques et organisationnelles sont mises en place pour protéger vos données contre tout accès non autorisé ou toute perte.
 
 ## 8. Vos droits
 
-Conformément à la réglementation, vous disposez des droits suivants :
+Vous pouvez à tout moment exercer les droits suivants :
 - Accès à vos données
-- Rectification de vos informations
-- Suppression de vos données personnelles
-- Retrait de votre consentement
-- Limitation ou opposition au traitement
+- Rectification
+- Suppression
+- Retrait du consentement
+- Opposition ou limitation du traitement
 
-Pour exercer ces droits, contactez-nous à contact@alexisdechiara.fr.
+Contact : [pro@alexisdechiara.fr](mailto:pro@alexisdechiara.fr)
 
-## 9. Modification de la politique
+## 9. Modifications
 
-Cette politique peut être mise à jour à tout moment. En cas de modification significative, les utilisateurs seront informés via le site.
+Cette politique peut évoluer. En cas de modification substantielle, une information sera affichée sur le site.

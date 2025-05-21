@@ -170,9 +170,9 @@
 					<label for="acceptTermsAndConditions" class="sr-only">J'accepte les termes et conditions</label>
 					<p class="text-xs text-muted-foreground">
 						En cochant cette case, vous acceptez notre
-						<a href="/terms" class="underline underline-offset-4 hover:text-primary"> Conditions d'utilisation</a>
+						<NuxtLink to="/terms" target="_blank" class="underline underline-offset-4 hover:text-primary"> Conditions d'utilisation</NuxtLink>
 						et
-						<a href="/privacy" class="underline underline-offset-4 hover:text-primary"> Politique de confidentialité</a>.
+						<NuxtLink to="/privacy" target="_blank" class="underline underline-offset-4 hover:text-primary"> Politique de confidentialité</NuxtLink>.
 					</p>
 				</div>
 

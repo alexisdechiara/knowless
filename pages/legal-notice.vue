@@ -1,5 +1,5 @@
 <template>
-	<NuxtLayout name="informational" :title="data?.title" :description="data?.description" :content="data" />
+	<NuxtLayout name="informational" :title="data?.title" :description="data?.description" :content="data" :updatedAt="data?.updatedAt" />
 </template>
 
 <script setup>
