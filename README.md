@@ -1,125 +1,364 @@
-# Knowless
 
-Knowless est une application web moderne développée avec Nuxt 3, conçue pour offrir une expérience de contenu riche et interactive. Elle s'appuie sur un ensemble complet de technologies web modernes pour garantir performance, évolutivité et une excellente expérience utilisateur.
+# 🧠 Knowless
 
-## Fonctionnalités
+**Knowless** est une application web moderne construite avec **Nuxt 3**, pensée pour offrir une expérience interactive riche autour du quiz. Elle repose sur des technologies web actuelles afin de garantir **performance**, **scalabilité** et **ergonomie**.
 
-Voici une liste des fonctionnalités clés que Knowless peut offrir :
+## ⚙️ Fonctionnalités Clés
 
+* **🖌 Interface Moderne (UI/UX)** :
+  Interface soignée, responsive et personnalisable grâce à [Tailwind CSS](https://tailwindcss.tailwindcss.com/) et [shadcn-nuxt](https://www.shadcn-vue.com/), basé sur Radix Vue.
 
-  ✨ **Interface Utilisateur Moderne (UI/UX)** : Construite avec [Tailwind CSS](https://tailwindcss.com/) et [shadcn-nuxt](https://www.shadcn-vue.com/) (utilisant Radix Vue) pour une interface utilisateur élégante, responsive et personnalisable.
+* **📚 Contenu Riche en Markdown** :
+  Géré par [`@nuxt/content`](https://content.nuxt.com/).
 
-  📝 **Affichage de Contenu Riche** : Utilise [@nuxt/content](https://content.nuxt.com/) pour la gestion et l'affichage de contenu basé sur Markdown.
+* **🎮 Expérience Interactive** :
+  Animations fluides avec [@formkit/auto-animate](https://auto-animate.formkit.com/) et [motion-v](https://motion.vueuse.org/), complétées par les composants Radix Vue.
 
-  🚀 **Éléments Interactifs** : Améliorée avec des animations ([@formkit/auto-animate](https://auto-animate.formkit.com/), [motion-v](https://motion.vueuse.org/)) et des composants UI ([Radix Vue](https://www.radix-vue.com/)).
+* **🧠 Gestion d’État** :
+  Basée sur [Pinia](https://pinia.vuejs.org/), avec persistance via `pinia-plugin-persistedstate`.
 
-  💾 **Gestion d'État** : Utilise [Pinia](https://pinia.vuejs.org/) pour une gestion d'état robuste et évolutive, avec persistance via `pinia-plugin-persistedstate`.
+* **📋 Formulaires Typés** :
+  Validation avec [VeeValidate](https://vee-validate.logaretm.com/) + [Zod](https://zod.dev/).
 
-  ✅ **Gestion des Formulaires** : Implémente VeeValidate et Zod pour une validation de formulaire puissante et typée.
+* **🛠 Backend Supabase** :
+  Authentification, base de données et fonctions serveur avec [`@nuxtjs/supabase`](https://supabase.nuxt.com/).
 
-  🔑 **Intégration Backend (Supabase)** : Utilise Supabase via `@nuxtjs/supabase` pour la base de données, l'authentification, et plus encore.
+* **🖼 Optimisation des Images** :
+  Via [`@nuxt/image`](https://image.nuxt.com/).
 
-  🖼️ **Optimisation d'Images** : Tire parti de @nuxt/image pour une diffusion optimisée des images.
+* **🔍 SEO-friendly** :
+  Optimisé pour les moteurs de recherche avec [`@nuxtjs/seo`](https://seo.nuxt.com/).
 
-  📈 **Optimisée pour le SEO** : Conçue avec @nuxtjs/seo pour améliorer la visibilité sur les moteurs de recherche.
+* **🧩 Icônes Modernes** :
+  Fournies par Lucide Icons via [`@nuxt/icon`](https://icon.nuxt.com/).
 
-  ✨ **Iconographie** : Utilise Lucide Icons via @nuxt/icon pour une large gamme d'icônes vectorielles.
+* **🔔 Notifications** :
+  Intégrées avec [vue-sonner](https://github.com/AnandChowdhary/vue-sonner).
 
-  🔔 **Notifications** : Implémente vue-sonner pour les notifications utilisateur.
+* **📱 Détection de l’appareil** :
+  Fournie par [`@nuxtjs/device`](https://github.com/nuxt-modules/device).
 
-  📱 **Détection d'Appareil** : S'adapte aux différents appareils grâce à @nuxtjs/device.
+* **👤 Avatars Génératifs** :
+  Possibles avec [`@dicebear/core`](https://www.dicebear.com/).
 
-  👤 **Avatars Génératifs** : Peut utiliser @dicebear/core pour générer des avatars.
+## 🗂 Structure du Projet
 
-## Structure du Projet
-
-Voici une vue d'ensemble de la structure typique d'un projet Nuxt 3 :
-
-```plaintext
+```bash
 knowless/
-├── .nuxt/            # Fichiers générés par Nuxt (ne pas modifier)
-├── .output/          # Sortie de la compilation (build)
-├── assets/           # Ressources non compilées (CSS, SASS, images, polices)
+├── assets/           # Fichiers statiques (CSS, images, etc.)
 ├── components/       # Composants Vue globaux
-├── composables/      # Fonctions composables Vue réutilisables
-├── content/          # Fichiers Markdown pour @nuxt/content
-├── layouts/          # Mises en page de l'application
-├── middleware/       # Middlewares de route
-├── node_modules/     # Dépendances du projet (gérées par bun)
-├── pages/            # Pages et routes de l'application
-├── plugins/          # Plugins Vue
-├── public/           # Ressources statiques servies directement
-│   └── licenses.json # Fichier généré des licences des dépendances
-├── server/           # Logique côté serveur (API, middleware)
-├── stores/           # Modules Pinia pour la gestion d'état
+├── composables/      # Fonctions réutilisables
+├── content/          # Contenu Markdown
+├── layouts/          # Gabarits de page
+├── middleware/       # Middlewares Nuxt
+├── pages/            # Pages de l’application
+├── plugins/          # Plugins Nuxt
+├── public/           # Fichiers publics
+│   └── licenses.json
+├── server/           # Code backend Nuxt
+├── stores/           # Stores Pinia
 ├── utils/            # Fonctions utilitaires
-├── app.vue           # Composant Vue racine de l'application
-├── nuxt.config.ts    # Fichier de configuration Nuxt
-├── package.json      # Dépendances et scripts du projet
-├── bun.lockb         # Fichier de verrouillage des dépendances Bun
-├── tsconfig.json     # Configuration TypeScript
-└── README.md         # Ce fichier
+├── app.vue
+├── nuxt.config.ts
+├── package.json
+├── bun.lockb
+├── tsconfig.json
+└── README.md
 ```
 
-## Prérequis
+## 🚀 Démarrage Rapide
 
-*   Node.js (version LTS recommandée, ex: v18 ou v20+)
-*   [Bun](https://bun.sh/)
+### 🧩 Prérequis
 
-## Installation
+* Node.js (v18+ recommandé)
+* Bun
 
-1.  Clonez le dépôt (si ce n'est pas déjà fait) :
-    ```bash
-    gh repo clone alexisdechiara/knowless
-    cd knowless
-    ```
+### 💻 Installation
 
-2.  Installez les dépendances :
-    ```bash
-    bun install
-    ```
+```bash
+gh repo clone alexisdechiara/knowless
+cd knowless
+bun install
+```
 
-## Développement
-Pour démarrer le serveur de développement avec rechargement à chaud :
+### 🔧 Développement
 
 ```bash
 bun run dev
 ```
 
-L'application sera généralement accessible à l'adresse `http://localhost:3000`. L'option `--host` dans le script `dev` (configurée dans `package.json`) permet d'accéder au serveur de développement depuis d'autres appareils sur le même réseau.
+L’application sera disponible sur [http://localhost:3000](http://localhost:3000)
+L’option `--host` permet un accès sur le réseau local.
 
-## Compilation (Build)
-
-Pour compiler l'application pour la production :
+### 📦 Compilation
 
 ```bash
 bun run build
 ```
 
-Les fichiers compilés seront placés dans le répertoire `.output`.
+Résultat : `.output/`
 
-## Prévisualisation de la Build de Production
-
-Pour prévisualiser la build de production localement avant le déploiement :
+### 🔍 Prévisualisation
 
 ```bash
 bun run preview
 ```
 
-## Scripts disponibles
+### 📜 Scripts utiles (dans `package.json`)
 
-Le fichier `package.json` définit plusieurs scripts utiles, exécutables avec `bun run <nom-du-script>`:
+| Script              | Description                                      |
+|---------------------|-------------------------------------------------|
+| `dev`               | Lance le serveur de dev avec `--host`           |
+| `build`             | Compile pour la production                        |
+| `preview`           | Sert la version build localement                  |
+| `generate`          | Génère une version statique                       |
+| `postinstall`       | Prépare les types après install                   |
+| `generate-licenses` | Exporte les licences dans `public/licenses.json` |
 
-*   `"build": "nuxt build"`: Compile l'application pour la production.
-*   `"dev": "nuxt dev --host"`: Démarre le serveur de développement avec l'option `--host`.
-*   `"generate": "nuxt generate"`: Génère une version statique de l'application.
-*   `"preview": "nuxt preview"`: Sert la build de production localement pour la prévisualisation.
-*   `"postinstall": "nuxt prepare"`: Exécute les préparations Nuxt nécessaires après l'installation des dépendances (génération de types, etc.). Ce script est généralement exécuté automatiquement par `bun install`.
-*   `"generate-licenses": "license-report --only=prod --config license-report-config.json > public/licenses.json"`: Génère un rapport des licences des dépendances de production et le sauvegarde dans `public/licenses.json`.
 
-## Contribuer
+## 🧩 Configuration Supabase
 
-Les contributions sont les bienvenues ! Si vous souhaitez contribuer, veuillez suivre le workflow standard :
+### 📌 Prérequis
+
+Créer un compte sur [supabase.com](https://supabase.com) et un projet.
+
+### 🔑 Récupération des informations
+
+Depuis l’interface Supabase :
+
+* `Project URL`
+* `Anon Public API Key`
+
+Ajoutez-les dans `.env` :
+
+```env
+NUXT_PUBLIC_SUPABASE_URL=VOTRE_URL_SUPABASE
+NUXT_PUBLIC_SUPABASE_ANON_KEY=VOTRE_CLE
+```
+
+## 🗃️ Schéma de la Base de Données
+
+### 📄 Tables
+
+#### `friendship`
+
+```sql
+CREATE TABLE public.friendship (
+  id serial NOT NULL,
+  user_id uuid NOT NULL,
+  friend_id uuid NOT NULL,
+  status text NULL DEFAULT 'pending'::text,
+  created_at timestamp without time zone NULL DEFAULT now(),
+  CONSTRAINT friendship_pkey PRIMARY KEY (id),
+  CONSTRAINT friendship_user_id_friend_id_key UNIQUE (user_id, friend_id),
+  CONSTRAINT friendship_friend_id_fkey FOREIGN KEY (friend_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  CONSTRAINT friendship_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+);
+```
+
+#### games
+
+```sql
+CREATE TABLE public.games (
+  id bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  phase text NOT NULL DEFAULT 'start'::text,
+  questions jsonb[] NULL,
+  current_question_index numeric NULL DEFAULT '0'::numeric,
+  current_player_index numeric NULL DEFAULT '0'::numeric,
+  players_data jsonb[] NULL,
+  CONSTRAINT games_pkey PRIMARY KEY (id)
+);
+```
+
+#### lobbies
+
+```sql
+CREATE TABLE public.lobbies (
+  id smallint NOT NULL DEFAULT (floor(((random() * (((9999 - 1000) + 1))::double precision) + (1000)::double precision)))::smallint,
+  title text NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  security_level text[] NULL DEFAULT ARRAY['code'::text, 'join'::text],
+  password text NULL,
+  host uuid NOT NULL DEFAULT auth.uid(),
+  players uuid[] NULL DEFAULT ARRAY[auth.uid()],
+  invited_friends uuid[] NULL,
+  is_public boolean NULL,
+  friends_only boolean NULL,
+  banned_players uuid[] NULL,
+  max_players smallint NOT NULL DEFAULT '12'::smallint,
+  game_id bigint NULL,
+  CONSTRAINT lobbies_pkey PRIMARY KEY (id),
+  CONSTRAINT lobbies_id_key UNIQUE (id),
+  CONSTRAINT lobbies_game_id_fkey FOREIGN KEY (game_id) REFERENCES games(id) ON UPDATE CASCADE
+);
+```
+
+#### players
+
+```sql
+CREATE TABLE public.players (
+  id uuid NOT NULL,
+  username text NOT NULL,
+  usertag character varying NOT NULL DEFAULT ''::character varying,
+  avatar text NULL,
+  language text NULL DEFAULT 'fr'::text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  categories jsonb NULL DEFAULT '["animals", "archaeology", "arts", "graphic_and_animated", "celebrities", "cinema", "bulk_culture", "general_culture", "gastronomy", "geography", "history", "computing", "literature", "games", "music", "nature", "daily_life", "sciences", "sports", "television", "tourism", "web"]'::jsonb,
+  stats jsonb NULL DEFAULT '{"easy": {"nb_games": 0, "nb_rounds": 0, "best_score": 0}, "hard": {"nb_games": 0, "nb_rounds": 0, "best_score": 0}, "medium": {"nb_games": 0, "nb_rounds": 0, "best_score": 0}}'::jsonb,
+  status text NULL DEFAULT 'offline'::text,
+  lobby_id smallint NULL,
+  last_active_at date NULL,
+  CONSTRAINT players_pkey PRIMARY KEY (id),
+  CONSTRAINT players_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT players_lobby_id_fkey FOREIGN KEY (lobby_id) REFERENCES lobbies(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+```
+
+#### quizzes
+
+```sql
+CREATE TABLE public.quizzes (
+  theme_id bigint NOT NULL,
+  id bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
+  theme text NOT NULL,
+  category text NOT NULL,
+  question text NULL,
+  answers jsonb[] NULL,
+  difficulty public.difficulties NULL,
+  anecdote text NULL,
+  wiki text NULL,
+  nb_count numeric NULL DEFAULT '1'::numeric,
+  language public.languages NOT NULL DEFAULT 'fr'::languages,
+  type public.types NOT NULL DEFAULT 'open'::types,
+  metadata jsonb NULL,
+  CONSTRAINT quizzes_pkey PRIMARY KEY (id, language, theme_id)
+);
+```
+
+### 🧾 Types ENUM
+
+* `public.languages` : Langues disponibles (ex: `'fr'`, `'en'`, ...)
+* `public.difficulties` : Niveaux de difficulté (`'easy'`, `'medium'`, `'hard'`, ...)
+* `public.types` : Types de question (`'open'`, `'mcq'`, ...)
+
+## 🧠 Fonctions SQL
+
+#### add_friend
+
+```sql
+CREATE OR REPLACE FUNCTION public.add_friend(user_uuid uuid, friend_uuid uuid)
+RETURNS void AS $$
+BEGIN
+  INSERT INTO public.friendship (user_id, friend_id, status)
+  VALUES (user_uuid, friend_uuid, 'pending')
+  ON CONFLICT (user_id, friend_id) DO NOTHING;
+END;
+$$ LANGUAGE plpgsql;
+````
+
+#### accept\_friend\_request
+
+```sql
+CREATE OR REPLACE FUNCTION public.accept_friend_request(user_uuid uuid, friend_uuid uuid)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.friendship
+  SET status = 'accepted'
+  WHERE user_id = friend_uuid AND friend_id = user_uuid AND status = 'pending';
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### create\_lobby
+
+```sql
+CREATE OR REPLACE FUNCTION public.create_lobby(
+  lobby_title text,
+  host_uuid uuid,
+  is_public boolean DEFAULT false,
+  friends_only boolean DEFAULT false,
+  max_players smallint DEFAULT 12
+)
+RETURNS smallint AS $$
+DECLARE
+  new_lobby_id smallint;
+BEGIN
+  INSERT INTO public.lobbies (title, host, is_public, friends_only, max_players, players)
+  VALUES (lobby_title, host_uuid, is_public, friends_only, max_players, ARRAY[host_uuid])
+  RETURNING id INTO new_lobby_id;
+  RETURN new_lobby_id;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### add\_player\_to\_lobby
+
+```sql
+CREATE OR REPLACE FUNCTION public.add_player_to_lobby(lobby_id smallint, player_uuid uuid)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.lobbies
+  SET players = array_append(players, player_uuid)
+  WHERE id = lobby_id AND player_uuid <> ALL(players);
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### start\_game
+
+```sql
+CREATE OR REPLACE FUNCTION public.start_game(lobby_id smallint)
+RETURNS bigint AS $$
+DECLARE
+  new_game_id bigint;
+  lobby_players uuid[];
+BEGIN
+  SELECT players INTO lobby_players FROM public.lobbies WHERE id = lobby_id;
+  
+  INSERT INTO public.games (phase, players_data)
+  VALUES ('started', ARRAY[]::jsonb[])
+  RETURNING id INTO new_game_id;
+
+  UPDATE public.lobbies SET game_id = new_game_id WHERE id = lobby_id;
+
+  RETURN new_game_id;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### get\_quizzes\_by\_theme\_lang
+
+```sql
+CREATE OR REPLACE FUNCTION public.get_quizzes_by_theme_lang(theme bigint, lang public.languages)
+RETURNS SETOF public.quizzes AS $$
+BEGIN
+  RETURN QUERY
+  SELECT * FROM public.quizzes
+  WHERE theme_id = theme AND language = lang;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### update\_player\_status
+
+```sql
+CREATE OR REPLACE FUNCTION public.update_player_status(player_uuid uuid, new_status text)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.players SET status = new_status WHERE id = player_uuid;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+## 🧪 Tests & Qualité
+
+* **ESLint** configuré avec `eslint.config.mjs` (flat config)
+* **Prettier** intégré
+* **Zod** pour la validation des types runtime
+* **TypeScript** strict
+
+## 🧑‍💻 Contribuer
 
 1.  Forkez le projet.
 2.  Créez une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`).
@@ -127,10 +366,20 @@ Les contributions sont les bienvenues ! Si vous souhaitez contribuer, veuillez s
 4.  Poussez vers la branche (`git push origin feature/AmazingFeature`).
 5.  Ouvrez une Pull Request.
 
-Assurez-vous que votre code respecte les standards de linting du projet.
+## 📮 Contact
 
-## Licence
+Vous voulez discuter, proposer une idée ou rejoindre le projet ?
+Vous puvez contacter l’auteur du projet :
 
-Ce projet est sous licence [GPLv3](/LICENSE.txt).
+* GitHub : [@alexisdechiara](https://github.com/alexisdechiara)
+* Site : [Porfolio](https://alexisdechiara.fr)
 
-Les informations sur les licences des dépendances utilisées dans ce projet sont disponibles dans le fichier `public/licenses.json`, qui peut être généré en exécutant la commande `bun run generate-licenses`.
+## 🧾 Licences
+
+Ce projet est sous licence [GPLv3](/LICENSE.txt) et l'ensenble des dépendances sont listées automatiquement via le script :
+
+```bash
+bun run generate-licenses
+```
+
+Ce script utilise `license-checker` pour générer un `public/licenses.json`.
