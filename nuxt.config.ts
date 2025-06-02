@@ -17,6 +17,7 @@ export default defineNuxtConfig({
 		"@formkit/auto-animate/nuxt",
 		"@nuxtjs/device",
 		"@nuxtjs/seo",
+		"@nuxtjs/plausible",
 	],
 
 	components: [
