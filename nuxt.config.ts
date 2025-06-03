@@ -31,6 +31,14 @@ export default defineNuxtConfig({
 		enabled: true,
 	},
 
+	app: {
+		head: {
+			meta: [
+				{ name: "google-site-verification", content: process.env.GOOGLE_SITE_VERIFICATION },
+			],
+		},
+	},
+
 	colorMode: {
 		classSuffix: "",
 	},
@@ -38,13 +46,6 @@ export default defineNuxtConfig({
 	content: {
 		renderer: {
 			anchorLinks: false,
-		},
-	},
-
-	runtimeConfig: {
-		public: {
-			openQuizzDbApiKey: process.env.NUXT_PUBLIC_OPEN_QUIZZ_DB_API_KEY,
-			openQuizzDbApiUrl: process.env.NUXT_PUBLIC_OPEN_QUIZZ_DB_API_URL,
 		},
 	},
 
