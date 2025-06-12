@@ -14,7 +14,7 @@
 				@good-answer="incrementScore"
 				@bad-answer="isFinished = true"
 				@restart="restart"
-				@back="navigateTo('/solo')"
+				@back="backToMenu"
 				@score-board="showGameOverDialog = true"
 			/>
 			<Dialog v-model:open="showGameOverDialog">
@@ -29,7 +29,7 @@
 						<span class="inline-flex font-medium">{{ stats.bestScore }}</span>
 					</div>
 					<div v-if="isFinished" class="mt-16 flex justify-between gap-x-4">
-						<Button size="xl" variant="outline" @click="navigateTo('/solo')">
+						<Button size="xl" variant="outline" @click="backToMenu">
 							<Icon name="lucide:arrow-left" class="aspect-square" />
 						</Button>
 						<Button size="xl" class="w-full" @click="restart">Recommencer</Button>
@@ -43,7 +43,7 @@
 				<span class="text-center text-4xl font-bold tracking-tight text-foreground"> Oh, oh ! une erreur est survenue </span>
 				<p class="max-w-md text-pretty text-center text-lg text-muted-foreground"> Il semblerait que nous n'avons pas réeussi à obtenir une question à afficher, veuillez réessayer plus tard ou essayez d'actualiser la page.</p>
 				<div class="mt-4 flex gap-x-4">
-					<Button size="lg" @click="navigateTo('/')">Retour à l'accueil</Button>
+					<Button size="lg" @click="backToHomepage">Retour à l'accueil</Button>
 					<Button size="lg" variant="outline" @click="refresh">Actualiser</Button>
 				</div>
 			</div>
@@ -118,6 +118,14 @@ function reduceDurationTime() {
 	if (maxDurationTime.value > 2000) {
 		maxDurationTime.value -= 100
 	}
+}
+
+function backToMenu() {
+	navigateTo("/solo")
+}
+
+async function backToHomepage() {
+	await navigateTo("/")
 }
 
 async function restart() {

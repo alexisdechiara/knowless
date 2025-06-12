@@ -20,7 +20,7 @@
 						<Icon name="lucide:users" class="text-2xl" />
 					</Button>
 				</FriendListPopover>
-				<Button v-if="user" variant="destructive" class="aspect-square h-full w-fit rounded-lg bg-slate-50 text-secondary-foreground transition-colors duration-300 ease-out hover:text-destructive-foreground dark:bg-slate-800" @click="supabase.auth.signOut(); navigateTo('/register')">
+				<Button v-if="user" variant="destructive" class="aspect-square h-full w-fit rounded-lg bg-slate-50 text-secondary-foreground transition-colors duration-300 ease-out hover:text-destructive-foreground dark:bg-slate-800" @click="logOut()">
 					<Icon name="lucide:log-out" class="text-2xl" />
 				</Button>
 			</div>
@@ -52,29 +52,8 @@ withDefaults(defineProps<{
 	showFriends: true,
 })
 
-const icons = [
-	"lucide:paw-print",
-	"lucide:landmark",
-	"lucide:palette",
-	"lucide:book-open",
-	"lucide:star",
-	"lucide:film",
-	"lucide:layers",
-	"lucide:book-open-text",
-	"lucide:utensils-crossed",
-	"lucide:map",
-	"lucide:castle",
-	"lucide:monitor",
-	"lucide:feather",
-	"lucide:gamepad",
-	"lucide:tv",
-	"lucide:music",
-	"lucide:leaf",
-	"lucide:user-x",
-	"lucide:home",
-	"lucide:microscope",
-	"lucide:dumbbell",
-	"lucide:globe",
-	"lucide:luggage",
-]
+const logOut = async () => {
+	await supabase.auth.signOut()
+	navigateTo("/register")
+}
 </script>

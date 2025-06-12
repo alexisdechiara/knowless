@@ -1,6 +1,6 @@
 <template>
 	<div class="container relative hidden h-screen w-screen flex-col items-center justify-center overflow-hidden md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-		<Button :as="NuxtLink" variant="ghost" class="absolute right-4 top-4 z-10 cursor-pointer md:right-8 md:top-8" @click="route.path === '/login' ? navigateTo('/register') : navigateTo('/login')">
+		<Button :as="NuxtLink" variant="ghost" class="absolute right-4 top-4 z-10 cursor-pointer md:right-8 md:top-8" :to="route.path === '/login' ? '/register' : '/login'">
 			{{ route.path === '/login' ? 'S\'inscrire' : 'Se connecter' }}
 		</Button>
 		<div class="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">

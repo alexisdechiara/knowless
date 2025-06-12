@@ -16,20 +16,28 @@
 			</li>
 			<NavLink label="Solo" :link="{ to: '/solo' }" size="lg" />
 			<NavLink label="Multijoueurs" :link="{ to: '/multi' }" size="lg" />
+			<NavLink size="sm" :link="{ to: 'https://github.com/alexisdechiara/knowless/discussions', target: '_blank' }">
+				Communauté
+				<Icon name="lucide:external-link" class="text-base" />
+			</NavLink>
 			<DialogSettings>
 				<NavLink label="Options" size="sm" />
 			</DialogSettings>
-			<FriendListPopover>
-				<NavLink label="Social" class="italic" size="sm" />
-			</FriendListPopover>
-			<Dialog>
-				<DialogTrigger>
-					<NavLink label="Légal" class="italic" size="sm" />
-				</DialogTrigger>
-				<DialogContent class="h-3/4 max-w-4xl">
-					<LegalDialog class="overflow-y-auto" />
-				</DialogContent>
-			</Dialog>
+			<NavLink class="italic" size="sm">
+				<FriendListPopover>
+					<span class="italic">Social</span>
+				</FriendListPopover>
+			</NavLink>
+			<NavLink size="sm">
+				<Dialog>
+					<DialogTrigger>
+						<span class="italic">Légal</span>
+					</DialogTrigger>
+					<DialogContent class="h-3/4 max-w-4xl">
+						<LegalDialog class="overflow-y-auto" />
+					</DialogContent>
+				</Dialog>
+			</NavLink>
 			<NavLink label="Déconnexion" class="text-destructive" size="sm" :link="{ to: '/register' }" @click="supabase.auth.signOut()" />
 		</ul>
 		<div class="absolute bottom-8 right-8 flex gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all">
@@ -54,7 +62,7 @@
 				<Icon name="bx:bxs-joystick-button" class="size-full transition-transform" :class="selectedGame !== null && selectedGame !== '' ? 'rotate-45' : ''" />
 			</Button>
 		</div>
-		<div v-if="selectedGame != null && selectedGame !== ''" class="crt absolute bottom-32 right-32 h-[480px] w-[720px] overflow-hidden rounded-[8%] z-50" :class="{ 'animate-crt-power-on': selectedGame && !isPoweringOff, 'animate-crt-power-off': isPoweringOff }">
+		<div v-if="selectedGame != null && selectedGame !== ''" class="crt absolute bottom-32 right-32 z-50 h-[480px] w-[720px] overflow-hidden rounded-[8%]" :class="{ 'animate-crt-power-on': selectedGame && !isPoweringOff, 'animate-crt-power-off': isPoweringOff }">
 			<SnakeGame v-if="selectedGame === 'snake'" />
 			<TicTacToeGame v-else-if="selectedGame === 'ticTacToe'" />
 			<TetrisGame v-else-if="selectedGame === 'tetris'" />

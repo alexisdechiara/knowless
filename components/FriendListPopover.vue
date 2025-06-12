@@ -3,10 +3,15 @@
 		<PopoverTrigger>
 			<slot />
 		</PopoverTrigger>
-		<PopoverContent :side-offset="8" side="right" align="end" class="flex w-full min-w-[320px] max-w-7xl flex-col p-0">
+		<PopoverContent ref="card" :style="style" :side-offset="8" side="right" align="end" class="flex w-full min-w-[320px] max-w-7xl flex-col p-0">
 			<CardHeader>
-				<CardTitle>Gestion des amis</CardTitle>
-				<CardDescription>Ici, vous pouvez voir tous vos amis</CardDescription>
+				<div class="flex size-full items-start justify-between">
+					<div>
+						<CardTitle>Gestion des amis</CardTitle>
+						<CardDescription>Ici, vous pouvez voir tous vos amis</CardDescription>
+					</div>
+					<!-- <Icon ref="handle" name="lucide:grip-vertical" class="size-6 text-secondary" /> -->
+				</div>
 			</CardHeader>
 			<CardContent>
 				<div class="mb-6 flex items-center">
@@ -42,6 +47,7 @@
 <script lang="ts" setup>
 import { toast } from "vue-sonner"
 import type { RealtimeChannel } from "@supabase/supabase-js"
+import { useDraggable } from "@vueuse/core"
 import PopoverTrigger from "~/components/ui/popover/PopoverTrigger.vue"
 import { User } from "~/models/user"
 import { Friendship } from "~/models/friendship"
@@ -50,6 +56,13 @@ const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const { inviteFriend, removeFriend, acceptFriend } = useFriends()
 const friendshipChannel = ref<RealtimeChannel | null>(null)
+const card = useTemplateRef<HTMLElement>("card")
+const handle = useTemplateRef<HTMLElement>("handle")
+const { style } = useDraggable(card, {
+	initialValue: { x: 0, y: 0 },
+	preventDefault: true,
+	handle: handle,
+})
 
 const friendToAdd = ref("")
 const friends = ref<Array<User>>([])

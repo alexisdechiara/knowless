@@ -12,8 +12,8 @@
 			<p class="text-xs text-muted-foreground">#{{ friend.usertag }}</p>
 		</div>
 		<div class="ml-auto flex gap-2">
-			<Button v-if="status === 'pending'" @click="emit('accept', friend.id)"> Accepter </Button>
-			<Button v-if="status === 'pending'" variant="outline" class="hover:bg-destructive hover:text-destructive-foreground" @click="emit('reject', friend.id)">
+			<Button v-if="status === 'pending' && user?.id !== friend.id" @click="emit('accept', friend.id)"> Accepter </Button>
+			<Button v-if="status === 'pending' && user?.id !== friend.id" variant="outline" class="hover:bg-destructive hover:text-destructive-foreground" @click="emit('reject', friend.id)">
 				Refuser
 			</Button>
 			<Button v-if="lobby && status === 'accepted' && (friend.status === 'in-lobby' || friend.status === 'playing')" :disabled="friend.status === 'playing' || isFull || isBanned" @click="joinFriendLobby()">
