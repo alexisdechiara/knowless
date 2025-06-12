@@ -16,9 +16,10 @@
 			</li>
 			<NavLink label="Solo" :link="{ to: '/solo' }" size="lg" />
 			<NavLink label="Multijoueurs" :link="{ to: '/multi' }" size="lg" />
-			<NavLink size="sm" :link="{ to: 'https://github.com/alexisdechiara/knowless/discussions', target: '_blank' }">
-				Communauté
-				<Icon name="lucide:external-link" class="text-base" />
+			<NavLink label="Communauté" size="sm" :link="{ to: 'https://github.com/alexisdechiara/knowless/discussions', target: '_blank' }">
+				<template #trailing>
+					<Icon name="lucide:external-link" class="text-base" />
+				</template>
 			</NavLink>
 			<DialogSettings>
 				<NavLink label="Options" size="sm" />

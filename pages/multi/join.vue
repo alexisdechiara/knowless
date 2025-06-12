@@ -71,6 +71,7 @@ import { useForm } from "vee-validate"
 import { toast } from "vue-sonner"
 import * as z from "zod"
 import Card from "~/components/ui/card/Card.vue"
+import { joinLobby } from "~/composables/Lobby" // Importer la fonction existante
 import { Lobby } from "~/models/lobby"
 
 definePageMeta({
