@@ -3,11 +3,11 @@
 		<ProgressBar v-if=" mode === 'solo' || phase === 'question'" :value="convertMillisecondsToPercentage" :duration="0" tickness="xl" />
 		<div class="relative h-9 w-full">
 			<div class="pointer-events-none absolute start-0 top-0 inline-flex gap-x-4 capitalize">
-				<Badge :class="content?.difficulty === 'easy' ? 'bg-emerald-500' : content?.difficulty === 'hard' ? 'bg-red-500' : 'bg-amber-500'" class="px-4 py-1 text-sm">{{ content?.difficulty }}</Badge>
+				<Badge :class="content?.difficulty === 'easy' ? 'bg-emerald-500' : content?.difficulty === 'hard' ? 'bg-red-500' : 'bg-amber-500'" class="md:px-4 md:py-1 md:text-sm">{{ content?.difficulty }}</Badge>
 				<!-- <span class="inline-flex items-center py-1 align-middle text-sm font-medium"><Icon name="lucide:gamepad" class="mr-1 size-4" /> {{ content?.category }}</span> -->
 			</div>
 			<template v-if=" mode === 'solo' || phase === 'question'">
-				<span class="absolute start-1/2 top-0 -translate-x-1/2 text-3xl font-semibold">Question {{ nbQuestion }}</span>
+				<span class="absolute start-1/2 top-0 -translate-x-1/2 text-2xl font-semibold !leading-none md:text-3xl">Question {{ nbQuestion }}</span>
 				<div class="absolute right-0 top-0 font-semibold">
 					<NumberFlowGroup>
 						<div style="font-variant-numeric: tabular-nums; --number-flow-char-height: 0.85em" class="flex items-baseline text-xl font-semibold">
@@ -35,11 +35,11 @@
 			</template>
 			<slot name="header" :status="status" />
 		</div>
-		<div class="relative -mt-16 flex size-full flex-col items-center justify-start sm:justify-center">
-			<div class="flex flex-col gap-y-4 px-6 sm:w-1/2 sm:px-0">
-				<span v-if="props.content?.theme" class="pb-16 text-center text-5xl font-bold sm:pb-16"> {{ content?.theme }} </span>
+		<div class="relative -mt-32 flex size-full flex-col items-center justify-center sm:-mt-20">
+			<div class="flex w-full flex-col gap-y-4 px-6 sm:max-w-md sm:px-0 md:max-w-lg">
+				<span v-if="props.content?.theme" class="pb-4 text-center text-3xl font-bold sm:pb-6 sm:text-4xl md:pb-10 md:text-5xl"> {{ content?.theme }} </span>
 				<NuxtImg v-if="content?.image" class="aspect-video rounded-md" :src="content?.image?.url" :alt="content?.image?.alt" />
-				<span class="mb-4 text-balance text-center text-2xl font-semibold sm:mb-8 sm:text-3xl">{{ content?.question }}</span>
+				<span class="mb-4 text-balance text-center text-xl font-semibold sm:mb-8 sm:text-xl md:text-3xl">{{ content?.question }}</span>
 				<template v-if="content?.type === 'open'">
 					<span v-if="mode === 'multi' && phase === 'correction'" class="text-center">
 						<b class="font-medium">Réponse : </b>

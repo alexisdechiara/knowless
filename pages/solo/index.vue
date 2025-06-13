@@ -2,7 +2,7 @@
 	<NuxtLayout name="selection" :previous="{ icon: 'lucide:chevron-left', button: { variant: 'default' }, to: '/' }">
 		<SelectionCard v-for="difficulty in difficulties" :key="difficulty.title" :title="difficulty.title" :description="difficulty.description" :to="`/solo/${difficulty.value}`">
 			<template #img>
-				<Icon :name="difficulty.icon" class="h-32 text-9xl" />
+				<Icon :name="difficulty.icon" class="text-8xl md:text-9xl" />
 			</template>
 		</SelectionCard>
 		<div class="fixed bottom-4 right-4 hidden sm:block">

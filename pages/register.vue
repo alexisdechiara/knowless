@@ -110,7 +110,7 @@
 
 			<div class="mt-4 flex items-center justify-between">
 				<div class="flex items-center gap-3">
-					<Button type="button" class="absolute bottom-4 right-4 md:bottom-8 md:right-8" :disabled="!isProfileStepValid" @click="goToNextStep">
+					<Button type="button" class="absolute bottom-4 right-0 md:bottom-8 md:right-8" :disabled="!isProfileStepValid" @click="goToNextStep">
 						Suivant
 					</Button>
 				</div>
@@ -118,7 +118,7 @@
 		</div>
 		<div v-show="formStep === 1">
 			<div class="mt-4 flex flex-col gap-4">
-				<div class="flex flex-col space-y-2 text-center">
+				<div class="hidden flex-col space-y-2 text-center sm:flex">
 					<h1 class="text-2xl font-semibold tracking-tight">
 						Choisissez le type de compte
 					</h1>
@@ -187,7 +187,7 @@
 				</Button>
 			</div>
 			<div class="mt-4 flex items-center justify-between">
-				<Button variant="outline" type="button" class="absolute bottom-4 left-4 md:bottom-8 md:left-8" @click="formStep = 0">
+				<Button variant="outline" type="button" class="absolute bottom-4 left-0 md:bottom-8 md:left-8" @click="formStep = 0">
 					Retour
 				</Button>
 			</div>
@@ -290,9 +290,16 @@ const createAnonymousAccount = async () => {
 		},
 	})
 	if (error) {
-		toast.error(`Erreur ${error.status}`, {
-			description: error.message,
-		})
+		if (error.code === "P0001") {
+			toast.error("Nom d'utilisateur indisponible", {
+				description: `Le nom d'utilisateur ${values.username} avec le tag #${values.usertag} est indisponible`,
+			})
+		}
+		else {
+			toast.error(`Erreur ${error.status}`, {
+				description: error.message,
+			})
+		}
 	}
 	if (!error) {
 		toast.success("Compte créé avec succès", {

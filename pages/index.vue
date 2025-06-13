@@ -1,7 +1,7 @@
 <!-- eslint-disable tailwindcss/no-custom-classname -->
 <template>
-	<div class="relative flex h-screen w-screen items-center justify-start ps-16">
-		<ClientOnly>
+	<div class="relative flex h-dvh w-screen items-center justify-start text-clip ps-4 sm:ps-8 md:ps-16">
+		<ClientOnly v-if="isMotionable">
 			<Tetris
 				class="fixed right-0 top-1/3 z-0 size-full -translate-y-1/4 translate-x-1/4 scale-125 [mask-image:radial-gradient(450px_circle_at_center,#00C16A,transparent)]"
 				:base="25"
@@ -9,13 +9,13 @@
 		</ClientOnly>
 		<ul class="z-50 flex w-fit flex-col gap-y-2 font-semibold italic text-foreground">
 			<li>
-				<h1 class="pointer-events-none mb-16 inline-flex w-fit items-center gap-x-2 text-8xl font-bold not-italic leading-none tracking-wide">
+				<h1 class="pointer-events-none mb-8 inline-flex w-fit items-center gap-x-2 text-6xl font-bold not-italic leading-none tracking-wide md:mb-16 md:text-8xl">
 					Knowless
-					<span class="mt-6 rounded-xl bg-foreground px-4 py-2 text-2xl leading-none tracking-normal text-background">Beta</span>
+					<span class="mt-1 rounded-xl bg-foreground px-3 py-1.5 text-sm leading-none tracking-normal text-background sm:text-lg md:mt-6 md:px-4 md:py-2 md:text-2xl">Beta</span>
 				</h1>
 			</li>
 			<NavLink label="Solo" :link="{ to: '/solo' }" size="lg" />
-			<NavLink label="Multijoueurs" :link="{ to: '/multi' }" size="lg" />
+			<NavLink label="Multijoueurs" :link="{ to: '/multi' }" size="lg" class="md:mb-2" />
 			<NavLink label="Communauté" size="sm" :link="{ to: 'https://github.com/alexisdechiara/knowless/discussions', target: '_blank' }">
 				<template #trailing>
 					<Icon name="lucide:external-link" class="text-base" />
@@ -41,7 +41,7 @@
 			</NavLink>
 			<NavLink label="Déconnexion" class="text-destructive" size="sm" :link="{ to: '/register' }" @click="supabase.auth.signOut()" />
 		</ul>
-		<div class="absolute bottom-8 right-8 flex gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all">
+		<div v-if="isMotionable" class="absolute bottom-8 right-8 hidden gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all md:flex">
 			<TabsRoot v-if="selectedGame != null && selectedGame !== ''" v-model="selectedGame" default-value="snake">
 				<TabsList class="relative flex flex-wrap text-background ">
 					<TabsIndicator :class="selectedGame === 'flappyBird' ? 'w-20 h-12' : 'size-12'" class="absolute translate-x-[--radix-tabs-indicator-position] rounded-full bg-background p-2 transition-[width,transform] duration-300" />
@@ -59,7 +59,7 @@
 					</TabsTrigger>
 				</TabsList>
 			</TabsRoot>
-			<Button v-if="isMotionable" size="icon" :variant="selectedGame ? 'destructive' : 'default'" class="z-50 size-12 rounded-full p-3" @click="selectedGame !== null && selectedGame !== '' ? turnOffGame() : selectedGame = 'snake'">
+			<Button size="icon" :variant="selectedGame ? 'destructive' : 'default'" class="z-50 size-12 rounded-full p-3" @click="selectedGame !== null && selectedGame !== '' ? turnOffGame() : selectedGame = 'snake'">
 				<Icon name="bx:bxs-joystick-button" class="size-full transition-transform" :class="selectedGame !== null && selectedGame !== '' ? 'rotate-45' : ''" />
 			</Button>
 		</div>
@@ -82,7 +82,7 @@ definePageMeta({
 
 const supabase = useSupabaseClient()
 const breakpoints = useBreakpoints(breakpointsTailwind)
-const isMotionable = computed(() => breakpoints.greaterOrEqual("lg") && useDevice().isDesktopOrTablet && usePreferredReducedMotion())
+const isMotionable = computed(() => breakpoints.greaterOrEqual("md") && useDevice().isDesktop && usePreferredReducedMotion().value == "no-preference")
 
 const selectedGame = ref<string | null>("")
 const isPoweringOff = ref(false)

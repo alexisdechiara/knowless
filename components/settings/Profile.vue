@@ -1,3 +1,157 @@
+<template>
+	<form class="space-y-8" @submit="onSubmit">
+		<FormField name="avatar">
+			<FormItem class="flex w-fit items-center gap-4">
+				<FormControl>
+					<Avatar shape="circle" size="base">
+						<AvatarImage :src="values.avatar || ''" alt="avatar" />
+						<AvatarFallback />
+					</Avatar>
+					<Dialog>
+						<DialogTrigger as-child>
+							<Button type="button" variant="outline">
+								Personnaliser
+							</Button>
+						</DialogTrigger>
+						<DialogContent>
+							<DialogHeader>
+								<DialogTitle>Personnaliser votre avatar</DialogTitle>
+								<DialogDescription>
+									Cette section est encore en construction
+								</DialogDescription>
+							</DialogHeader>
+							<ToggleGroup :model-value="selectedAvatarSeed" type="single" class="grid grid-cols-2 gap-3 p-6 sm:grid-cols-5 sm:gap-6 sm:p-0" @update:model-value="(seed) => { if (seed) selectedAvatarSeed = seed as string }">
+								<div v-for="seed in seeds" :key="seed">
+									<ToggleGroupItem :value="seed" class="flex aspect-square size-full items-center justify-center rounded-full p-2 ring-primary transition-colors duration-75 hover:bg-inherit data-[state=on]:ring">
+										<Avatar shape="circle" size="base">
+											<AvatarImage :src="createAvatar(bigEars, { seed: seed }).toDataUri()" alt="avatar" />
+										</Avatar>
+									</ToggleGroupItem>
+								</div>
+							</ToggleGroup>
+							<DialogFooter>
+								<DialogClose as-child>
+									<Button type="button" @click="setFieldValue('avatar', `https://api.dicebear.com/6.x/big-ears/svg?seed=${selectedAvatarSeed}`)">
+										Valider
+									</Button>
+								</DialogClose>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+				</FormControl>
+				<FormMessage />
+			</FormItem>
+		</FormField>
+		<div class="flex max-w-xs gap-0">
+			<FormField v-slot="{ componentField }" name="username" class="w-full flex-1">
+				<FormItem class="z-10 w-full flex-1">
+					<FormLabel>Nom d'utilisateur</FormLabel>
+					<FormControl class="w-full flex-1">
+						<Input
+							id="username"
+							class="w-full flex-1 rounded-r-none"
+							placeholder="Username"
+							type="text"
+							v-bind="componentField"
+						/>
+					</FormControl>
+					<FormDescription>
+						Sera visible par les autres joueurs
+					</FormDescription>
+					<FormMessage />
+				</FormItem>
+			</FormField>
+
+			<FormField v-slot="{ componentField }" name="usertag">
+				<FormItem class="focus-within:z-10">
+					<FormLabel class="invisible">Tag</FormLabel>
+					<FormControl class="relative w-full max-w-20 items-center">
+						<div>
+							<Input id="tag" v-bind="componentField" type="text" maxlength="4" class="relative rounded-l-none border-l-0 pl-7 uppercase tracking-widest" />
+							<span class="absolute inset-y-0 start-0 flex items-center justify-center ps-2">
+								<Icon name="heroicons:hashtag" class="size-4 text-muted-foreground" />
+							</span>
+						</div>
+					</FormControl>
+					<FormMessage />
+				</FormItem>
+			</FormField>
+		</div>
+		<FormField v-slot="{ componentField }" name="language">
+			<FormItem>
+				<FormLabel>
+					Langue
+				</FormLabel>
+				<Select v-bind="componentField">
+					<FormControl class="w-64">
+						<SelectTrigger>
+							<SelectValue placeholder="Sélectionnez une langue" />
+						</SelectTrigger>
+					</FormControl>
+					<SelectContent>
+						<SelectGroup>
+							<SelectItem v-for="language in languages" :key="language.label" :value="language.value">
+								{{ language.label }}
+							</SelectItem>
+						</SelectGroup>
+					</SelectContent>
+				</Select>
+				<FormMessage />
+				<FormDescription>Langue des questions posées</FormDescription>
+			</FormItem>
+		</FormField>
+
+		<FormField name="categories">
+			<FormItem class="flex flex-col">
+				<FormLabel>Catégories</FormLabel>
+				<Popover>
+					<PopoverTrigger as-child>
+						<FormControl>
+							<Button variant="outline" role="combobox" class="w-fit justify-between font-normal text-muted-foreground">
+								Sélectionner des catégories..
+								<Icon name="lucide:chevrons-up-down" class="ml-2 size-4 shrink-0 opacity-50" />
+							</Button>
+						</FormControl>
+					</PopoverTrigger>
+					<PopoverContent class="w-[200px] p-0">
+						<Command>
+							<CommandInput placeholder="Search language..." />
+							<CommandEmpty>Rien n'a été trouvé.</CommandEmpty>
+							<CommandList>
+								<CommandGroup>
+									<CommandItem
+										v-for="category in categoryList"
+										:key="category.value"
+										:value="category.value"
+										class="transition-colors duration-150 ease-out"
+										:class="{ 'rounded-none bg-emerald-400/[0.17]': values?.categories?.includes(category.value) }"
+										@select="() => {
+											setFieldValue('categories', values.categories?.includes(category.value)
+												? values.categories?.filter((c) => c !== category.value)
+												: [...(values?.categories || []), category.value])
+										}"
+									>
+										<Icon :name="values?.categories?.includes(category.value) ? 'lucide:check' : category.icon" class="mr-2 size-4" />
+										{{ category.title }}
+									</CommandItem>
+								</CommandGroup>
+							</CommandList>
+						</Command>
+					</PopoverContent>
+				</Popover>
+				<FormDescription>
+					L'ensemble des catégories dont les questions seront posées
+				</FormDescription>
+				<FormMessage />
+			</FormItem>
+		</FormField>
+
+		<Button type="submit">
+			Sauvegarder
+		</Button>
+	</form>
+</template>
+
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
 import * as z from "zod"
@@ -55,9 +209,16 @@ const onSubmit = handleSubmit(async (values) => {
 		.eq("id", user?.value?.id)
 
 	if (error) {
-		toast.error(`Erreur ${error.code}`, {
-			description: error.details,
-		})
+		if (error.code === "P0001") {
+			toast.error("Nom d'utilisateur indisponible", {
+				description: `Le nom d'utilisateur ${values.username} avec le tag #${values.usertag} est indisponible`,
+			})
+		}
+		else {
+			toast.error(`Erreur ${error.code}`, {
+				description: error.details || error.message,
+			})
+		}
 	}
 	else {
 		toast.success("Profil mis à jour", {
@@ -216,157 +377,3 @@ const categoryList = [
 	},
 ]
 </script>
-
-<template>
-	<form class="space-y-8" @submit="onSubmit">
-		<FormField name="avatar">
-			<FormItem class="flex w-fit items-center gap-4">
-				<FormControl>
-					<Avatar shape="circle" size="base">
-						<AvatarImage :src="values.avatar || ''" alt="avatar" />
-						<AvatarFallback />
-					</Avatar>
-					<Dialog>
-						<DialogTrigger as-child>
-							<Button type="button" variant="outline">
-								Personnaliser
-							</Button>
-						</DialogTrigger>
-						<DialogContent>
-							<DialogHeader>
-								<DialogTitle>Personnaliser votre avatar</DialogTitle>
-								<DialogDescription>
-									Cette section est encore en construction
-								</DialogDescription>
-							</DialogHeader>
-							<ToggleGroup :model-value="selectedAvatarSeed" type="single" class="grid grid-cols-2 gap-3 p-6 sm:grid-cols-5 sm:gap-6 sm:p-0" @update:model-value="(seed) => { if (seed) selectedAvatarSeed = seed as string }">
-								<div v-for="seed in seeds" :key="seed">
-									<ToggleGroupItem :value="seed" class="flex aspect-square size-full items-center justify-center rounded-full p-2 ring-primary transition-colors duration-75 hover:bg-inherit data-[state=on]:ring">
-										<Avatar shape="circle" size="base">
-											<AvatarImage :src="createAvatar(bigEars, { seed: seed }).toDataUri()" alt="avatar" />
-										</Avatar>
-									</ToggleGroupItem>
-								</div>
-							</ToggleGroup>
-							<DialogFooter>
-								<DialogClose as-child>
-									<Button type="button" @click="setFieldValue('avatar', `https://api.dicebear.com/6.x/big-ears/svg?seed=${selectedAvatarSeed}`)">
-										Valider
-									</Button>
-								</DialogClose>
-							</DialogFooter>
-						</DialogContent>
-					</Dialog>
-				</FormControl>
-				<FormMessage />
-			</FormItem>
-		</FormField>
-		<div class="flex max-w-xs gap-0">
-			<FormField v-slot="{ componentField }" name="username" class="w-full flex-1">
-				<FormItem class="z-10 w-full flex-1">
-					<FormLabel>Nom d'utilisateur</FormLabel>
-					<FormControl class="w-full flex-1">
-						<Input
-							id="username"
-							class="w-full flex-1 rounded-r-none"
-							placeholder="Username"
-							type="text"
-							v-bind="componentField"
-						/>
-					</FormControl>
-					<FormDescription>
-						Sera visible par les autres joueurs
-					</FormDescription>
-					<FormMessage />
-				</FormItem>
-			</FormField>
-
-			<FormField v-slot="{ componentField }" name="usertag">
-				<FormItem class="focus-within:z-10">
-					<FormLabel class="invisible">Tag</FormLabel>
-					<FormControl class="relative w-full max-w-20 items-center">
-						<div>
-							<Input id="tag" v-bind="componentField" type="text" maxlength="4" class="relative rounded-l-none border-l-0 pl-7 uppercase tracking-widest" />
-							<span class="absolute inset-y-0 start-0 flex items-center justify-center ps-2">
-								<Icon name="heroicons:hashtag" class="size-4 text-muted-foreground" />
-							</span>
-						</div>
-					</FormControl>
-					<FormMessage />
-				</FormItem>
-			</FormField>
-		</div>
-		<FormField v-slot="{ componentField }" name="language">
-			<FormItem>
-				<FormLabel>
-					Langue
-				</FormLabel>
-				<Select v-bind="componentField">
-					<FormControl class="w-64">
-						<SelectTrigger>
-							<SelectValue placeholder="Sélectionnez une langue" />
-						</SelectTrigger>
-					</FormControl>
-					<SelectContent>
-						<SelectGroup>
-							<SelectItem v-for="language in languages" :key="language.label" :value="language.value">
-								{{ language.label }}
-							</SelectItem>
-						</SelectGroup>
-					</SelectContent>
-				</Select>
-				<FormMessage />
-				<FormDescription>Langue des questions posées</FormDescription>
-			</FormItem>
-		</FormField>
-
-		<FormField name="categories">
-			<FormItem class="flex flex-col">
-				<FormLabel>Catégories</FormLabel>
-				<Popover>
-					<PopoverTrigger as-child>
-						<FormControl>
-							<Button variant="outline" role="combobox" class="w-fit justify-between font-normal text-muted-foreground">
-								Sélectionner des catégories..
-								<Icon name="lucide:chevrons-up-down" class="ml-2 size-4 shrink-0 opacity-50" />
-							</Button>
-						</FormControl>
-					</PopoverTrigger>
-					<PopoverContent class="w-[200px] p-0">
-						<Command>
-							<CommandInput placeholder="Search language..." />
-							<CommandEmpty>Rien n'a été trouvé.</CommandEmpty>
-							<CommandList>
-								<CommandGroup>
-									<CommandItem
-										v-for="category in categoryList"
-										:key="category.value"
-										:value="category.value"
-										class="transition-colors duration-150 ease-out"
-										:class="{ 'rounded-none bg-emerald-400/[0.17]': values?.categories?.includes(category.value) }"
-										@select="() => {
-											setFieldValue('categories', values.categories?.includes(category.value)
-												? values.categories?.filter((c) => c !== category.value)
-												: [...(values?.categories || []), category.value])
-										}"
-									>
-										<Icon :name="values?.categories?.includes(category.value) ? 'lucide:check' : category.icon" class="mr-2 size-4" />
-										{{ category.title }}
-									</CommandItem>
-								</CommandGroup>
-							</CommandList>
-						</Command>
-					</PopoverContent>
-				</Popover>
-				<FormDescription>
-					L'ensemble des catégories dont les questions seront posées
-				</FormDescription>
-				<FormMessage />
-			</FormItem>
-		</FormField>
-
-		<Button type="submit">
-			Sauvegarder
-		</Button>
-	</form>
-</template>

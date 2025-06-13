@@ -6,7 +6,7 @@
 					<AvatarImage :src="player.avatar ? player.avatar : ''" alt="avatar" />
 					<AvatarFallback>{{ player.username }}</AvatarFallback>
 				</Avatar>
-				<span class="w-full overflow-hidden text-ellipsis text-center text-base font-semibold text-primary">{{ player.username }}</span>
+				<span class="w-full overflow-hidden text-ellipsis text-center text-base font-semibold text-primary">{{ player.username || "&nbsp;" }}</span>
 			</div>
 		</Label>
 		<NumberFieldContent>

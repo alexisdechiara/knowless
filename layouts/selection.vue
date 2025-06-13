@@ -1,6 +1,8 @@
 <template>
-	<div class="relative flex h-screen w-screen items-center justify-center gap-16">
-		<slot />
+	<div class="relative flex h-dvh w-screen items-center justify-center">
+		<div class="flex flex-col items-center justify-center gap-8 sm:flex-row sm:items-stretch md:gap-16">
+			<slot />
+		</div>
 		<Button v-if="previous" as="a" :href="previous.to" :variant="previous?.button?.variant || 'outline'" v-bind="previous.button" :size="previous.icon && !previous.label ? 'icon' : 'xl'" :class="previous.icon && !previous.label ? 'size-12': ''" class="fixed bottom-4 left-4 md:bottom-8 md:left-8">
 			<Icon v-if="previous.icon" :name="previous.icon" class="text-xl" />
 			{{ previous.label }}
