@@ -83,7 +83,7 @@
 					Langue
 				</FormLabel>
 				<Select v-bind="componentField">
-					<FormControl class="w-64">
+					<FormControl class="w-fit min-w-32 max-w-64">
 						<SelectTrigger>
 							<SelectValue placeholder="Sélectionnez une langue" />
 						</SelectTrigger>

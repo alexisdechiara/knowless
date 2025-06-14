@@ -12,7 +12,7 @@
 					Personnalisez votre profil, vos paramètres de jeu et votre compte
 				</DialogDescription>
 			</DialogHeader>
-			<Separator class="my-6" />
+			<Separator class="sm:my-6" />
 			<SettingsNavbar />
 		</DialogContent>
 	</Dialog>

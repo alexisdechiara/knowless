@@ -20,9 +20,9 @@ const sidebarNavItems = [
 </script>
 
 <template>
-	<div class="flex flex-1 gap-6 overflow-hidden px-6 pb-6">
-		<aside class="lg:w-1/5">
-			<nav class="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
+	<div class="flex flex-1 flex-col gap-4 overflow-hidden px-0 pb-6 sm:gap-6 sm:px-6 md:flex-row">
+		<aside class="md:w-1/5">
+			<nav class="flex justify-center space-x-2 md:flex-col md:space-x-0 md:space-y-1">
 				<TooltipProvider v-for="item in sidebarNavItems" :key="item.title">
 					<Tooltip>
 						<TooltipTrigger class="cursor-not-allowed" :class="user?.is_anonymous && item.value === 'account' && 'cursor-default'">
@@ -44,7 +44,7 @@ const sidebarNavItems = [
 			</nav>
 		</aside>
 		<div class="h-full flex-1 overflow-y-auto">
-			<div class="ml-6 space-y-6">
+			<div class="mx-6 space-y-6">
 				<Profile v-if="selectedItem === 'profile'" />
 				<Account v-else-if="selectedItem === 'account'" />
 				<!-- <Appearance v-else-if="selectedItem === 'appearance'" /> -->

@@ -40,6 +40,7 @@
     "lucide-vue-next": "0.514.0",
     "motion-v": "^1.0.2",
     "nuxt": "^3.17.5",
+    "nuxt-anchorscroll": "1.0.5",
     "pinia": "^3.0.2",
     "pinia-plugin-persistedstate": "^4.3.0",
     "radix-vue": "^1.9.17",

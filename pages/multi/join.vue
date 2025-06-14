@@ -1,6 +1,6 @@
 <template>
-	<div class="mx-auto flex size-full max-w-xl flex-col items-center justify-center">
-		<form class="scale-150 py-64" @submit="onSubmit">
+	<div class="relative flex h-svh w-full flex-col items-center justify-center scroll-smooth">
+		<form class="mb-32 scale-150" @submit="onSubmit">
 			<FormField v-slot="{ componentField, value }" name="pin">
 				<FormItem>
 					<FormLabel class="inline-flex w-full justify-center text-lg">
@@ -33,11 +33,11 @@
 				</FormItem>
 			</FormField>
 		</form>
-		<Card v-if="lobbies && lobbies.length > 0" class="mb-16 w-full">
+		<Card v-if="lobbies && lobbies.length > 0" class="absolute bottom-32 w-full max-w-lg translate-y-full">
 			<Table>
 				<TableHeader>
 					<TableRow>
-						<TableHead class="pointer-events-none text-base">
+						<TableHead id="lobbies" class="pointer-events-none text-base">
 							Parties publiques
 						</TableHead>
 					</TableRow>
@@ -59,8 +59,13 @@
 				</TableBody>
 			</Table>
 		</Card>
-		<Button as="a" href="/multi" variant="default" size="icon" class="fixed bottom-4 left-4 size-12 md:bottom-8 md:left-8">
-			<Icon name="lucide:chevron-left" class="text-xl" />
+		<Button as-child variant="default" size="icon" class="invisible fixed bottom-4 left-4 size-12 sm:visible md:bottom-8 md:left-8">
+			<NuxtLink to="/multi">
+				<Icon name="lucide:chevron-left" class="text-xl" />
+			</NuxtLink>
+		</Button>
+		<Button size="icon" variant="outline" class="invisible fixed bottom-4 right-4 size-12 rounded-full sm:visible md:bottom-8 md:right-8" @click="showScrollTop ? scrollToTop() : scrollToAnchor('lobbies')">
+			<Icon name="lucide:arrow-down" class="text-lg transition-transform duration-300" :class="showScrollTop ? 'rotate-180' : ''" />
 		</Button>
 	</div>
 </template>
@@ -70,6 +75,7 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { useForm } from "vee-validate"
 import { toast } from "vue-sonner"
 import * as z from "zod"
+import { useWindowScroll, useWindowSize } from "@vueuse/core"
 import Card from "~/components/ui/card/Card.vue"
 import { joinLobby } from "~/composables/Lobby" // Importer la fonction existante
 import { Lobby } from "~/models/lobby"
@@ -152,4 +158,18 @@ else {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	lobbies.value = data.map((lobby: any) => new Lobby(lobby))
 }
+
+const { scrollToAnchor, scrollToTop } = useAnchorScroll({
+	toTop: {
+		scrollOptions: {
+			behavior: "smooth",
+			offsetTop: 0,
+		},
+	},
+})
+
+const { y } = useWindowScroll()
+const { height } = useWindowSize()
+
+const showScrollTop = computed(() => y.value > height.value * 0.1)
 </script>

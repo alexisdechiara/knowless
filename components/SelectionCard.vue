@@ -5,11 +5,11 @@
 				<slot name="img" />
 				<NuxtImg v-if="!$slots.img && img" :src="img.src" :alt="img.alt" class="size-full object-cover" />
 			</CardHeader>
-			<CardFooter class="flex grow flex-col items-center justify-center gap-y-2 p-4 pt-2 md:gap-y-4 md:p-6 md:pt-4">
-				<CardTitle class="text-center text-xl leading-tight sm:text-2xl">
+			<CardFooter class="flex grow flex-col items-start justify-center gap-y-2 p-4 pt-2 sm:items-center md:gap-y-4 md:p-6 md:pt-4">
+				<CardTitle class="text-start text-xl leading-tight sm:text-center sm:text-2xl">
 					{{ title }}
 				</CardTitle>
-				<CardDescription class="text-center">
+				<CardDescription class="text-start sm:text-center">
 					{{ description }}
 				</CardDescription>
 			</CardFooter>

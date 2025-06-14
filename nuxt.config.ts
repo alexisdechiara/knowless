@@ -18,6 +18,7 @@ export default defineNuxtConfig({
 		"@nuxtjs/device",
 		"@nuxtjs/seo",
 		"@nuxtjs/plausible",
+		"nuxt-anchorscroll",
 	],
 
 	components: [

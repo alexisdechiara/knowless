@@ -1,6 +1,6 @@
 <template>
 	<Tabs default-value="legal" class="relative">
-		<TabsList class="fixed left-1/2 top-8 z-50 flex w-fit -translate-x-1/2">
+		<TabsList class="fixed left-1/2 top-8 z-50 flex w-fit -translate-x-1/2 scale-75 sm:scale-100">
 			<TabsTrigger value="legal">
 				Mentions légales
 			</TabsTrigger>
