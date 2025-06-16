@@ -32,7 +32,7 @@
 						<span v-if="isDesktopBreakpoint" class="absolute start-1/2 top-20 -translate-x-1/2 text-4xl font-semibold">{{ lobby.players.find(player => player.id === game?.playersData[game.currentPlayerIndex]?.id)?.username }}</span>
 					</template>
 					<template #next>
-						<NextButton :variant="isLastPlayer && game.currentQuestionIndex === game.questions.length - 1 ? 'default' : 'outline'" :title="isLastPlayer && game.currentQuestionIndex === game.questions.length - 1 ? 'Ajustements' : isLastPlayer ? 'Question suivante' : 'Joueur suivant'" @click="isHost && nextPlayerCorrection()" />
+						<NextButton :variant="isLastPlayer && game.currentQuestionIndex === game.questions.length - 1 ? 'default' : outlineOrSecondary()" :title="isLastPlayer && game.currentQuestionIndex === game.questions.length - 1 ? 'Ajustements' : isLastPlayer ? 'Question suivante' : 'Joueur suivant'" @click="isHost && nextPlayerCorrection()" />
 					</template>
 				</QuestionBoard>
 				<div v-else-if="game.phase === 'adjustment'" class="flex justify-center">
@@ -110,7 +110,7 @@
 						<div id="settings-mobile" />
 						<div class="flex w-full justify-end gap-x-8">
 							<Button v-if="isHost" size="xxl" class="block w-full" @click="startLobby()">Démarrer</Button>
-							<Button size="xxl" variant="outline" class="block aspect-square w-fit items-center justify-center p-0" @click="leaveLobby()">
+							<Button size="xxl" :variant="outlineOrSecondary()" class="block aspect-square w-fit items-center justify-center p-0" @click="leaveLobby()">
 								<Icon name="lucide:log-out" />
 							</Button>
 						</div>
@@ -170,6 +170,7 @@ const result = ref<boolean>(false)
 const lobbyChannel = ref<null | RealtimeChannel>()
 const gameChannel = ref<null | RealtimeChannel>()
 const isDesktopBreakpoint = useBreakpoints(breakpointsTailwind).greaterOrEqual("md")
+const { outlineOrSecondary } = useDarkMode()
 
 const lobbyTitle = computed(() => {
 	return game.value?.phase ? `Partie en cours - ${lobby.value?.title}` : lobby.value?.title || "Multijoueurs - Salon"

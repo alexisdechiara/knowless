@@ -10,6 +10,7 @@ export class User {
 	status?: string
 	lobbyId?: string
 	score?: number
+	theme?: "light" | "dark" | "system"
 
 	constructor(data?: Record<string, any>) {
 		this.id = data?.id
@@ -21,5 +22,7 @@ export class User {
 		this.categories = data?.categories
 		this.status = data?.status
 		this.lobbyId = data?.lobby_id
+		this.score = data?.score
+		this.theme = data?.theme || "system"
 	}
 }

@@ -12,10 +12,10 @@ const sidebarNavItems = [
 		title: "Compte",
 		value: "account",
 	},
-	// {
-	// 	title: "Appearance",
-	// 	value: "appearance",
-	// },
+	{
+		title: "Apparence",
+		value: "appearance",
+	},
 ]
 </script>
 
@@ -47,7 +47,7 @@ const sidebarNavItems = [
 			<div class="mx-6 space-y-6">
 				<Profile v-if="selectedItem === 'profile'" />
 				<Account v-else-if="selectedItem === 'account'" />
-				<!-- <Appearance v-else-if="selectedItem === 'appearance'" /> -->
+				<Appearance v-else-if="selectedItem === 'appearance'" />
 			</div>
 		</div>
 	</div>

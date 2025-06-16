@@ -65,7 +65,7 @@
 				<TooltipProvider>
 					<Tooltip>
 						<TooltipTrigger as-child>
-							<Button variant="outline" size="icon" class="absolute bottom-28 left-0 flex size-fit rounded-full p-3 sm:bottom-40 sm:left-8" @click="emit('scoreBoard')">
+							<Button :variant="outlineOrSecondary()" size="icon" class="absolute bottom-28 left-0 flex size-fit rounded-full p-3 sm:bottom-40 sm:left-8" @click="emit('scoreBoard')">
 								<Icon name="lucide:trophy" class="text-xl" />
 							</Button>
 						</TooltipTrigger>
@@ -81,7 +81,7 @@
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger as-child>
-								<Button variant="outline" size="icon" class="absolute bottom-14 left-0 flex size-fit rounded-full p-3 sm:bottom-24 sm:left-8">
+								<Button :variant="outlineOrSecondary()" size="icon" class="absolute bottom-14 left-0 flex size-fit rounded-full p-3 sm:bottom-24 sm:left-8">
 									<Icon name="lucide:message-circle-more" class="text-xl" />
 								</Button>
 							</TooltipTrigger>
@@ -103,7 +103,7 @@
 			<TooltipProvider v-if="content?.wikipedia && showResult">
 				<Tooltip>
 					<TooltipTrigger as-child>
-						<Button variant="outline" size="icon" class="absolute bottom-0 left-0 flex size-fit rounded-full p-3 sm:bottom-8 sm:left-8" @click="navigateTo(content.wikipedia, { external: true, open: { target: '_blank' } })">
+						<Button :variant="outlineOrSecondary()" size="icon" class="absolute bottom-0 left-0 flex size-fit rounded-full p-3 sm:bottom-8 sm:left-8" @click="navigateTo(content.wikipedia, { external: true, open: { target: '_blank' } })">
 							<Icon name="bi:wikipedia" class="text-xl" />
 						</Button>
 					</TooltipTrigger>
@@ -126,7 +126,7 @@
 			</template>
 
 			<div v-if="status === 'incorrect' && showResult" class="absolute bottom-0 right-0 mt-16 flex justify-between gap-x-2 sm:bottom-8 sm:right-8">
-				<Button v-if="showBack" size="icon" variant="outline" class="px-7 py-6 text-xl" @click="emit('back')">
+				<Button v-if="showBack" size="icon" :variant="outlineOrSecondary()" class="px-7 py-6 text-xl" @click="emit('back')">
 					<Icon name="lucide:arrow-left" class="aspect-square" />
 				</Button>
 				<Button v-if="showRestart" size="lg" class="w-full px-5 py-6 text-lg" @click="emit('restart')">Recommencer</Button>
@@ -182,6 +182,7 @@ const validationStatus = ref<"correct" | "uncertain" | "incorrect">("incorrect")
 const isCorrect = ref<boolean>(false)
 const openInput = shallowRef<HTMLInputElement | null>()
 const timeoutId = ref<NodeJS.Timeout | undefined>(undefined)
+const { outlineOrSecondary } = useDarkMode()
 
 onUnmounted(() => {
 	if ((inputAnswer.value === "" || inputAnswer.value == null) && (selectedAnswer.value === "" || selectedAnswer.value == null)) {

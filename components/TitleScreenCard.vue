@@ -7,20 +7,20 @@
 			<CardTitle class="pb-6">
 				<h2 class="select-none text-6xl">{{ title }}</h2>
 			</CardTitle>
-			<NuxtLink v-for="(link, index) in links" :key="`${link.title}-${index}`" :to="link.disabled ? '' : link.to" class="group flex h-fit w-full flex-col items-start gap-1 rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700" :class="{ 'pointer-events-auto !cursor-not-allowed opacity-50': link.disabled }">
+			<NuxtLink v-for="(link, index) in links" :key="`${link.title}-${index}`" :to="link.disabled ? '' : link.to" class="group flex h-fit w-full flex-col items-start gap-1 rounded-lg bg-gray-50 p-4 transition-colors duration-300 ease-out hover:bg-gray-100 dark:bg-gray-800 hover:dark:bg-gray-700" :class="{ 'pointer-events-auto !cursor-not-allowed opacity-50': link.disabled }">
 				<h3 class="text-xl font-medium text-secondary-foreground">{{ link.title }}</h3>
 				<p class="text-pretty text-start font-normal leading-tight text-secondary-foreground/75"> {{ link.description }} </p>
 			</NuxtLink>
 			<div class="mt-auto flex w-full justify-between gap-2">
-				<NuxtLink v-if="showSettings" to="/settings/profile" class="flex h-fit w-full justify-center rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
+				<NuxtLink v-if="showSettings" to="/settings/profile" class="flex h-fit w-full justify-center rounded-lg bg-gray-50 p-4 transition-colors duration-300 ease-out hover:bg-gray-100 dark:bg-gray-800 hover:dark:bg-gray-700">
 					<Icon name="lucide:settings-2" class="text-2xl " />
 				</NuxtLink>
 				<FriendListPopover>
-					<Button v-if="showFriends" variant="ghost" class="aspect-square h-full w-fit rounded-lg bg-slate-50 p-4 transition-colors duration-300 ease-out hover:bg-slate-100 dark:bg-slate-800 hover:dark:bg-slate-700">
+					<Button v-if="showFriends" variant="ghost" class="aspect-square h-full w-fit rounded-lg bg-gray-50 p-4 transition-colors duration-300 ease-out hover:bg-gray-100 dark:bg-gray-800 hover:dark:bg-gray-700">
 						<Icon name="lucide:users" class="text-2xl" />
 					</Button>
 				</FriendListPopover>
-				<Button v-if="user" variant="destructive" class="aspect-square h-full w-fit rounded-lg bg-slate-50 text-secondary-foreground transition-colors duration-300 ease-out hover:text-destructive-foreground dark:bg-slate-800" @click="logOut()">
+				<Button v-if="user" variant="destructive" class="aspect-square h-full w-fit rounded-lg bg-gray-50 text-secondary-foreground transition-colors duration-300 ease-out hover:text-destructive-foreground dark:bg-gray-800" @click="logOut()">
 					<Icon name="lucide:log-out" class="text-2xl" />
 				</Button>
 			</div>

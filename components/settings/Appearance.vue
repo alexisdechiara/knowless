@@ -1,34 +1,6 @@
-<script setup lang="ts">
-import { toTypedSchema } from "@vee-validate/zod"
-import { useForm } from "vee-validate"
-import * as z from "zod"
-
-const appearanceFormSchema = toTypedSchema(z.object({
-	theme: z.enum(["light", "dark"], {
-		required_error: "Please select a theme.",
-	}),
-	font: z.enum(["inter", "manrope", "system"], {
-		invalid_type_error: "Select a font",
-		required_error: "Please select a font.",
-	}),
-}))
-
-const { handleSubmit } = useForm({
-	validationSchema: appearanceFormSchema,
-	initialValues: {
-		theme: "light",
-		font: "inter",
-	},
-})
-
-const onSubmit = handleSubmit((values) => {
-
-})
-</script>
-
 <template>
 	<form class="space-y-8" @submit="onSubmit">
-		<FormField v-slot="{ componentField }" name="font">
+		<!-- <FormField v-slot="{ componentField }" name="font">
 			<FormItem class="w-64">
 				<FormLabel>
 					Font
@@ -56,41 +28,19 @@ const onSubmit = handleSubmit((values) => {
 				<FormMessage />
 				<FormDescription />
 			</FormItem>
-		</FormField>
+		</FormField> -->
 
-		<!-- <FormField v-slot="{ componentField }" type="radio" name="theme">
+		<FormField v-slot="{ componentField }" type="radio" name="theme">
 			<FormItem class="space-y-1">
 				<FormLabel>Theme</FormLabel>
-				<FormDescription>
-					Select the theme for the dashboard.
-				</FormDescription>
 				<FormMessage />
-
-				<RadioGroup
-					class="grid max-w-md grid-cols-2 gap-8 pt-2"
-					v-bind="componentField"
-				>
+				<RadioGroup class="grid grid-cols-3 gap-2 pt-2" v-bind="componentField">
 					<FormItem>
 						<FormLabel class="[&:has([data-state=checked])>div]:border-primary">
 							<FormControl>
 								<RadioGroupItem value="light" class="sr-only" />
 							</FormControl>
-							<div class="items-center rounded-md border-2 border-muted p-1 hover:border-accent">
-								<div class="space-y-2 rounded-sm bg-[#ecedef] p-2">
-									<div class="space-y-2 rounded-md bg-white p-2 shadow-sm">
-										<div class="h-2 w-20 rounded-lg bg-[#ecedef]" />
-										<div class="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
-									</div>
-									<div class="flex items-center space-x-2 rounded-md bg-white p-2 shadow-sm">
-										<div class="size-4 rounded-full bg-[#ecedef]" />
-										<div class="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
-									</div>
-									<div class="flex items-center space-x-2 rounded-md bg-white p-2 shadow-sm">
-										<div class="size-4 rounded-full bg-[#ecedef]" />
-										<div class="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
-									</div>
-								</div>
-							</div>
+							<ThemeSelector color-mode="light" />
 							<span class="block w-full p-2 text-center font-normal">
 								Light
 							</span>
@@ -101,35 +51,87 @@ const onSubmit = handleSubmit((values) => {
 							<FormControl>
 								<RadioGroupItem value="dark" class="sr-only" />
 							</FormControl>
-							<div class="items-center rounded-md border-2 border-muted bg-popover p-1 hover:bg-accent hover:text-accent-foreground">
-								<div class="space-y-2 rounded-sm bg-slate-950 p-2">
-									<div class="space-y-2 rounded-md bg-slate-800 p-2 shadow-sm">
-										<div class="h-2 w-20 rounded-lg bg-slate-400" />
-										<div class="h-2 w-[100px] rounded-lg bg-slate-400" />
-									</div>
-									<div class="flex items-center space-x-2 rounded-md bg-slate-800 p-2 shadow-sm">
-										<div class="size-4 rounded-full bg-slate-400" />
-										<div class="h-2 w-[100px] rounded-lg bg-slate-400" />
-									</div>
-									<div class="flex items-center space-x-2 rounded-md bg-slate-800 p-2 shadow-sm">
-										<div class="size-4 rounded-full bg-slate-400" />
-										<div class="h-2 w-[100px] rounded-lg bg-slate-400" />
-									</div>
-								</div>
-							</div>
+							<ThemeSelector color-mode="dark" />
 							<span class="block w-full p-2 text-center font-normal">
 								Dark
 							</span>
 						</FormLabel>
 					</FormItem>
+					<FormItem>
+						<FormLabel class="[&:has([data-state=checked])>div]:border-primary">
+							<FormControl>
+								<RadioGroupItem value="system" class="sr-only" />
+							</FormControl>
+							<ThemeSelector color-mode="system" />
+							<span class="block w-full p-2 text-center font-normal">
+								Auto
+							</span>
+						</FormLabel>
+					</FormItem>
 				</RadioGroup>
 			</FormItem>
-		</FormField> -->
+		</FormField>
 
 		<div class="flex justify-start">
 			<Button type="submit">
-				Update preferences
+				Sauvegarder
 			</Button>
 		</div>
 	</form>
 </template>
+
+<script setup lang="ts">
+import { toTypedSchema } from "@vee-validate/zod"
+import { useForm } from "vee-validate"
+import * as z from "zod"
+import { User } from "~/models/user"
+
+const colorMode = useColorMode()
+
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
+
+const { data, error } = await supabase
+	.from("players")
+	.select("*")
+	.eq("id", user?.value?.id).single()
+
+if (error) {
+	console.error(error)
+}
+
+const player = new User(data)
+
+const appearanceFormSchema = toTypedSchema(z.object({
+	theme: z.enum(["light", "dark", "system"], {
+		required_error: "Veuillez sélectionner un thème.",
+	}),
+	// font: z.enum(["inter", "manrope", "system"], {
+	// 	invalid_type_error: "Select a font",
+	// 	required_error: "Please select a font.",
+	// }),
+}))
+
+const { handleSubmit } = useForm({
+	validationSchema: appearanceFormSchema,
+	initialValues: {
+		theme: player.theme,
+	},
+})
+
+const onSubmit = handleSubmit(async (values) => {
+	const { error } = await supabase
+		.from("players")
+		.update({
+			theme: values.theme,
+		})
+		.eq("id", user?.value?.id)
+
+	if (error) {
+		console.error(error)
+	}
+	else {
+		colorMode.preference = values.theme
+	}
+})
+</script>
