@@ -1,47 +1,3 @@
-<script setup lang="ts">
-import { toTypedSchema } from "@vee-validate/zod"
-import { useForm } from "vee-validate"
-import { toast } from "vue-sonner"
-import * as z from "zod"
-
-const profileFormSchema = toTypedSchema(z.object({
-	email: z.string().email(),
-	password: z.string().min(6).max(50),
-	confirmPassword: z.string(),
-}).refine(values => values.password === values.confirmPassword, {
-	message: "Les mots de passe doivent correspondre.",
-	path: ["confirmPassword"],
-}),
-)
-
-const user = useSupabaseUser()
-const supabase = useSupabaseClient()
-
-const { handleSubmit } = useForm({
-	validationSchema: profileFormSchema,
-	initialValues: {
-		email: user.value?.email,
-	},
-})
-
-const onSubmit = handleSubmit(async (values) => {
-	const { error } = await supabase.auth.updateUser({
-		email: values.email,
-		password: values.password,
-	})
-
-	if (error) {
-		toast.error(`Erreur ${error.status}`, {
-			description: error.message,
-		})
-	}
-
-	toast.success("Compte mis à jour", {
-		description: `Vous avez mis à jour votre compte`,
-	})
-})
-</script>
-
 <template>
 	<form class="space-y-8" @submit="onSubmit">
 		<FormField v-slot="{ componentField }" name="email">
@@ -95,3 +51,47 @@ const onSubmit = handleSubmit(async (values) => {
 		</Button>
 	</form>
 </template>
+
+<script setup lang="ts">
+import { toTypedSchema } from "@vee-validate/zod"
+import { useForm } from "vee-validate"
+import { toast } from "vue-sonner"
+import * as z from "zod"
+
+const profileFormSchema = toTypedSchema(z.object({
+	email: z.string().email(),
+	password: z.string().min(6).max(50),
+	confirmPassword: z.string(),
+}).refine(values => values.password === values.confirmPassword, {
+	message: "Les mots de passe doivent correspondre.",
+	path: ["confirmPassword"],
+}),
+)
+
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
+
+const { handleSubmit } = useForm({
+	validationSchema: profileFormSchema,
+	initialValues: {
+		email: user.value?.email,
+	},
+})
+
+const onSubmit = handleSubmit(async (values) => {
+	const { error } = await supabase.auth.updateUser({
+		email: values.email,
+		password: values.password,
+	})
+
+	if (error) {
+		toast.error(`Erreur ${error.status}`, {
+			description: error.message,
+		})
+	}
+
+	toast.success("Compte mis à jour", {
+		description: `Vous avez mis à jour votre compte`,
+	})
+})
+</script>

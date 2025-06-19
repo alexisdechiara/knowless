@@ -12,9 +12,12 @@
 			<p class="text-xs text-muted-foreground">#{{ friend.usertag }}</p>
 		</div>
 		<div class="ml-auto flex gap-2">
-			<Button v-if="status === 'pending' && user?.id !== friend.id" @click="emit('accept', friend.id)"> Accepter </Button>
-			<Button v-if="status === 'pending' && user?.id !== friend.id" variant="outline" class="hover:bg-destructive hover:text-destructive-foreground" @click="emit('reject', friend.id)">
+			<Button v-if="status === 'pending' && user?.id !== friend.id" size="sm" @click="emit('accept', friend.id)"> Accepter </Button>
+			<Button v-if="status === 'pending' && user?.id !== friend.id" size="sm" variant="outline" class="hover:bg-destructive hover:text-destructive-foreground" @click="emit('reject', friend.id)">
 				Refuser
+			</Button>
+			<Button v-if="status === 'sent' && user?.id !== friend.id" variant="outline" size="sm" class="hover:bg-destructive hover:text-destructive-foreground" @click="emit('reject', friend.id)">
+				Annuler
 			</Button>
 			<Button v-if="lobby && status === 'accepted' && (friend.status === 'in-lobby' || friend.status === 'playing')" :disabled="friend.status === 'playing' || isFull || isBanned" @click="joinFriendLobby()">
 				{{ isFull ? "Complet" : isBanned ? "Banni" : "Rejoindre" }}
@@ -32,7 +35,7 @@ import { Lobby } from "~/models/lobby"
 import type { User } from "~/models/user"
 
 const props = defineProps<{
-	status: "pending" | "accepted" | "rejected"
+	status: "pending" | "accepted" | "rejected" | "sent"
 	friend: User
 }>()
 

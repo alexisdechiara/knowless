@@ -107,8 +107,20 @@
 				<Popover>
 					<PopoverTrigger as-child>
 						<FormControl>
-							<Button variant="outline" role="combobox" class="w-fit justify-between font-normal text-muted-foreground">
-								Sélectionner des catégories..
+							<Button variant="outline" role="combobox" class="w-fit min-w-48 justify-between font-normal text-muted-foreground">
+								<template v-if="values?.categories || values?.categories?.length === 0">
+									<template v-if="values?.categories?.length > 3">
+										{{ values?.categories?.length }} catégories sélectionnées
+									</template>
+									<template v-else>
+										<Badge v-for="category in values?.categories" :key="category">
+											{{ categoryList.find((c) => c.value === category)?.title }}
+										</Badge>
+									</template>
+								</template>
+								<template v-else>
+									Aucune catégories selectionnées
+								</template>
 								<Icon name="lucide:chevrons-up-down" class="ml-2 size-4 shrink-0 opacity-50" />
 							</Button>
 						</FormControl>
@@ -159,27 +171,16 @@ import { useForm } from "vee-validate"
 import { createAvatar } from "@dicebear/core"
 import { bigEars } from "@dicebear/collection"
 import { toast } from "vue-sonner"
-import { User } from "~/models/user"
+import { usePlayerStore } from "~/stores/Player"
 
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
-
-const { data, error } = await supabase
-	.from("players")
-	.select("*")
-	.eq("id", user?.value?.id).single()
-
-if (error) {
-	console.error(error)
-}
-
-const player = new User(data)
+const { getPlayer, updatePlayer } = usePlayerStore()
+const player = ref(getPlayer)
 
 const profileFormSchema = toTypedSchema(z.object({
 	username: z.string().min(2).max(50).nonempty(),
 	usertag: z.string().min(0),
 	language: z.string(),
-	avatar: z.string().nullable(),
+	avatar: z.string().optional(),
 	categories: z.array(z.string()).default([]),
 }))
 
@@ -188,43 +189,40 @@ const selectedAvatarSeed = ref<string>("")
 const { handleSubmit, setFieldValue, values } = useForm({
 	validationSchema: profileFormSchema,
 	initialValues: {
-		username: player.username,
-		usertag: player.usertag,
-		language: player.language,
-		avatar: player.avatar,
-		categories: player.categories,
+		username: player.value?.username,
+		usertag: player.value?.usertag,
+		language: player.value?.language,
+		avatar: player.value?.avatar,
+		categories: player.value?.categories || [],
 	},
 })
 
 const onSubmit = handleSubmit(async (values) => {
-	const { error } = await supabase
-		.from("players")
-		.update({
-			username: values.username,
-			usertag: values.usertag,
-			language: values.language,
-			avatar: values.avatar,
-			categories: values.categories,
-		})
-		.eq("id", user?.value?.id)
-
-	if (error) {
-		if (error.code === "P0001") {
-			toast.error("Nom d'utilisateur indisponible", {
-				description: `Le nom d'utilisateur ${values.username} avec le tag #${values.usertag} est indisponible`,
-			})
-		}
-		else {
-			toast.error(`Erreur ${error.code}`, {
-				description: error.details || error.message,
-			})
-		}
-	}
-	else {
+	await updatePlayer({
+		username: values.username,
+		usertag: values.usertag,
+		language: values.language,
+		avatar: values.avatar,
+		categories: values.categories,
+	}).then(() => {
 		toast.success("Profil mis à jour", {
 			description: `Vous avez mis à jour votre profil`,
 		})
-	}
+	}).catch((error) => {
+		if (error) {
+			if (error.code === "P0001") {
+				toast.error("Nom d'utilisateur indisponible", {
+					description: `Le nom d'utilisateur ${values.username} avec le tag #${values.usertag} est indisponible`,
+				})
+			}
+			else {
+				toast.error(`Erreur ${error.code}`, {
+					description: error.details || error.message,
+				})
+			}
+		}
+	},
+	)
 })
 
 const languages = [

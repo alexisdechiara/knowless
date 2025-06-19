@@ -26,14 +26,21 @@
 					</button>
 				</div>
 				<div class="flex h-full min-h-64 flex-col gap-4">
-					<div v-if="pendingFriends.length > 0" class="size-full">
+					<div v-if="sortedPendingFriends.length > 0" class="size-full">
 						<div class="pb-2 text-lg font-semibold">En attente</div>
 						<div class="flex size-full flex-col gap-4">
-							<RowFriend v-for="friend in pendingFriends" :key="friend.id" :friend="friend" status="pending" @accept="acceptFriend($event)" @reject="onReject($event)" />
+							<template v-for="pendingItem in sortedPendingFriends" :key="pendingItem.friend.id">
+								<RowFriend
+									:friend="pendingItem.friend"
+									:status="pendingItem.type === 'received' ? 'pending' : 'sent'"
+									@accept="acceptFriend($event)"
+									@reject="onReject($event)"
+								/>
+							</template>
 						</div>
 					</div>
 					<div v-if="friends.length > 0" class="size-full flex-1">
-						<div v-if="pendingFriends.length > 0" class="pb-2 text-lg font-semibold">Amis</div>
+						<div v-if="sortedPendingFriends.length > 0" class="pb-2 text-lg font-semibold">Amis</div>
 						<div class="flex size-full flex-col gap-4">
 							<RowFriend v-for="friend in friends" :key="friend.id" :friend="friend" status="accepted" @remove="removeFriend($event)" />
 						</div>
@@ -64,13 +71,31 @@ const { style } = useDraggable(card, {
 	handle: handle,
 })
 
+// TODO ajouter un store des amis et des demandes d'amis
+
 const friendToAdd = ref("")
 const friends = ref<Array<User>>([])
-const pendingFriends = ref<Array<User>>([])
+const pendingFriendsReceived = ref<Array<{ friend: User, createdAt: string }>>([])
+const pendingFriendsSent = ref<Array<{ friend: User, createdAt: string }>>([])
 
 const friendUsername = computed(() => friendToAdd.value.split("#")[0])
-
 const friendUsertag = computed(() => friendToAdd.value.split("#")[1])
+
+// Computed pour trier et combiner les demandes en attente
+const sortedPendingFriends = computed(() => {
+	const received = pendingFriendsReceived.value.map(item => ({
+		...item,
+		type: "received" as const,
+	}))
+	const sent = pendingFriendsSent.value.map(item => ({
+		...item,
+		type: "sent" as const,
+	}))
+
+	return [...received, ...sent].sort((a, b) =>
+		new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+	)
+})
 
 async function onReject(id: string) {
 	await removeFriend(id, { toast: false }).then(() => {
@@ -87,61 +112,76 @@ async function onReject(id: string) {
 async function updateFriendList() {
 	const { data: friendships, error } = await supabase
 		.from("friendship")
-		.select("friend_id, user_id, status")
+		.select("friend_id, user_id, status, created_at")
 		.or(`user_id.eq.${user?.value?.id},friend_id.eq.${user?.value?.id}`)
 
 	if (error) {
 		console.error(error)
 	}
 	else {
-		// Filtrer les relations pertinentes
-		const pending = friendships.filter(relation => relation.status === "pending" && relation.friend_id === user?.value?.id)
+		// Séparer les demandes reçues et envoyées
+		const pendingReceived = friendships.filter(relation =>
+			relation.status === "pending" && relation.friend_id === user?.value?.id,
+		)
+		const pendingSent = friendships.filter(relation =>
+			relation.status === "pending" && relation.user_id === user?.value?.id,
+		)
 		const accepted = friendships.filter(relation => relation.status === "accepted")
 
 		// Récupérer les IDs des utilisateurs pour ces relations
-		const pendingIds = pending.map(relation => relation.user_id)
+		const pendingReceivedIds = pendingReceived.map(relation => relation.user_id)
+		const pendingSentIds = pendingSent.map(relation => relation.friend_id)
 		const acceptedIds = accepted.map(relation => relation.user_id === user?.value?.id ? relation.friend_id : relation.user_id)
 
 		// Récupérer les détails des utilisateurs en une seule requête
+		const allIds = [...pendingReceivedIds, ...pendingSentIds, ...acceptedIds]
 		const { data: players, error: playersError } = await supabase
 			.from("players")
 			.select("*")
-			.in("id", [...pendingIds, ...acceptedIds])
+			.in("id", allIds)
 
 		if (playersError) {
 			console.error(playersError)
 		}
 		else {
-		// Mapper les joueurs récupérés pour les organiser
+			// Mapper les joueurs récupérés pour les organiser
 			const playersMap = new Map(players.map(player => [player.id, player]))
 
-			// Ajouter les amis acceptés et les demandes en attente
-			pending.forEach((relation) => {
-				const player = playersMap.get(relation.user_id) // L'utilisateur qui a envoyé la demande
-				if (player && !pendingFriends.value.some(friend => friend.id === player.id)) {
-					pendingFriends.value.push(new User(player))
+			// Réinitialiser les listes
+			pendingFriendsReceived.value = []
+			pendingFriendsSent.value = []
+			friends.value = []
+
+			// Ajouter les demandes reçues
+			pendingReceived.forEach((relation) => {
+				const player = playersMap.get(relation.user_id)
+				if (player) {
+					pendingFriendsReceived.value.push({
+						friend: new User(player),
+						createdAt: relation.created_at,
+					})
 				}
 			})
 
+			// Ajouter les demandes envoyées
+			pendingSent.forEach((relation) => {
+				const player = playersMap.get(relation.friend_id)
+				if (player) {
+					pendingFriendsSent.value.push({
+						friend: new User(player),
+						createdAt: relation.created_at,
+					})
+				}
+			})
+
+			// Ajouter les amis acceptés
 			accepted.forEach((relation) => {
 				const friendId = relation.user_id === user?.value?.id ? relation.friend_id : relation.user_id
 				const player = playersMap.get(friendId)
-				if (player && !friends.value.some(friend => friend.id === player.id)) {
+				if (player) {
 					friends.value.push(new User(player))
 				}
 			})
-
-			friends.value = friends.value.filter(friend =>
-				accepted.some((relation) => {
-					const friendId = relation.user_id === user?.value?.id ? relation.friend_id : relation.user_id
-					return friend.id === friendId
-				}),
-			)
-
-			// Met à jour la liste des demandes en attente
-			pendingFriends.value = pendingFriends.value.filter(friend =>
-				pending.some(relation => relation.user_id === friend.id),
-			)
 		}
 	}
 }
@@ -166,12 +206,34 @@ async function popoverMount() {
 					}
 					else {
 						const newFriend: User = new User(data)
-						if (friendShip.status === "pending" && pendingFriends.value.every(friend => friend.id !== friendShip.playerId)) {
-							pendingFriends.value.push(newFriend)
+						const friendshipData = {
+							friend: newFriend,
+							createdAt: payload.new.created_at,
 						}
-						else if (friendShip.status === "accepted" && friends.value.every(friend => friend.id !== friendShip.playerId || friend.id !== friendShip.friendId)) {
-							pendingFriends.value = pendingFriends.value.filter(friend => friend.id !== newFriend.id)
-							friends.value.push(newFriend)
+
+						if (friendShip.status === "pending") {
+							// Déterminer si c'est une demande reçue ou envoyée
+							if (friendShip.friendId === user?.value?.id) {
+								// Demande reçue
+								if (!pendingFriendsReceived.value.some(item => item.friend.id === friendShip.playerId)) {
+									pendingFriendsReceived.value.push(friendshipData)
+								}
+							}
+							else {
+								// Demande envoyée
+								if (!pendingFriendsSent.value.some(item => item.friend.id === friendShip.friendId)) {
+									pendingFriendsSent.value.push(friendshipData)
+								}
+							}
+						}
+						else if (friendShip.status === "accepted") {
+							// Retirer des listes pending et ajouter aux amis
+							pendingFriendsReceived.value = pendingFriendsReceived.value.filter(item => item.friend.id !== newFriend.id)
+							pendingFriendsSent.value = pendingFriendsSent.value.filter(item => item.friend.id !== newFriend.id)
+
+							if (!friends.value.some(friend => friend.id === newFriend.id)) {
+								friends.value.push(newFriend)
+							}
 						}
 					}
 				}

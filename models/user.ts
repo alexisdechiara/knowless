@@ -1,3 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js"
+import { getSupabaseClient } from "~/utils/supabaseClient"
+
 export class User {
 	id: string
 	email?: string
@@ -24,5 +27,47 @@ export class User {
 		this.lobbyId = data?.lobby_id
 		this.score = data?.score
 		this.theme = data?.theme || "system"
+	}
+
+	static async fetchById(id: string, client?: SupabaseClient): Promise<User | null> {
+		const supabase = client || getSupabaseClient()
+
+		const { data, error } = await supabase
+			.from("players")
+			.select("*")
+			.eq("id", id)
+			.single()
+
+		if (error) {
+			console.error(error)
+			throw new Error("Erreur lors de la récupération de l'utilisateur", error)
+		}
+
+		if (!data) {
+			return null
+		}
+
+		return new User(data)
+	}
+
+	static async updateById(id: string, updates: Partial<User>, client?: SupabaseClient): Promise<User | null> {
+		const supabase = client || getSupabaseClient()
+
+		const { data, error } = await supabase
+			.from("players")
+			.update(updates)
+			.eq("id", id)
+			.single()
+
+		if (error) {
+			console.error(error)
+			throw new Error("Erreur lors de la mise à jour de l'utilisateur", error)
+		}
+
+		if (!data) {
+			return null
+		}
+
+		return new User(data)
 	}
 }

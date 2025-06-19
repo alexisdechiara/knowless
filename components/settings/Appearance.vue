@@ -84,23 +84,12 @@
 import { toTypedSchema } from "@vee-validate/zod"
 import { useForm } from "vee-validate"
 import * as z from "zod"
-import { User } from "~/models/user"
+import { toast } from "vue-sonner"
 
 const colorMode = useColorMode()
 
-const user = useSupabaseUser()
-const supabase = useSupabaseClient()
-
-const { data, error } = await supabase
-	.from("players")
-	.select("*")
-	.eq("id", user?.value?.id).single()
-
-if (error) {
-	console.error(error)
-}
-
-const player = new User(data)
+const { getPlayer, updatePlayer } = usePlayerStore()
+const player = ref(getPlayer)
 
 const appearanceFormSchema = toTypedSchema(z.object({
 	theme: z.enum(["light", "dark", "system"], {
@@ -115,23 +104,22 @@ const appearanceFormSchema = toTypedSchema(z.object({
 const { handleSubmit } = useForm({
 	validationSchema: appearanceFormSchema,
 	initialValues: {
-		theme: player.theme,
+		theme: player.value?.theme,
 	},
 })
 
 const onSubmit = handleSubmit(async (values) => {
-	const { error } = await supabase
-		.from("players")
-		.update({
-			theme: values.theme,
+	updatePlayer({
+		theme: values.theme,
+	}).then(() => {
+		toast.success("Thème mis à jour", {
+			description: `Le thème à bien été mis à jour`,
 		})
-		.eq("id", user?.value?.id)
-
-	if (error) {
-		console.error(error)
-	}
-	else {
 		colorMode.preference = values.theme
-	}
+	}).catch((error) => {
+		toast.error(`Erreur ${error.code}`, {
+			description: error.details || error.message,
+		})
+	})
 })
 </script>

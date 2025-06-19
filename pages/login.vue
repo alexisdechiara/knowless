@@ -96,6 +96,8 @@ const onSubmit = handleSubmit(async (values, { setFieldError }) => {
 		toast.success("Connexion réussie", {
 			description: "vous êtes connecté en tant que " + data?.user?.user_metadata?.username,
 		})
+		const { fetchPlayer } = usePlayerStore()
+		await fetchPlayer()
 		await navigateTo("/")
 	}
 })
