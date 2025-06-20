@@ -224,6 +224,7 @@ const randomTagNumber: string = String(1000 + Math.floor(Math.random() * 9000))
 const tagInput = ref<string>(randomTagNumber)
 const selectedLanguage = ref<string>("fr")
 const acceptTermsAndConditions = ref<boolean>(false)
+const route = useRoute()
 
 const supabase = useSupabaseClient()
 
@@ -305,7 +306,9 @@ const createAnonymousAccount = async () => {
 		toast.success("Compte créé avec succès", {
 			description: "vous êtes connecté en tant que " + data?.user?.user_metadata?.username,
 		})
-		await navigateTo("/")
+		await navigateTo({
+			path: route.query.redirect ? String(route.query.redirect) : "/",
+		})
 	}
 }
 
@@ -331,7 +334,9 @@ const createAccount = handleSubmit(async (values) => {
 		toast.success("Compte créé avec succès", {
 			description: "vous êtes connecté en tant que " + data?.user?.user_metadata?.username,
 		})
-		await navigateTo("/")
+		await navigateTo({
+			path: route.query.redirect ? String(route.query.redirect) : "/",
+		})
 	}
 })
 </script>

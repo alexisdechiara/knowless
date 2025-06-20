@@ -76,10 +76,6 @@
 import { TabsIndicator, TabsList, TabsRoot, TabsTrigger } from "radix-vue"
 import { breakpointsTailwind, useBreakpoints } from "@vueuse/core"
 
-definePageMeta({
-	middleware: "auth",
-})
-
 const supabase = useSupabaseClient()
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMotionable = computed(() => breakpoints.greaterOrEqual("md") && useDevice().isDesktop && usePreferredReducedMotion().value == "no-preference")

@@ -93,9 +93,7 @@ export const usePlayerStore = defineStore("Player Store", () => {
 	const getLoading = computed(() => loading.value)
 	const getError = computed(() => error.value)
 
-	onMounted(async () => {
-		await fetchPlayer()
-	})
+	fetchPlayer()
 
 	return {
 		getPlayer,

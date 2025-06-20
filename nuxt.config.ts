@@ -29,7 +29,7 @@ export default defineNuxtConfig({
 	],
 
 	devtools: {
-		enabled: true,
+		enabled: false,
 	},
 
 	app: {
@@ -110,7 +110,7 @@ export default defineNuxtConfig({
 	},
 
 	supabase: {
-		redirect: true,
+		redirect: false,
 		redirectOptions: {
 			login: "/register",
 			callback: "/",
