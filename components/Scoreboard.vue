@@ -32,7 +32,7 @@
 		</AnimatePresence>
 	</div>
 	<h1 v-else class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-16 text-xl font-semibold sm:text-3xl md:text-5xl">Voici les résutats ...</h1>
-	<NextButton class="bottom-4 right-4" :variant="sortedPlayersByScore.length - currentIndex > 0 ? 'outline' : 'default'" :title="sortedPlayersByScore.length - currentIndex > 0 ? 'Prochain joueur' : 'Retour au salon'" :description="`Voir la ${sortedPlayersByScore.length - currentIndex}ᵉ place`" @click="sortedPlayersByScore.length - currentIndex > 0 ? $emit('next-player') : $emit('end')" />
+	<NextButton class="bottom-4 right-4" :variant="sortedPlayersByScore.length - currentIndex > 0 ? 'outline-solid' : 'default'" :title="sortedPlayersByScore.length - currentIndex > 0 ? 'Prochain joueur' : 'Retour au salon'" :description="`Voir la ${sortedPlayersByScore.length - currentIndex}ᵉ place`" @click="sortedPlayersByScore.length - currentIndex > 0 ? $emit('next-player') : $emit('end')" />
 </template>
 
 <script lang="ts" setup>

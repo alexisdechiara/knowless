@@ -22,7 +22,7 @@
 							</DialogHeader>
 							<ToggleGroup :model-value="selectedAvatarSeed" type="single" class="grid grid-cols-2 gap-3 p-6 sm:grid-cols-5 sm:gap-6 sm:p-0" @update:model-value="(seed) => { if (seed) selectedAvatarSeed = seed as string }">
 								<div v-for="seed in seeds" :key="seed">
-									<ToggleGroupItem :value="seed" class="flex aspect-square size-full items-center justify-center rounded-full p-2 ring-primary transition-colors duration-75 hover:bg-inherit data-[state=on]:ring">
+									<ToggleGroupItem :value="seed" class="flex aspect-square size-full items-center justify-center rounded-full p-2 ring-primary transition-colors duration-75 hover:bg-inherit data-[state=on]:ring-3">
 										<Avatar shape="circle" size="base">
 											<AvatarImage :src="createAvatar(bigEars, { seed: seed }).toDataUri()" alt="avatar" />
 										</Avatar>
@@ -63,7 +63,7 @@
 			</FormField>
 
 			<FormField v-slot="{ componentField }" name="usertag">
-				<FormItem class="focus-within:z-10">
+				<FormItem class="focus-within:z-10 flex flex-col">
 					<FormLabel class="invisible">Tag</FormLabel>
 					<FormControl class="relative w-full max-w-20 items-center">
 						<div>
@@ -136,7 +136,7 @@
 										:key="category.value"
 										:value="category.value"
 										class="transition-colors duration-150 ease-out"
-										:class="{ 'rounded-none bg-emerald-400/[0.17]': values?.categories?.includes(category.value) }"
+										:class="{ 'rounded-none bg-emerald-400/17': values?.categories?.includes(category.value) }"
 										@select="() => {
 											setFieldValue('categories', values.categories?.includes(category.value)
 												? values.categories?.filter((c) => c !== category.value)

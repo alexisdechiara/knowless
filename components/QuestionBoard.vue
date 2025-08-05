@@ -7,7 +7,7 @@
 				<!-- <span class="inline-flex items-center py-1 align-middle text-sm font-medium"><Icon name="lucide:gamepad" class="mr-1 size-4" /> {{ content?.category }}</span> -->
 			</div>
 			<template v-if=" mode === 'solo' || phase === 'question'">
-				<span class="absolute start-1/2 top-0 -translate-x-1/2 text-2xl font-semibold !leading-none md:text-3xl">Question {{ nbQuestion }}</span>
+				<span class="absolute start-1/2 top-0 -translate-x-1/2 text-2xl font-semibold leading-none! md:text-3xl">Question {{ nbQuestion }}</span>
 				<div class="absolute right-0 top-0 font-semibold">
 					<NumberFlowGroup>
 						<div style="font-variant-numeric: tabular-nums; --number-flow-char-height: 0.85em" class="flex items-baseline text-xl font-semibold">
@@ -39,7 +39,7 @@
 			<div class="flex w-full flex-col gap-y-4 px-6 sm:max-w-md sm:px-0 md:max-w-lg">
 				<span v-if="props.content?.theme" class="pb-4 text-center text-3xl font-bold sm:pb-6 sm:text-4xl md:pb-10 md:text-5xl"> {{ content?.theme }} </span>
 				<NuxtImg v-if="content?.image" class="aspect-video rounded-md" :src="content?.image?.url" :alt="content?.image?.alt" />
-				<span class="mb-4 text-balance text-center text-xl font-semibold sm:mb-8 sm:text-xl md:text-3xl">{{ content?.question }}</span>
+				<span class="mb-4 text-pretty text-center text-xl font-semibold sm:mb-8 sm:text-xl md:text-3xl">{{ content?.question }}</span>
 				<template v-if="content?.type === 'open'">
 					<span v-if="mode === 'multi' && phase === 'correction'" class="text-center">
 						<b class="font-medium">Réponse : </b>
@@ -54,8 +54,8 @@
 						</template>
 					</Switch>
 				</template>
-				<ToggleGroup v-else-if="content?.type === 'four' || content?.type === 'two'" v-model="selectedAnswer" :type="checkMultipleCorrectAnswers ? 'multiple' : 'single'" variant="outline" :class="{ 'pointer-events-none': showResult }" class="grid auto-rows-fr grid-cols-2 gap-4">
-					<ToggleGroupItem v-for="(choice, index) in content.answers" :key="`choice${index}`" :ref="`choice-${index}`" :data-result="showResult" :class="{ correctAnswerClass: choice.isCorrect, selectedAnswerClass: selectedAnswer === String(index) && !choice.isCorrect }" class="size-full py-4" :value="String(index)">
+				<ToggleGroup v-else-if="content?.type === 'four' || content?.type === 'two'" v-model="selectedAnswer" :type="checkMultipleCorrectAnswers ? 'multiple' : 'single'" variant="outline" :class="{ 'pointer-events-none': showResult }" class="grid auto-rows-fr grid-cols-2 gap-4 w-full !shadow-none">
+					<ToggleGroupItem v-for="(choice, index) in content.answers" :key="`choice${index}`" :ref="`choice-${index}`" :class="{ '!bg-emerald-500' : showResult && choice.isCorrect, '!bg-red-500' : showResult && (selectedAnswer == String(index) && !choice.isCorrect) }" class="size-full py-4 cursor-pointer" :value="String(index)">
 						{{ choice.value }}
 					</ToggleGroupItem>
 				</ToggleGroup>
@@ -129,7 +129,7 @@
 				<Button v-if="showBack" size="icon" :variant="outlineOrSecondary()" class="px-7 py-6 text-xl" @click="emit('back')">
 					<Icon name="lucide:arrow-left" class="aspect-square" />
 				</Button>
-				<Button v-if="showRestart" size="lg" class="w-full px-5 py-6 text-lg" @click="emit('restart')">Recommencer</Button>
+				<Button v-if="showRestart" size="lg" class="px-5 py-6 text-lg" @click="emit('restart')">Recommencer</Button>
 			</div>
 		</div>
 	</div>
@@ -313,13 +313,3 @@ const checkMultipleCorrectAnswers = computed(() => props.content?.answers && pro
 const remainingSeconds = computed(() => Math.floor(remainingTime.value / 1000))
 const remainingMilliseconds = computed(() => (remainingTime.value % 1000) / 10)
 </script>
-
-<style scoped>
-.correctAnswerClass {
-	@apply data-[result=true]:bg-emerald-500
-}
-
-.selectedAnswerClass {
-	@apply data-[result=true]:bg-red-500
-}
-</style>

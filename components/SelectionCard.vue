@@ -1,5 +1,5 @@
 <template>
-	<NuxtLink :to="to" class="flex cursor-pointer drop-shadow-sm transition-all hover:-translate-y-2 hover:scale-105 hover:drop-shadow-xl">
+	<NuxtLink :to="to" class="flex cursor-pointer drop-shadow-xs transition-all hover:-translate-y-2 hover:scale-105 hover:drop-shadow-xl">
 		<Card class="flex max-w-xs overflow-hidden dark:bg-card-foreground/10 sm:max-w-[200px] sm:flex-col md:max-w-[256px]">
 			<CardHeader class="flex max-h-32 items-center justify-center p-4 sm:max-h-48 md:max-h-64 md:p-6" :class="{ 'h-64 bg-foreground': !$slots.img && !img }">
 				<slot name="img" />

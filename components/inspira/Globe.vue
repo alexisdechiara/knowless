@@ -7,7 +7,7 @@
 	>
 		<canvas
 			ref="globeCanvasRef"
-			class="aspect-square w-full max-w-[min(100vw,100vh)] opacity-0 transition-opacity duration-1000 ease-in-out [contain:layout_paint_size]"
+			class="aspect-square w-full max-w-[min(100vw,100vh)] opacity-0 transition-opacity duration-1000 ease-in-out contain-[layout_paint_size]"
 			:height="height"
 			:width="height"
 			@pointerdown="(e) => updatePointerInteraction(e.clientX)"

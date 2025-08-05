@@ -184,7 +184,7 @@ const handleUpdate = (value: boolean) => {
 						</FormItem>
 					</FormField>
 				</div>
-				<div class="inline-flex items-center justify-center">
+				<div v-show="false" class="inline-flex items-center justify-center">
 					<FormField v-slot="{ componentField }" name="allowed">
 						<FormItem class="space-y-0">
 							<Select v-bind="componentField">

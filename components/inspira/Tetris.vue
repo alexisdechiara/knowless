@@ -12,12 +12,12 @@
 		>
 			<div
 				ref="el"
-				class="absolute inset-0 grid auto-rows-[--cell] justify-center -space-y-px"
+				class="absolute inset-0 grid auto-rows-(--cell) justify-center -space-y-px"
 			>
 				<div
 					v-for="(row, rowIndex) in grid"
 					:key="rowIndex"
-					class="grid flex-1 auto-cols-[--cell] grid-flow-col -space-x-px"
+					class="grid flex-1 auto-cols-(--cell) grid-flow-col -space-x-px"
 				>
 					<div
 						v-for="(cell, cellIndex) in row"

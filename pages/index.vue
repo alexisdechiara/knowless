@@ -3,7 +3,7 @@
 	<div class="relative flex h-dvh w-screen items-center justify-start text-clip ps-4 sm:ps-8 md:ps-16">
 		<ClientOnly v-if="isMotionable">
 			<Tetris
-				class="fixed right-0 top-1/3 z-0 size-full -translate-y-1/4 translate-x-1/4 scale-125 [mask-image:radial-gradient(450px_circle_at_center,#00C16A,transparent)]"
+				class="fixed right-0 top-1/3 z-0 size-full -translate-y-1/4 translate-x-1/4 scale-125 mask-[radial-gradient(450px_circle_at_center,#00C16A,transparent)]"
 				:base="25"
 			/>
 		</ClientOnly>
@@ -26,13 +26,13 @@
 			</DialogSettings>
 			<NavLink class="italic" size="sm">
 				<FriendListPopover>
-					<span class="italic">Social</span>
+					<span class="italic cursor-pointer">Social</span>
 				</FriendListPopover>
 			</NavLink>
 			<NavLink size="sm">
 				<Dialog>
 					<DialogTrigger>
-						<span class="italic">Légal</span>
+						<span class="italic cursor-pointer">Légal</span>
 					</DialogTrigger>
 					<DialogContent class="h-3/4 max-w-4xl">
 						<LegalDialog class="overflow-y-auto" />
@@ -44,7 +44,7 @@
 		<div v-if="isMotionable" class="absolute bottom-8 right-8 hidden gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all md:flex">
 			<TabsRoot v-if="selectedGame != null && selectedGame !== ''" v-model="selectedGame" default-value="snake">
 				<TabsList class="relative flex flex-wrap text-background ">
-					<TabsIndicator :class="selectedGame === 'flappyBird' ? 'w-20 h-12' : 'size-12'" class="absolute translate-x-[--radix-tabs-indicator-position] rounded-full bg-background p-2 transition-[width,transform] duration-300" />
+					<TabsIndicator :class="selectedGame === 'flappyBird' ? 'w-20 h-12' : 'size-12'" class="absolute translate-x-(--radix-tabs-indicator-position) rounded-full bg-background p-2 transition-[width,transform] duration-300" />
 					<TabsTrigger value="snake" class="size-12 rounded-full">
 						<Icon name="mdi:snake" class="text-white mix-blend-difference" />
 					</TabsTrigger>
@@ -60,7 +60,7 @@
 				</TabsList>
 			</TabsRoot>
 			<Button size="icon" :variant="selectedGame ? 'destructive' : 'default'" class="z-50 size-12 rounded-full p-3" @click="selectedGame !== null && selectedGame !== '' ? turnOffGame() : selectedGame = 'snake'">
-				<Icon name="bx:bxs-joystick-button" class="size-full transition-transform" :class="selectedGame !== null && selectedGame !== '' ? 'rotate-45' : ''" />
+				<Icon name="bx:bxs-joystick-button" class="size-full text-xl transition-transform" :class="selectedGame !== null && selectedGame !== '' ? 'rotate-45' : ''" />
 			</Button>
 		</div>
 		<div v-if="selectedGame != null && selectedGame !== ''" class="crt absolute bottom-32 right-32 z-50 h-[480px] w-[720px] overflow-hidden rounded-[8%]" :class="{ 'animate-crt-power-on': selectedGame && !isPoweringOff, 'animate-crt-power-off': isPoweringOff }">

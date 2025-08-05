@@ -1,25 +1,27 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from "@tailwindcss/vite";
+
 export default defineNuxtConfig({
-	modules: [
-		"@nuxtjs/tailwindcss",
-		"shadcn-nuxt",
-		"radix-vue/nuxt",
-		"@nuxtjs/color-mode",
-		"@nuxt/eslint",
-		"@nuxt/icon",
-		"@pinia/nuxt",
-		"pinia-plugin-persistedstate/nuxt",
-		"@nuxt/image",
-		"@nuxt/content",
-		"@nuxtjs/supabase",
-		"motion-v/nuxt",
-		"@vueuse/nuxt",
-		"@formkit/auto-animate/nuxt",
-		"@nuxtjs/device",
-		"@nuxtjs/seo",
-		"@nuxtjs/plausible",
-		"nuxt-anchorscroll",
-	],
+modules: [
+	"shadcn-nuxt",
+	"radix-vue/nuxt",
+	"@nuxtjs/color-mode",
+	"@nuxt/eslint",
+	"@nuxt/icon",
+	"@pinia/nuxt",
+	"pinia-plugin-persistedstate/nuxt",
+	"@nuxt/image",
+	"@nuxt/content",
+	"@nuxtjs/supabase",
+	"motion-v/nuxt",
+	"@vueuse/nuxt",
+	"@formkit/auto-animate/nuxt",
+	"@nuxtjs/device",
+	"@nuxtjs/seo",
+	"@nuxtjs/plausible",
+	"nuxt-anchorscroll",
+	"vue-sonner/nuxt",
+],
 
 	components: [
 		{
@@ -29,8 +31,12 @@ export default defineNuxtConfig({
 	],
 
 	devtools: {
-		enabled: false,
+		enabled: true,
 	},
+
+	vueSonner: {
+		css: true,
+		},
 
 	app: {
 		head: {
@@ -46,7 +52,7 @@ export default defineNuxtConfig({
 
 	content: {
 		renderer: {
-			anchorLinks: false,
+		anchorLinks: false,
 		},
 	},
 
@@ -75,12 +81,12 @@ export default defineNuxtConfig({
 	},
 
 	icon: {
-		customCollections: [
-			{
-				prefix: "custom",
-				dir: "./assets/icons",
-			},
-		],
+			customCollections: [
+				{
+					prefix: "custom",
+					dir: "./assets/icons",
+				},
+			],
 	},
 
 	ogImage: {
@@ -97,7 +103,7 @@ export default defineNuxtConfig({
 			themeColor: [
 				{ content: "#020817", media: "(prefers-color-scheme: dark)" },
 				{ content: "white", media: "(prefers-color-scheme: light)" },
-			],
+			],		
 			author: "Alexis De Chiara",
 			colorScheme: "dark light",
 			ogLocale: "fr_FR",
@@ -107,7 +113,13 @@ export default defineNuxtConfig({
 	shadcn: {
 		prefix: "",
 		componentDir: "./components/ui",
-	},
+	},								
+	css: ['~/assets/css/tailwind.css'],
+		vite: {
+			plugins: [
+				tailwindcss(),
+			],
+		},
 
 	supabase: {
 		redirect: false,

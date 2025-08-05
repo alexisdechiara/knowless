@@ -14,20 +14,20 @@
 					<FormItem class="flex w-full flex-1 justify-center">
 						<FormControl class="w-full flex-1">
 							<Popover>
-								<PopoverTrigger class="group relative">
+								<PopoverTrigger class="group relative cursor-pointer">
 									<span class="absolute right-2 top-2 z-20 flex aspect-square size-fit items-center justify-center rounded-full border-2 border-background bg-foreground p-2">
 										<Icon name="lucide:pencil" class="size-4 text-background" />
 									</span>
 									<div class="absolute inset-0 z-10 rounded-full bg-primary opacity-0 transition-opacity group-hover:opacity-25" />
-									<Avatar shape="circle" size="xl" class="relative">
+									<Avatar shape="circle" class="relative size-40 text-6xl">
 										<AvatarImage :src="getAvatarUri" alt="avatar" />
 									</Avatar>
 								</PopoverTrigger>
 								<PopoverContent side="left" :side-offset="8" class="w-full">
 									<ToggleGroup :model-value="selectedAvatarSeed" type="single" class="grid grid-cols-2 gap-3 p-6 sm:grid-cols-4 sm:gap-6 sm:p-0" @update:model-value="(seed) => { if (seed) selectedAvatarSeed = seed as string }">
 										<div v-for="seed in seeds" :key="seed">
-											<ToggleGroupItem :value="seed" class="flex aspect-square size-full items-center justify-center rounded-full p-2 ring-primary transition-colors duration-75 hover:bg-inherit data-[state=on]:ring">
-												<Avatar shape="circle" size="sm">
+											<ToggleGroupItem :value="seed" class="flex aspect-square size-full items-center justify-center rounded-full cursor-pointer p-2 ring-primary transition-colors duration-75 data-[state=on]:ring-3">
+												<Avatar>
 													<AvatarImage :src="createAvatar(bigEars, { seed: seed }).toDataUri()" alt="avatar" />
 												</Avatar>
 											</ToggleGroupItem>

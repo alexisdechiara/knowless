@@ -36,7 +36,7 @@
 				<FormMessage />
 				<RadioGroup class="grid grid-cols-3 gap-2 pt-2" v-bind="componentField">
 					<FormItem>
-						<FormLabel class="[&:has([data-state=checked])>div]:border-primary">
+						<FormLabel class="[&:has([data-state=checked])>div]:border-primary block">
 							<FormControl>
 								<RadioGroupItem value="light" class="sr-only" />
 							</FormControl>
@@ -47,7 +47,7 @@
 						</FormLabel>
 					</FormItem>
 					<FormItem>
-						<FormLabel class="[&:has([data-state=checked])>div]:border-primary">
+						<FormLabel class="[&:has([data-state=checked])>div]:border-primary block">
 							<FormControl>
 								<RadioGroupItem value="dark" class="sr-only" />
 							</FormControl>
@@ -58,7 +58,7 @@
 						</FormLabel>
 					</FormItem>
 					<FormItem>
-						<FormLabel class="[&:has([data-state=checked])>div]:border-primary">
+						<FormLabel class="[&:has([data-state=checked])>div]:border-primary block">
 							<FormControl>
 								<RadioGroupItem value="system" class="sr-only" />
 							</FormControl>
@@ -95,6 +95,13 @@ const appearanceFormSchema = toTypedSchema(z.object({
 	theme: z.enum(["light", "dark", "system"], {
 		required_error: "Veuillez sélectionner un thème.",
 	}),
+		/* ZOD 4
+		theme: z.enum(["light", "dark", "system"], {
+		error: (issue) => issue.input === undefined 
+		? "Veuillez sélectionner un thème." 
+		: "La valeur choisie n'est pas valide.",
+	}),
+	*/
 	// font: z.enum(["inter", "manrope", "system"], {
 	// 	invalid_type_error: "Select a font",
 	// 	required_error: "Please select a font.",
