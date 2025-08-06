@@ -1,8 +1,8 @@
 import { any, z } from "zod"
-import { Quizz } from "./../../../models/quizz"
+import { Quizz } from "#shared/models/quizz"
 import { serverSupabaseClient } from "#supabase/server"
-import { Lobby } from "~/models/lobby"
-import type { Game } from "~/models/game"
+import { Lobby } from "#shared/models/lobby"
+import type { Game } from "#shared/models/game"
 import { defaultCategories } from "~/utils/categories"
 
 const querySchema = z.object({

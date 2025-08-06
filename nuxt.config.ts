@@ -112,7 +112,7 @@ modules: [
 
 	shadcn: {
 		prefix: "",
-		componentDir: "./components/ui",
+		componentDir: "./app/components/ui",
 	},								
 	css: ['~/assets/css/tailwind.css'],
 		vite: {
@@ -123,6 +123,7 @@ modules: [
 
 	supabase: {
 		redirect: false,
+		types: "./shared/types/database.types.ts",
 		redirectOptions: {
 			login: "/register",
 			callback: "/",
