@@ -2,7 +2,7 @@
 	<NuxtLayout>
 		<NuxtPage />
 	</NuxtLayout>
-	<Toaster />
+	<Sonner />
 </template>
 
 <script setup lang="ts">
