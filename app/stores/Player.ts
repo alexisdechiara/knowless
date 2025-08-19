@@ -94,7 +94,7 @@ export const usePlayerStore = defineStore("Player Store", () => {
 
 	watch(authUser, async() => {
 		await fetchPlayer()
-	}) 
+	}, { immediate: true }) 
 
 	return {
 		getPlayer,

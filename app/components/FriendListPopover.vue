@@ -3,9 +3,9 @@
 		<PopoverTrigger>
 			<slot />
 		</PopoverTrigger>
-		<PopoverContent ref="card" :style="style" :side-offset="8" side="right" align="end" class="flex w-full min-w-[320px] max-w-7xl flex-col p-0">
+		<PopoverContent ref="card" :style="style" :side-offset="8" side="right" align="end" class="flex w-full min-w-[320px] max-w-7xl flex-col px-0 pb-0">
 			<CardHeader>
-				<div class="flex size-full items-start justify-between">
+				<div class="flex size-full items-start justify-between pb-2">
 					<div>
 						<CardTitle>Gestion des amis</CardTitle>
 						<CardDescription>Ici, vous pouvez voir tous vos amis</CardDescription>

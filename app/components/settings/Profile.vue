@@ -172,15 +172,8 @@ import { createAvatar } from "@dicebear/core"
 import { bigEars } from "@dicebear/collection"
 import { toast } from "vue-sonner"
 import { usePlayerStore } from "~/stores/Player"
-import type { User } from "~~/shared/models/user"
 
 const { getPlayer, updatePlayer } = usePlayerStore()
-const player = ref<User | null>(null)
-
-// Charger le joueur au montage du composant
-onMounted(() => {
-    player.value = getPlayer
-})
 
 const profileFormSchema = toTypedSchema(z.object({
 	username: z.string().min(2).max(50).nonempty(),
@@ -192,16 +185,30 @@ const profileFormSchema = toTypedSchema(z.object({
 
 const seeds = ["Avery", "Mason", "George", "Liam", "Riley", "Oliver", "Amaya", "Sadie", "Mackenzie", "Eden", "Jack", "Eliza", "Adrian", "Jocelyn", "Katherine", "Luis"]
 const selectedAvatarSeed = ref<string>("")
-const { handleSubmit, setFieldValue, values } = useForm({
+const { handleSubmit, setFieldValue, values, resetForm } = useForm({
 	validationSchema: profileFormSchema,
 	initialValues: {
-		username: player.value?.username,
-		usertag: player.value?.usertag,
-		language: player.value?.language,
-		avatar: player.value?.avatar,
-		categories: player.value?.categories || [],
+		username: "",
+		usertag: "",
+		language: "",
+		avatar: "",
+		categories: [],
 	},
 })
+
+// Quand le joueur est disponible, remplir le formulaire
+watch(getPlayer, (p) => {
+  if (!p) return
+  resetForm({
+    values: {
+      username: p.username || "",
+      usertag: p.usertag || "",
+      language: p.language || "",
+      avatar: p.avatar || "",
+      categories: p.categories || [],
+    },
+  })
+}, { immediate: true })
 
 const onSubmit = handleSubmit(async (values) => {
 	await updatePlayer({
