@@ -1,6 +1,6 @@
 <template>
 	<div class="absolute inset-0 flex size-full flex-col gap-4 p-4">
-		<ProgressBar v-if=" mode === 'solo' || phase === 'question'" :value="convertMillisecondsToPercentage" :duration="0" tickness="xl" />
+		<ProgressBar v-if=" mode === 'solo' || phase === 'question'" :value="progressPercentage" :duration="0" tickness="xl" />
 		<div class="relative h-9 w-full">
 			<div class="pointer-events-none absolute start-0 top-0 inline-flex gap-x-4 capitalize">
 				<Badge :class="content?.difficulty === 'easy' ? 'bg-emerald-500' : content?.difficulty === 'hard' ? 'bg-red-500' : 'bg-amber-500'" class="md:px-4 md:py-1 md:text-sm">{{ content?.difficulty }}</Badge>
@@ -14,14 +14,14 @@
 							<NumberFlow
 								:trend="-1"
 								:value="remainingSeconds"
-								:format="{ minimumIntegerDigits: 2, maximumSignificantDigits: 2 }"
+								:format="{ minimumIntegerDigits: 2, maximumFractionDigits: 0 }"
 								will-change
 							/>
 							<NumberFlow
 								prefix=":"
 								:trend="-1"
 								:value="remainingMilliseconds"
-								:format="{ minimumIntegerDigits: 2 }"
+								:format="{ minimumIntegerDigits: 2, maximumFractionDigits: 0 }"
 								:spin-timing="{ duration: 100 }"
 								:transform-timing="{ duration: 0 }"
 								will-change
@@ -46,11 +46,11 @@
 						{{ content.answers.filter((answer: Quizz["answers"][number]) => answer.isCorrect).map((answer : Quizz["answers"][number]) => answer.value).join(', ') }}
 					</span>
 					<Input ref="openInput" v-model="inputAnswer" type="text" class="mx-auto max-w-xs" :disabled="mode === 'multi' && phase === 'correction'" />
-					<Switch v-if="mode === 'multi' && phase === 'correction' && showSwitch" v-model:checked="isCorrect" class="mx-auto data-[state=checked]:bg-emerald-500" :class="validationStatus === 'uncertain' ? 'data-[state=unchecked]:bg-amber-500' : 'data-[state=unchecked]:bg-red-500'" @update:checked="validationStatus = isCorrect ? 'correct' : 'incorrect'; emit('corrected', isCorrect)">
+					<Switch v-if="mode === 'multi' && phase === 'correction' && showSwitch" class="mx-auto data-[state=checked]:bg-emerald-500" :class="validationStatus === 'uncertain' ? 'data-[state=unchecked]:bg-amber-500' : 'data-[state=unchecked]:bg-red-500'" v-model="isCorrect" @update:modelValue="onOpenSwitchUpdate">
 						<template #thumb>
-							<Icon v-if="isCorrect" name="lucide:check" />
-							<Icon v-else-if="validationStatus === 'uncertain'" name="ic:round-question-mark" />
-							<Icon v-else name="lucide:x" />
+							<Icon v-if="isCorrect" name="lucide:check" class="text-xs"/>
+							<Icon v-else-if="validationStatus === 'uncertain'" name="ic:round-question-mark" class="text-xs" />
+							<Icon v-else name="lucide:x" class="text-xs"/>
 						</template>
 					</Switch>
 				</template>
@@ -139,6 +139,7 @@
 import { useFuse } from "@vueuse/integrations/useFuse"
 import NumberFlow, { NumberFlowGroup } from "@number-flow/vue"
 import type { Quizz } from "#shared/models/quizz"
+import normalize from "@/utils/normalize"
 
 // ... (le reste des types et props reste inchangé) ...
 type QuestionBoardProps = {
@@ -163,6 +164,7 @@ type QuestionBoardProps = {
 	answer?: string
 	showNext?: boolean
 	showSwitch?: boolean
+	startAt?: number
 }
 
 const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next", "restart", "back", "status", "scoreBoard", "answer", "corrected"])
@@ -170,6 +172,10 @@ const emit = defineEmits(["started", "ended", "badAnswer", "goodAnswer", "next",
 const props = withDefaults(defineProps<QuestionBoardProps>(), {
 	showNext: true,
 })
+
+// Aides de typage pour éviter les conflits de l'union discriminée dans les checks runtime
+const isMultiMode = computed(() => (props as any).mode === "multi")
+const isQuestionPhase = computed(() => (props as any).phase === "question")
 
 const nbQuestion = computed(() => props?.questionNumber || props?.questionNumber === 0 ? props.questionNumber + 1 : undefined)
 const remainingTime = ref(0)
@@ -181,8 +187,18 @@ const showResult = ref(false)
 const validationStatus = ref<"correct" | "uncertain" | "incorrect">("incorrect")
 const isCorrect = ref<boolean>(false)
 const openInput = shallowRef<HTMLInputElement | null>()
-const timeoutId = ref<NodeJS.Timeout | undefined>(undefined)
+const intervalId = ref<NodeJS.Timeout | undefined>(undefined)
+const animationFrameId = ref<number | undefined>(undefined)
+const timerStartAt = ref<number | undefined>(undefined)
+const timerEndAt = ref<number | undefined>(undefined)
+const endedEmitted = ref<boolean>(false)
 const { outlineOrSecondary } = useDarkMode()
+
+function onOpenSwitchUpdate(val: boolean) {
+	console.log("onOpenSwitchUpdate", val);
+	validationStatus.value = val ? 'correct' : 'incorrect'
+	emit('corrected', val)
+}
 
 onUnmounted(() => {
 	if ((inputAnswer.value === "" || inputAnswer.value == null) && (selectedAnswer.value === "" || selectedAnswer.value == null)) {
@@ -197,11 +213,39 @@ onUnmounted(() => {
 		}
 	}
 
-	if (timeoutId.value) clearTimeout(timeoutId.value)
+	if (intervalId.value) clearInterval(intervalId.value)
+	if (animationFrameId.value != null) cancelAnimationFrame(animationFrameId.value)
 })
 
 onMounted(() => {
-	startTimer(props.duration)
+	if (isMultiMode.value) {
+		if (isQuestionPhase.value) {
+			if (typeof (props as any).startAt === "number") {
+				startTimerFromStartAt(props.duration, (props as any).startAt as number)
+			}
+			else {
+				startTimer(props.duration)
+			}
+		}
+		else {
+			remainingTime.value = 0
+		}
+	}
+	else {
+		startTimer(props.duration)
+	}
+
+	// Si l'onglet revient en visibilité, on recalcule et on finalise si nécessaire
+	const handleVisibility = () => {
+		if (document.visibilityState === 'visible') {
+			updateRemainingFromNow()
+			if ((timerEndAt.value ?? 0) <= Date.now() && !endedEmitted.value) {
+				finalizeTimer()
+			}
+		}
+	}
+	document.addEventListener('visibilitychange', handleVisibility)
+	onUnmounted(() => document.removeEventListener('visibilitychange', handleVisibility))
 })
 
 useFocus(openInput, { initialValue: true })
@@ -225,11 +269,15 @@ watchDebounced(inputAnswer, () => {
 
 watch(status, () => emit("status", status.value))
 
-const convertMillisecondsToPercentage = computed(() => {
+const progressPercentage = computed(() => {
 	if (remainingTime.value <= 0) return 100
 	if (remainingTime.value >= props.duration) return 0
 	return ((props.duration - remainingTime.value) / props.duration) * 100
 })
+
+// Synchronise l'affichage en fonction de la phase multi
+// (placé après l'initialisation de Fuse pour éviter la TDZ sur `results`)
+//
 
 const correctAnswers = computed(() => {
 	if (!props.content?.answers) {
@@ -255,61 +303,131 @@ const fuseOptions = computed(() => ({
 	matchAllWhenSearchEmpty: false,
 }))
 
-const { results } = useFuse(inputAnswer, correctAnswers, fuseOptions)
+const normalizedInputAnswer = computed(() => normalize(inputAnswer.value ?? ""))
+const normalizedCorrectAnswers = computed(() => correctAnswers.value.map(str => normalize(str)))
+const { results } = useFuse(normalizedInputAnswer, normalizedCorrectAnswers, fuseOptions)
+
+// Synchronise l'affichage en fonction de la phase multi (après init de `results`)
+watch(() => (props as any).phase, (newPhase) => {
+	if ((props as any).mode === 'multi') {
+		if (newPhase === 'correction') {
+			showResult.value = true
+			if (props.content?.type === "open") {
+				isCorrect.value = evaluateOpenAnswerCorrectness()
+			}
+			else if (props.content?.type === "four" || props.content?.type === "two") {
+				isCorrect.value = evaluateChoiceAnswerCorrectness()
+			}
+			status.value = isCorrect.value ? "correct" : "incorrect"
+		}
+		else if (newPhase === 'question') {
+			showResult.value = false
+		}
+	}
+}, { immediate: true })
 
 function startTimer(nbMilliseconds: number) {
+	endedEmitted.value = false
+	timerStartAt.value = Date.now()
+	timerEndAt.value = (timerStartAt.value as number) + nbMilliseconds
 	remainingTime.value = nbMilliseconds
 	status.value = "pending"
 	emit("started")
-	if (nbMilliseconds > 0) {
-		timeoutId.value = setTimeout(() => {
-			startTimer(nbMilliseconds - 10)
-		}, 10)
-	}
-	else {
-		// --- Évaluation de la réponse à la fin du timer ---
-		showResult.value = true
-		if (props.content?.type === "open") {
-			if (results.value.length > 0) {
-				const bestMatchScore = results.value[0]?.score
-				if (bestMatchScore != null && bestMatchScore <= 0.3) {
-					validationStatus.value = "correct"
-					console.log("Status: Exactement Correct")
-				}
-				else if (bestMatchScore != null && bestMatchScore <= fuseOptions.value.fuseOptions.threshold) {
-					validationStatus.value = "uncertain"
-					console.log("Status: peut-être correct")
-				}
-				else {
-					validationStatus.value = "incorrect" // Trop différent (faux)
-					console.log("Status: Incorrect (Score trop élevé)")
-				}
-			}
-			else {
-				validationStatus.value = "incorrect" // Pas de match (faux)
-				console.log("Status: Incorrect (Pas de match Fuse)")
-			}
-			isCorrect.value = validationStatus.value === "correct"
-		}
-		else if (props.content?.type === "four" || props.content?.type === "two") {
-			const correctIndex = props.content?.answers.findIndex(answer => answer.isCorrect)
-			isCorrect.value = selectedAnswer.value === String(correctIndex)
-			console.log(isCorrect.value = selectedAnswer.value === String(correctIndex))
-		}
+	startAnimationLoop()
+}
 
-		status.value = isCorrect.value ? "correct" : "incorrect"
-		if (status.value === "correct") {
-			emit("goodAnswer")
+function startTimerFromStartAt(durationMs: number, startAt: number) {
+	endedEmitted.value = false
+	timerStartAt.value = startAt
+	timerEndAt.value = startAt + durationMs
+	const now = Date.now()
+	remainingTime.value = Math.max(0, (timerEndAt.value as number) - now)
+	status.value = "pending"
+	emit("started")
+	startAnimationLoop()
+}
+
+function updateRemainingFromNow() {
+	const endAt = timerEndAt.value
+	if (endAt == null) return
+	const now = Date.now()
+	const duration = Math.max(0, (endAt - (timerStartAt.value || 0)))
+	const remaining = Math.min(duration, Math.max(0, endAt - now))
+	remainingTime.value = remaining
+}
+
+function startAnimationLoop() {
+	if (animationFrameId.value != null) cancelAnimationFrame(animationFrameId.value)
+	const loop = () => {
+		updateRemainingFromNow()
+		if ((timerEndAt.value ?? 0) <= Date.now()) {
+			if (!endedEmitted.value) finalizeTimer()
+			return
+		}
+		animationFrameId.value = requestAnimationFrame(loop)
+	}
+	animationFrameId.value = requestAnimationFrame(loop)
+
+	// Fallback interval pour mobiles/navigateurs qui throttlent RAF
+	if (intervalId.value) clearInterval(intervalId.value)
+	intervalId.value = setInterval(() => {
+		updateRemainingFromNow()
+		if ((timerEndAt.value ?? 0) <= Date.now() && !endedEmitted.value) {
+			finalizeTimer()
+		}
+	}, 150)
+}
+
+function finalizeTimer() {
+	endedEmitted.value = true
+	if (intervalId.value) clearInterval(intervalId.value)
+	showResult.value = true
+	if (props.content?.type === "open") {
+		isCorrect.value = evaluateOpenAnswerCorrectness()
+	}
+	else if (props.content?.type === "four" || props.content?.type === "two") {
+		isCorrect.value = evaluateChoiceAnswerCorrectness()
+	}
+
+	status.value = isCorrect.value ? "correct" : "incorrect"
+	if (status.value === "correct") emit("goodAnswer")
+	else emit("badAnswer")
+
+	emit("ended")
+}
+
+function evaluateOpenAnswerCorrectness(): boolean {
+	if (results.value.length > 0) {
+		const bestMatchScore = results.value[0]?.score
+		if (bestMatchScore != null && bestMatchScore <= 0.3) {
+			validationStatus.value = "correct"
+		}
+		else if (bestMatchScore != null && bestMatchScore <= fuseOptions.value.fuseOptions.threshold) {
+			validationStatus.value = "uncertain"
 		}
 		else {
-			emit("badAnswer")
+			validationStatus.value = "incorrect"
 		}
-
-		emit("ended")
 	}
+	else {
+		validationStatus.value = "incorrect"
+	}
+	return validationStatus.value === "correct"
+}
+
+function evaluateChoiceAnswerCorrectness(): boolean {
+	const correctIndex = props.content?.answers.findIndex(answer => answer.isCorrect)
+	return selectedAnswer.value === String(correctIndex)
 }
 
 const checkMultipleCorrectAnswers = computed(() => props.content?.answers && props.content.answers.filter(answer => answer.isCorrect).length > 1)
 const remainingSeconds = computed(() => Math.floor(remainingTime.value / 1000))
-const remainingMilliseconds = computed(() => (remainingTime.value % 1000) / 10)
+// Affiche 2 digits pour les centièmes, sans séparateur décimal
+const remainingMilliseconds = computed(() => Math.floor((remainingTime.value % 1000) / 10))
+
+watch(() => (props as any).startAt, (newStartAt) => {
+	if (isMultiMode.value && isQuestionPhase.value && typeof newStartAt === "number") {
+		startTimerFromStartAt(props.duration, newStartAt)
+	}
+})
 </script>

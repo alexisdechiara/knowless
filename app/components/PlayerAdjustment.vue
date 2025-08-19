@@ -1,6 +1,6 @@
 <template>
 	<NumberField :id="player.id" v-model="modelValue" :default-value="0" class="w-full min-w-24 max-w-32">
-		<Label class="mb-1 overflow-hidden text-center">
+		<Label class="mb-1 overflow-hidden block text-center">
 			<div class="flex flex-col items-center gap-y-1">
 				<Avatar class="aspect-square size-full">
 					<AvatarImage :src="player.avatar ? player.avatar : ''" alt="avatar" />

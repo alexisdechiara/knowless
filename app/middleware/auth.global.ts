@@ -1,24 +1,36 @@
-export default defineNuxtRouteMiddleware((to, _from) => {
+export default defineNuxtRouteMiddleware(async (to, _from) => {
 	const user = useSupabaseUser()
-	const { fetchPlayer, getPlayer } = usePlayerStore()
+	const playerStore = usePlayerStore()
 
-	if (!["/login", "/register", "/forgot-password", "/reset-password", "/terms", "/privacy", "/legal-notice"].includes(to.path)) {
-		if (getPlayer == null) {
-			fetchPlayer().catch((error) => {
-				createError({
-					statusCode: 500,
-					statusMessage: "Une erreur est survenue lors du chargement du compte du joueur",
-				})
-			})
-		}
-		if (!user.value) {
-			return navigateTo({
+	const publicPaths = ["/login", "/register", "/forgot-password", "/reset-password", "/terms", "/privacy", "/legal-notice"]
+	if (publicPaths.includes(to.path)) return
+
+	// 1) Pas connecté → redirige vers /login avec redirect
+	if (!user.value) {
+		return navigateTo({
+			path: "/register",
+			query: { redirect: to.fullPath },
+			replace: true,
+		})
+	}
+
+	// 2) Connecté mais pas de player en mémoire → fetch
+	if (playerStore.getPlayer == null) {
+		await playerStore.fetchPlayer().catch(() => {
+			navigateTo({
 				path: "/register",
-				query: {
-					redirect: to.path,
-				},
+				query: { redirect: to.fullPath },
 				replace: true,
 			})
-		}
+		})
+	}
+
+	// 3) Toujours pas de player → redirige vers /login
+	if (playerStore.getPlayer == null) {
+		return navigateTo({
+			path: "/login",
+			query: { redirect: to.fullPath },
+			replace: true,
+		})
 	}
 })

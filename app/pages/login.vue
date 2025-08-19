@@ -97,9 +97,23 @@ const onSubmit = handleSubmit(async (values, { setFieldError }) => {
 		toast.success("Connexion réussie", {
 			description: "vous êtes connecté en tant que " + data?.user?.user_metadata?.username,
 		})
-		await navigateTo({
-			path: route.query.redirect ? String(route.query.redirect) : "/",
-		})
+		
+		// Attendre un peu pour que le store se mette à jour
+		await new Promise(resolve => setTimeout(resolve, 100))
+		
+		// Rediriger vers la page demandée ou la page d'accueil
+		const redirectPath = route.query.redirect as string
+		if (redirectPath && redirectPath !== "/login" && redirectPath !== "/register") {
+			await navigateTo({
+				path: redirectPath,
+				replace: true,
+			})
+		} else {
+			await navigateTo({
+				path: "/",
+				replace: true,
+			})
+		}
 	}
 })
 </script>

@@ -111,28 +111,33 @@ async function onReject(id: string) {
 }
 
 async function updateFriendList() {
-	const { data: friendships, error } = await supabase
+    if (!getPlayer) {
+        console.error("Impossible de récupérer le joueur")
+        return
+    }
+
+    const { data: friendships, error } = await supabase
 		.from("friendship")
 		.select("friend_id, user_id, status, created_at")
-		.or(`user_id.eq.${getPlayer.id},friend_id.eq.${getPlayer.id}`)
+        .or(`user_id.eq.${getPlayer.id},friend_id.eq.${getPlayer.id}`)
 
 	if (error) {
 		console.error(error)
 	}
 	else {
 		// Séparer les demandes reçues et envoyées
-		const pendingReceived = friendships.filter(relation =>
-			relation.status === "pending" && relation.friend_id === getPlayer.id,
+        const pendingReceived = friendships.filter(relation =>
+            relation.status === "pending" && relation.friend_id === getPlayer.id,
 		)
-		const pendingSent = friendships.filter(relation =>
-			relation.status === "pending" && relation.user_id === getPlayer.id,
+        const pendingSent = friendships.filter(relation =>
+            relation.status === "pending" && relation.user_id === getPlayer.id,
 		)
 		const accepted = friendships.filter(relation => relation.status === "accepted")
 
 		// Récupérer les IDs des utilisateurs pour ces relations
 		const pendingReceivedIds = pendingReceived.map(relation => relation.user_id)
 		const pendingSentIds = pendingSent.map(relation => relation.friend_id)
-		const acceptedIds = accepted.map(relation => relation.user_id === getPlayer.id ? relation.friend_id : relation.user_id)
+        const acceptedIds = accepted.map(relation => relation.user_id === getPlayer.id ? relation.friend_id : relation.user_id)
 
 		// Récupérer les détails des utilisateurs en une seule requête
 		const allIds = [...pendingReceivedIds, ...pendingSentIds, ...acceptedIds]
@@ -212,9 +217,9 @@ async function popoverMount() {
 							createdAt: payload.new.created_at,
 						}
 
-						if (friendShip.status === "pending") {
+                        if (friendShip.status === "pending") {
 							// Déterminer si c'est une demande reçue ou envoyée
-							if (friendShip.friendId === getPlayer.id) {
+                            if (friendShip.friendId === getPlayer?.id) {
 								// Demande reçue
 								if (!pendingFriendsReceived.value.some(item => item.friend.id === friendShip.playerId)) {
 									pendingFriendsReceived.value.push(friendshipData)

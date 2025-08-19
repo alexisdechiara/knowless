@@ -86,8 +86,15 @@ export const usePlayerStore = defineStore("Player Store", () => {
 	const getLoading = computed(() => loading.value)
 	const getError = computed(() => error.value)
 
-	// Chargement automatique au montage
-	fetchPlayer()
+	supabase.auth.onAuthStateChange(async (event, session) => {
+		if (event === 'SIGNED_OUT') {
+    	navigateTo('/login')
+  	}
+	})
+
+	watch(authUser, async() => {
+		await fetchPlayer()
+	}) 
 
 	return {
 		getPlayer,

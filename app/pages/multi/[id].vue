@@ -11,6 +11,7 @@
 					:content="game.questions[game.currentQuestionIndex]!"
 					:question-number="game.currentQuestionIndex"
 					:duration="game.phase === 'question' ? 10000 : 0"
+					:start-at="syncedStartAt"
 					:lobby="lobby"
 					:answer="getPlayerAnswerByIndex"
 					:show-next="isHost"
@@ -19,7 +20,7 @@
 					@good-answer="result = true"
 					@bad-answer="result = false"
 					@corrected="(correction: boolean) => result = correction"
-					@ended="game.phase === 'question' && nextQuestion()"
+					@ended="game.phase === 'question' && handleQuestionEnded()"
 					@next="isHost && nextPlayerCorrection()"
 				>
 					<template v-if="game.phase === 'correction'" #header>
@@ -99,9 +100,6 @@
 											<DropdownMenuItem v-if="isHost" @click="promotePlayer(player, lobby)">
 												<Icon name="lucide:circle-fading-arrow-up" /> Promouvoir hôte
 											</DropdownMenuItem>
-											<!-- <DropdownMenuItem>
-										<Icon name="lucide:user-round-plus" /> Inviter en ami
-									</DropdownMenuItem> -->
 										</DropdownMenuContent>
 									</DropdownMenu>
 								</div>
@@ -167,11 +165,19 @@ const { copy, copied, isSupported } = useClipboard({ source: code })
 const lobby = ref<Lobby>(new Lobby())
 const game = ref<Game | null>(null)
 const result = ref<boolean>(false)
+const syncedStartAt = ref<number | undefined>(undefined)
 const lobbyChannel = ref<null | RealtimeChannel>()
 const gameChannel = ref<null | RealtimeChannel>()
 const isDesktopBreakpoint = useBreakpoints(breakpointsTailwind).greaterOrEqual("md")
 const { outlineOrSecondary } = useDarkMode()
 const { getPlayer, updatePlayer } = usePlayerStore()
+
+// Initialisation du broadcast game
+const broadcastGame = useBroadcastGame(
+	String(route.params.id), 
+	getPlayer.id, 
+	[]
+)
 
 const lobbyTitle = computed(() => {
 	return game.value?.phase ? `Partie en cours - ${lobby.value?.title}` : lobby.value?.title || "Multijoueurs - Salon"
@@ -184,6 +190,7 @@ useHead({
 onUnmounted(() => {
 	window.removeEventListener("beforeunload", handleBeforeUnload)
 	window.removeEventListener("unload", handleUnload)
+	broadcastGame.disconnect()
 	if (lobbyChannel.value) {
 		supabase.removeChannel(lobbyChannel.value)
 	}
@@ -223,6 +230,10 @@ onMounted(async () => {
 			navigateTo(`/multi/join`)
 		}
 
+		// Connexion du broadcast après avoir chargé le lobby
+		broadcastGame.connect(lobby.value?.host === getPlayer.id)
+		broadcastGame.updateAllPlayerIds(lobby.value?.playerIds || [])
+
 		lobbyChannel.value = supabase
 			.channel(`lobby-${route.params.id}-updates`)
 			.on(
@@ -231,9 +242,12 @@ onMounted(async () => {
 				async (payload) => {
 					if (payload.new) {
 						const newLobby: Lobby = new Lobby(payload.new)
-						// La réassignation de lobby.value déclenchera le watcher sur lobby.value.gameId si gameId change.
 						lobby.value = newLobby
 						lobby.value.players = await getPlayers(newLobby.playerIds)
+						
+						// Mise à jour du broadcast avec les nouveaux joueurs et le statut d'hôte
+						broadcastGame.updateHostFlag(newLobby.host === getPlayer.id)
+						broadcastGame.updateAllPlayerIds(newLobby.playerIds)
 					}
 				},
 			)
@@ -241,12 +255,76 @@ onMounted(async () => {
 	}
 })
 
+// Watcher pour les événements de broadcast
+watch(() => broadcastGame.events.value, (events) => {
+	const lastEvent = events[events.length - 1]
+	if (!lastEvent) return
+
+	switch (lastEvent.event) {
+		case 'next_question':
+			handleBroadcastNextQuestion(lastEvent.payload)
+			break
+		case 'change_mode':
+			handleBroadcastChangeMode(lastEvent.payload)
+			break
+		case 'answer_submit':
+			handleBroadcastAnswerSubmit(lastEvent.payload)
+			break
+	}
+}, { deep: true })
+
+// Handlers pour les événements de broadcast
+function handleBroadcastNextQuestion(payload: any) {
+	// Les invités se synchronisent sur le startAt défini par l'hôte, corrigé par l'offset d'horloge
+	if (!isHost.value && typeof payload?.startAt === 'number') {
+		const offset = broadcastGame.clockOffsetMs
+		syncedStartAt.value = payload.startAt - (typeof offset === 'number' ? offset : 0)
+	}
+}
+
+function handleBroadcastChangeMode(payload: any) {
+	if (!isHost.value && payload?.mode === 'question' && typeof payload?.startAt === 'number') {
+		const offset = broadcastGame.clockOffsetMs
+		syncedStartAt.value = payload.startAt - (typeof offset === 'number' ? offset : 0)
+	}
+	// Fin de partie: tous les clients retournent à l'accueil
+	if (payload?.mode === 'end') {
+		cleanupAndGoHome()
+	}
+}
+
+function handleBroadcastAnswerSubmit(payload: any) {
+	console.log('Réponse soumise via broadcast:', payload)
+	// Logique pour traiter la réponse d'un autre joueur
+}
+
 async function handleUnload() {
+	broadcastGame.disconnect()
 	navigator.sendBeacon(`/api/lobby/leave`, JSON.stringify({ lobby: { id: lobby.value?.id, host: lobby.value?.host, playerIds: lobby.value?.playerIds.filter(playerId => playerId !== getPlayer.id) }, userId: getPlayer.id }))
 }
 
 function handleBeforeUnload(event: BeforeUnloadEvent) {
 	event.preventDefault()
+}
+
+// Nettoyage des canaux et retour à l'accueil
+async function cleanupAndGoHome() {
+	try {
+		window.removeEventListener("beforeunload", handleBeforeUnload)
+		window.removeEventListener("unload", handleUnload)
+		broadcastGame.disconnect()
+		if (lobbyChannel.value) {
+			supabase.removeChannel(lobbyChannel.value)
+			lobbyChannel.value = null
+		}
+		if (gameChannel.value) {
+			supabase.removeChannel(gameChannel.value)
+			gameChannel.value = null
+		}
+	}
+	finally {
+		await navigateTo("/")
+	}
 }
 
 watch(copied, (value) => {
@@ -277,7 +355,6 @@ async function startLobby() {
 			},
 		})
 	}
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	catch (error: any) {
 		console.error("Erreur lors de la création du salon:", error)
 		toast.error("Une erreur est survenue lors de la création du salon", {
@@ -287,14 +364,20 @@ async function startLobby() {
 }
 
 async function startGame() {
+	// Seul l'hôte démarre la partie et synchronise le timer de la première question
+	if (!isHost.value || !game.value) return
+
+	const startAt = Date.now() + 800
+	syncedStartAt.value = startAt
+	// Broadcast du changement de mode avec startAt pour synchroniser tous les clients
+	broadcastGame.sendChangeMode('question', startAt)
+
 	const { error } = await supabase
 		.from("games")
 		.update({
 			phase: "question",
 		})
 		.eq("id", game.value!.id)
-
-	console.log(game.value)
 
 	if (error) {
 		console.error(error)
@@ -321,6 +404,19 @@ async function nextPlayerScoreboard() {
 	}
 }
 
+// Fonction modifiée pour utiliser le broadcast
+function handleQuestionEnded() {
+	if (isHost.value && game.value) {
+		// Calcule un startAt commun légèrement dans le futur pour amortir la latence
+		const startAt = Date.now()
+		syncedStartAt.value = startAt
+		// L'hôte envoie l'événement avec le startAt
+		broadcastGame.sendNextQuestion(String(game.value.currentQuestionIndex + 1), startAt)
+		// Puis met à jour l'état côté base pour propager l'index de question
+		nextQuestion()
+	}
+}
+
 async function nextQuestion() {
 	if (game.value?.currentQuestionIndex != null && game.value?.currentQuestionIndex < game.value?.questions.length - 1) {
 		const { error } = await supabase
@@ -342,15 +438,19 @@ async function nextQuestion() {
 	}
 }
 
+// Fonction modifiée pour utiliser le broadcast
 async function submitAnswer(newAnswer: string) {
 	if (!game.value) return
+
+	// Envoie via broadcast pour synchronisation temps réel
+	broadcastGame.sendAnswerSubmit(newAnswer)
 
 	const { error } = await supabase
 		.rpc("update_answer", {
 			p_game_id: game.value?.id,
-			p_player_id: getPlayer.id, // ID du joueur
-			p_new_answer: newAnswer, // Nouvelle réponse
-			p_answer_index: game.value?.currentQuestionIndex, // Index de la réponse à mettre à jour
+			p_player_id: getPlayer.id,
+			p_new_answer: newAnswer,
+			p_answer_index: game.value?.currentQuestionIndex,
 		})
 
 	if (error) {
@@ -373,7 +473,7 @@ async function nextPlayerCorrection() {
 
 		const newDefaultScore = result.value ? baseScore + questionPoints : baseScore
 
-		const { error } = await supabase
+		const { data, error } = await supabase
 			.rpc("next_player_correction", {
 				p_game_id: game.value.id,
 				p_player_id: game.value?.playersData[game.value?.currentPlayerIndex]!.id,
@@ -394,9 +494,21 @@ async function nextPlayerCorrection() {
 	}
 }
 
+// Fonction modifiée pour utiliser le broadcast
 async function changePhase(phase: "start" | "question" | "correction" | "adjustment" | "scoreboard" | "end") {
+	// L'hôte envoie le changement de mode via broadcast
+	if (isHost.value) {
+		if (phase === 'question') {
+			const startAt = Date.now()
+			syncedStartAt.value = startAt
+			broadcastGame.sendChangeMode(phase, startAt)
+		}
+		else {
+			broadcastGame.sendChangeMode(phase)
+		}
+	}
+
 	if (phase === "scoreboard") {
-		console.log(game.value?.playersData)
 		const { error } = await supabase
 			.from("games")
 			.update({
@@ -449,13 +561,15 @@ async function changePhase(phase: "start" | "question" | "correction" | "adjustm
 		else if (data) {
 			lobby.value = new Lobby(data)
 		}
+
+		// L'hôte retourne à l'accueil et ferme les canaux
+		await cleanupAndGoHome()
 	}
 }
 
 const getPlayerAnswerByIndex = computed(() => game.value?.playersData[game.value?.currentPlayerIndex]?.answers[game.value?.currentQuestionIndex])
 
 watch(() => lobby.value?.gameId, async (newGameId, oldGameId) => {
-	// Se désabonner de l'ancien canal de jeu si oldGameId existait et que le canal était actif
 	if (oldGameId && gameChannel.value) {
 		supabase.removeChannel(gameChannel.value)
 		gameChannel.value = null
@@ -468,11 +582,9 @@ watch(() => lobby.value?.gameId, async (newGameId, oldGameId) => {
 			.eq("id", newGameId)
 			.single()
 
-		console.log("watch gameId, fetching game data:", data)
-
 		if (error) {
 			toast.error(`Erreur lors du chargement du jeu ${newGameId}`, { description: error.message })
-			game.value = null // Assurer que l'état du jeu est propre en cas d'erreur
+			game.value = null
 		}
 		else if (data) {
 			game.value = new Game(data)
@@ -481,10 +593,8 @@ watch(() => lobby.value?.gameId, async (newGameId, oldGameId) => {
 				.on(
 					"postgres_changes",
 					{ event: "*", schema: "public", table: "games", filter: `id=eq.${newGameId}` },
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					async (payload: any) => {
 						if (payload.new && game.value) {
-							console.log("Game update received:", payload.new)
 							let updated = false
 							if (payload.new.phase !== undefined && game.value.phase !== payload.new.phase) {
 								game.value.phase = payload.new.phase
@@ -492,6 +602,12 @@ watch(() => lobby.value?.gameId, async (newGameId, oldGameId) => {
 							}
 							if (payload.new.current_question_index !== undefined && typeof payload.new.current_question_index === "number" && game.value.currentQuestionIndex !== payload.new.current_question_index) {
 								game.value.currentQuestionIndex = payload.new.current_question_index
+								// Lorsque l'index de question change côté base, si l'hôte n'a pas encore défini de startAt local (rare), on en crée un
+								if (isHost.value && game.value.phase === 'question' && typeof syncedStartAt.value !== 'number') {
+									const startAt = Date.now()
+									syncedStartAt.value = startAt
+									broadcastGame.sendNextQuestion(String(game.value.currentQuestionIndex), startAt)
+								}
 								updated = true
 							}
 							if (payload.new.current_player_index !== undefined && typeof payload.new.current_player_index === "number" && game.value.currentPlayerIndex !== payload.new.current_player_index) {
@@ -503,14 +619,11 @@ watch(() => lobby.value?.gameId, async (newGameId, oldGameId) => {
 								updated = true
 							}
 							if (updated) {
-								// Utilisation de JSON.parse(JSON.stringify(...)) pour un log propre de l'objet sans les détails de Proxy Vue.
 								console.log("Game state updated via merge:", JSON.parse(JSON.stringify(game.value)))
 							}
 							else {
 								console.log("No relevant changes detected in payload.")
 							}
-							// La condition de log complexe précédente a été retirée pour simplifier,
-							// la mise à jour est appliquée si `updated` est true.
 						}
 					},
 				)
@@ -518,10 +631,9 @@ watch(() => lobby.value?.gameId, async (newGameId, oldGameId) => {
 		}
 	}
 	else if (gameChannel.value) {
-		// Si newGameId est null, l'ancien canal (si existant) a déjà été nettoyé au début du watcher.
 		game.value = null
 	}
-}, { immediate: true }) // immediate: true pour charger le jeu si gameId est déjà défini lors de l'initialisation du lobby
+}, { immediate: true })
 
 const surroundingPlayers = computed(() => {
 	if (game.value) {

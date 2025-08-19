@@ -85,11 +85,17 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { useForm } from "vee-validate"
 import * as z from "zod"
 import { toast } from "vue-sonner"
+import type { User } from "~~/shared/models/user"
 
 const colorMode = useColorMode()
 
 const { getPlayer, updatePlayer } = usePlayerStore()
-const player = ref(getPlayer)
+const player = ref<User | null>(null)
+
+// Charger le joueur au montage du composant
+onMounted(() => {
+    player.value = getPlayer
+})
 
 const appearanceFormSchema = toTypedSchema(z.object({
 	theme: z.enum(["light", "dark", "system"], {

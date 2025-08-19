@@ -166,7 +166,7 @@
 				</FormField>
 
 				<div class="flex items-center gap-x-4">
-					<Checkbox id="acceptTermsAndConditions" :checked="acceptTermsAndConditions" @update:checked="acceptTermsAndConditions = $event" />
+					<Checkbox id="acceptTermsAndConditions" v-model="acceptTermsAndConditions"/>
 					<label for="acceptTermsAndConditions" class="sr-only">J'accepte les termes et conditions</label>
 					<p class="text-xs text-muted-foreground">
 						En cochant cette case, vous acceptez notre
@@ -176,7 +176,7 @@
 					</p>
 				</div>
 
-				<Button variant="outline" size="lg" class="mt-2" type="submit" :disabled="!meta.valid || !acceptTermsAndConditions">
+				<Button variant="outline" size="lg" class="mt-2" type="submit" :disabled="(!values.email || !values.password || !values.confirmPassword) || !acceptTermsAndConditions">
 					S'inscrire avec un email
 				</Button>
 

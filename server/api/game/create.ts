@@ -3,6 +3,7 @@ import { Quizz } from "#shared/models/quizz"
 import { serverSupabaseClient } from "#supabase/server"
 import { Lobby } from "#shared/models/lobby"
 import type { Game } from "#shared/models/game"
+import type { Json } from "#shared/types/database.types"
 import { defaultCategories } from "~/utils/categories"
 
 const querySchema = z.object({
@@ -12,7 +13,7 @@ const querySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-	const supabase = await serverSupabaseClient(event)
+	const supabase = await serverSupabaseClient<Database>(event)
 	const { nbQuestions = 20, lobbyId, categories = defaultCategories } = await getValidatedQuery(event, querySchema.parse)
 
 	let questions: Array<Quizz> = []
@@ -29,14 +30,14 @@ export default defineEventHandler(async (event) => {
 		throw createError({
 			statusCode: 400,
 			statusMessage: "Nombre de questions invalide",
-			message: "Le nombre de questions doit être compris entre 5 et 20",
+			message: "Le nombre de questions doit être compris entre 1 et 20",
 		})
 	}
 
 	const { data: lobbyData, error: lobbyError } = await supabase
 		.from("lobbies")
 		.select()
-		.eq("id", lobbyId)
+		.eq("id", Number(lobbyId))
 		.single()
 
 	if (lobbyError) {
@@ -131,7 +132,7 @@ export default defineEventHandler(async (event) => {
 		const { data: game, error: gameError } = await supabase
 			.from("games")
 			.insert({
-				questions: questions,
+				questions: questions.map(q => ({ ...q })) as Json[],
 				players_data: playersData,
 			})
 			.select()
@@ -146,7 +147,7 @@ export default defineEventHandler(async (event) => {
 			const { data, error } = await supabase
 				.from("lobbies")
 				.update({ game_id: game.id })
-				.eq("id", lobby.id)
+				.eq("id", Number(lobby.id))
 				.select()
 				.single()
 
