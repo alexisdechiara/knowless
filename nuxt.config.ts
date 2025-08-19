@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
 modules: [
 	"shadcn-nuxt",
-	"radix-vue/nuxt",
+	"reka-ui/nuxt",
 	"@nuxtjs/color-mode",
 	"@nuxt/eslint",
 	"@nuxt/icon",

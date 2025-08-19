@@ -31,7 +31,7 @@
     "@vee-validate/nuxt": "^4.15.0",
     "@vee-validate/zod": "^4.15.1",
     "@vueuse/components": "^13.3.0",
-    "@vueuse/core": "^13.6.0",
+    "@vueuse/core": "^13.7.0",
     "@vueuse/integrations": "^13.2.0",
     "@vueuse/nuxt": "13.6.0",
     "class-variance-authority": "^0.7.1",

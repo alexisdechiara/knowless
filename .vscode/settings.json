@@ -1,0 +1,9 @@
+{
+  "vue3snippets.enable-compile-vue-file-on-did-save-code": true,
+  "json.schemas": [
+    {
+      "fileMatch": ["/package.json", "package.json"],
+      "url": "https://json.schemastore.org/package.json"
+    }
+  ]
+}

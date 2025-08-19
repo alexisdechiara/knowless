@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ProgressIndicator, ProgressRoot } from "radix-vue"
+import { ProgressIndicator, ProgressRoot } from "reka-ui"
 
 const props = withDefaults(defineProps<{
 	value?: number

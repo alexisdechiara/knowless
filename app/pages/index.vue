@@ -44,7 +44,7 @@
 		<div v-if="isMotionable" class="absolute bottom-8 right-8 hidden gap-x-2 rounded-full bg-foreground p-2 shadow-md transition-all md:flex">
 			<TabsRoot v-if="selectedGame != null && selectedGame !== ''" v-model="selectedGame" default-value="snake">
 				<TabsList class="relative flex flex-wrap text-background ">
-					<TabsIndicator :class="selectedGame === 'flappyBird' ? 'w-20 h-12' : 'size-12'" class="absolute translate-x-(--radix-tabs-indicator-position) rounded-full bg-background p-2 transition-[width,transform] duration-300" />
+					<TabsIndicator :class="selectedGame === 'flappyBird' ? 'w-20 h-12' : 'size-12'" class="absolute translate-x-(--reka-tabs-indicator-position) rounded-full bg-background p-2 transition-[width,transform] duration-300" />
 					<TabsTrigger value="snake" class="size-12 rounded-full">
 						<Icon name="mdi:snake" class="text-white mix-blend-difference" />
 					</TabsTrigger>
@@ -73,7 +73,7 @@
 </template>
 
 <script lang="ts" setup>
-import { TabsIndicator, TabsList, TabsRoot, TabsTrigger } from "radix-vue"
+import { TabsIndicator, TabsList, TabsRoot, TabsTrigger } from "reka-ui"
 import { breakpointsTailwind, useBreakpoints } from "@vueuse/core"
 
 const supabase = useSupabaseClient()
