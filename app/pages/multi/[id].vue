@@ -553,7 +553,7 @@ async function startLobby() {
     await $fetch("/api/game/create", {
       method: "POST",
       query: {
-        nbQuestions: 1,
+        nbQuestions: 20,
         lobbyId: route.params.id,
       },
     });
