@@ -53,6 +53,10 @@ export function useBroadcastGame(lobbyId: string, currentPlayerId: string, initi
       events.value.push({ event: 'answer_submit', payload })
     })
 
+    channel.value.on('broadcast', { event: 'vote' }, ({ payload }) => {
+      events.value.push({ event: 'vote', payload })
+    })
+
     // Un invité envoie des pings; l'hôte répond avec pong incluant l'heure hôte
     channel.value.on('broadcast', { event: 'ping' }, ({ payload }) => {
       events.value.push({ event: 'ping', payload })
@@ -155,6 +159,10 @@ export function useBroadcastGame(lobbyId: string, currentPlayerId: string, initi
     sendPlayerEvent('answer_submit', { playerId: currentPlayerId, answer })
   }
 
+  function sendVote(value: 'correct' | 'incorrect' | 'neutral') {
+    sendPlayerEvent('vote', { playerId: currentPlayerId, value })
+  }
+
   function onAllAcksReceived() {
     console.log('Tous les joueurs ont accusé réception, on peut continuer')
   }
@@ -168,6 +176,7 @@ export function useBroadcastGame(lobbyId: string, currentPlayerId: string, initi
     sendChangeMode,
     sendAck,
     sendAnswerSubmit,
+    sendVote,
     events: computed(() => events.value),
     pendingAcks: computed(() => pendingAcks.value),
     isHost: computed(() => isHost.value),

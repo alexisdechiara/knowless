@@ -48,6 +48,20 @@
     --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
     --sidebar-border: oklch(0.92 0.004 286.32);
     --sidebar-ring: oklch(0.705 0.015 286.067);
+
+    /* Charts */
+    --vis-tooltip-background-color: none !important;
+    --vis-tooltip-border-color: none !important;
+    --vis-tooltip-text-color: none !important;
+    --vis-tooltip-shadow-color: none !important;
+    --vis-tooltip-backdrop-filter: none !important;
+    --vis-tooltip-padding: none !important;
+
+    --vis-donut-central-label-font-size: 0.625rem !important;
+    
+    --vis-primary-color: var(--primary);
+    --vis-secondary-color: var(--secondary);
+    --vis-text-color: var(--muted-foreground);
   }
 
   .dark {

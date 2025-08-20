@@ -28,6 +28,8 @@
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/vue-table": "^8.21.3",
     "@types/eslint-plugin-tailwindcss": "^3.17.0",
+    "@unovis/ts": "^1.6.0",
+    "@unovis/vue": "^1.6.0",
     "@vee-validate/nuxt": "^4.15.0",
     "@vee-validate/zod": "^4.15.1",
     "@vueuse/components": "^13.3.0",
