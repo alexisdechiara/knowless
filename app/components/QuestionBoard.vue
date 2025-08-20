@@ -19,7 +19,15 @@
               : 'bg-amber-500'
           "
           class="md:px-4 md:py-1 md:text-sm"
-          >{{ content?.difficulty }}</Badge
+          >{{
+            content?.difficulty === "easy"
+              ? "Facile"
+              : content?.difficulty === "hard"
+              ? "Difficile"
+              : content?.difficulty === "medium"
+              ? "Moyen"
+              : content?.difficulty
+          }}</Badge
         >
         <!-- <span class="inline-flex items-center py-1 align-middle text-sm font-medium"><Icon name="lucide:gamepad" class="mr-1 size-4" /> {{ content?.category }}</span> -->
       </div>
@@ -103,6 +111,7 @@
                 ? 'data-[state=unchecked]:bg-amber-500'
                 : 'data-[state=unchecked]:bg-red-500'
             "
+            :disabled="!(switchEnabled ?? false)"
             v-model="isCorrect"
             @update:modelValue="onOpenSwitchUpdate"
           >
@@ -299,6 +308,8 @@ type QuestionBoardProps =
       answer?: string;
       showNext?: boolean;
       showSwitch?: boolean;
+      switchEnabled?: boolean;
+      correctionSwitchValue?: boolean;
       startAt?: number;
     };
 
@@ -432,6 +443,19 @@ watchDebounced(
 );
 
 watch(status, () => emit("status", status.value));
+
+// Synchronise la valeur du switch depuis l'extérieur (via broadcast de l'hôte)
+watch(
+  () => (props as any).correctionSwitchValue,
+  (newVal) => {
+    if ((props as any).mode === 'multi' && (props as any).phase === 'correction') {
+      if (typeof newVal === 'boolean') {
+        isCorrect.value = newVal
+      }
+    }
+  },
+  { immediate: true }
+)
 
 const progressPercentage = computed(() => {
   if (remainingTime.value <= 0) return 100;

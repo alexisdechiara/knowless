@@ -5,5 +5,15 @@
       "fileMatch": ["/package.json", "package.json"],
       "url": "https://json.schemastore.org/package.json"
     }
-  ]
+  ],
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.fixAll.eslint": true
+  },
+  "eslint.validate": ["vue", "javascript", "typescript"],
+  "eslint.experimental.useFlatConfig": true,
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar"
+  }
 }

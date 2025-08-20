@@ -20,11 +20,14 @@
           :lobby="lobby"
           :answer="getPlayerAnswerByIndex"
           :show-next="isHost"
-          :show-switch="isHost"
+          :show-switch="true"
+          :switch-enabled="isHost"
+          :correction-switch-value="correctionSwitchValue"
+          @started="questionIndexAtStart = game?.currentQuestionIndex ?? null"
           @answer="submitAnswer($event)"
           @good-answer="result = true"
           @bad-answer="result = false"
-          @corrected="(correction: boolean) => result = correction"
+          @corrected="handleHostCorrectionSwitch"
           @ended="game.phase === 'question' && handleQuestionEnded()"
           @next="isHost && nextPlayerCorrection()"
         >
@@ -51,6 +54,7 @@
           </template>
           <template #next>
             <NextButton
+              v-if="isHost"
               :variant="
                 isLastPlayer && game.currentQuestionIndex === game.questions.length - 1
                   ? 'default'
@@ -67,81 +71,7 @@
             />
           </template>
           <template #actions>
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <Button
-                  :variant="outlineOrSecondary()"
-                  size="icon"
-                  class="absolute bottom-28 left-0 flex size-12 rounded-full sm:bottom-40 sm:left-8"
-                >
-                  <VisSingleContainer
-                    :data="voteResult"
-                    class="size-full"
-                    v-if="votes && votes.filter((v) => v.value !== 'neutral').length > 0"
-                  >
-                    <VisDonut
-                      :value="(d: number) => d"
-                      :centralLabel="truePercentage"
-                      :color="(d: number, i: number) => ['#00bc7d', '#fb2c36'][i]"
-                      :arcWidth="4"
-                      :radius="20"
-                      :padAngle="0.1"
-                      :cornerRadius="64"
-                    />
-                  </VisSingleContainer>
-                  <Icon v-else name="lucide:vote" class="text-xl" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                class="w-fit"
-                side="right"
-                align="start"
-                :side-offset="16"
-              >
-                <DropdownMenuLabel class="font-semibold"
-                  >Donnez votre avis</DropdownMenuLabel
-                >
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup v-model="personalVote">
-                  <DropdownMenuRadioItem
-                    value="correct"
-                    :class="personalVote === 'correct' ? 'bg-green-50' : ''"
-                    class="cursor-pointer focus:bg-green-50"
-                  >
-                    <template #indicator>
-                      <Icon
-                        name="lucide:circle-check"
-                        class="size-4 text-green-600 mt-1"
-                      />
-                    </template>
-                    Correct
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem
-                    value="incorrect"
-                    :class="personalVote === 'incorrect' ? 'bg-red-50' : ''"
-                    class="cursor-pointer focus:bg-red-50"
-                  >
-                    <template #indicator>
-                      <Icon name="lucide:circle-x" class="size-4 text-red-600 mt-1" />
-                    </template>
-                    Incorrect
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem
-                    value="neutral"
-                    :class="personalVote === 'neutral' ? 'bg-accent' : ''"
-                    class="cursor-pointer"
-                  >
-                    <template #indicator>
-                      <Icon
-                        name="lucide:circle-dot-dashed"
-                        class="size-4 text-current mt-1"
-                      />
-                    </template>
-                    Ne se prononce pas
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <VoteDropdown v-model="personalVote" :votes="votes" />
           </template>
         </QuestionBoard>
         <div v-else-if="game.phase === 'adjustment'" class="flex justify-center">
@@ -153,6 +83,7 @@
               :player="new User(lobby.players.find((player: User) => player.id === playerData.id))"
             />
             <NextButton
+              v-if="isHost"
               title="Terminer"
               description="Voir les résultats"
               class="bottom-4 right-4"
@@ -319,7 +250,6 @@
 </template>
 
 <script lang="ts" setup>
-import { VisSingleContainer, VisDonut } from "@unovis/vue";
 import { toast } from "vue-sonner";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useBreakpoints, breakpointsTailwind } from "@vueuse/core";
@@ -338,7 +268,10 @@ const { copy, copied, isSupported } = useClipboard({ source: code });
 const lobby = ref<Lobby>(new Lobby());
 const game = ref<Game | null>(null);
 const result = ref<boolean>(false);
+const correctionSwitchValue = ref<boolean | undefined>(undefined);
 const syncedStartAt = ref<number | undefined>(undefined);
+// Capture the question index at the start of a question to tag answer submissions reliably
+const questionIndexAtStart = ref<number | null>(null);
 const personalVote = ref<VoteValue>("neutral");
 const votes = ref<{ playerId: string; value: VoteValue }[]>([
   { playerId: "1", value: "neutral" },
@@ -360,20 +293,7 @@ const isDesktopBreakpoint = useBreakpoints(breakpointsTailwind).greaterOrEqual("
 const { outlineOrSecondary } = useDarkMode();
 const { getPlayer, updatePlayer } = usePlayerStore();
 
-const voteResult = computed(() => {
-  return [
-    votes.value.filter((vote) => vote.value === "correct").length,
-    votes.value.filter((vote) => vote.value === "incorrect").length,
-  ];
-});
-
-const truePercentage = computed(() => {
-  const correct = votes.value.filter((v) => v.value === "correct").length;
-  const incorrect = votes.value.filter((v) => v.value === "incorrect").length;
-  const totalNonNeutral = correct + incorrect;
-  if (totalNonNeutral === 0) return "0%";
-  return `${Math.round((correct / totalNonNeutral) * 100)}%`;
-});
+// voteResult/truePercentage moved to VoteDropdown component
 
 // Initialisation du broadcast game
 const broadcastGame = useBroadcastGame(String(route.params.id), getPlayer.id, []);
@@ -486,6 +406,9 @@ watch(
       case "vote":
         applyVote(lastEvent.payload);
         break;
+      case "correction_switch":
+        correctionSwitchValue.value = !!lastEvent.payload?.value;
+        break;
     }
   },
   { deep: true }
@@ -497,6 +420,27 @@ function handleBroadcastNextQuestion(payload: any) {
   if (!isHost.value && typeof payload?.startAt === "number") {
     const offset = broadcastGame.clockOffsetMs;
     syncedStartAt.value = payload.startAt - (typeof offset === "number" ? offset : 0);
+    // Optionnel: préparer l'index de question pour le prochain écran
+    if (typeof payload?.toIndex === "number") {
+      questionIndexAtStart.value = payload.toIndex;
+    }
+  }
+
+  // Rafraîchit les playersData 1s après le lancement de la question suivante
+  // On applique la mise à jour au tour précédent: fromIndex si fourni, sinon currentQuestionIndex - 1
+  if (
+    game.value &&
+    Array.isArray(game.value.questions) &&
+    game.value.questions.length > 0
+  ) {
+    const len = game.value.questions.length;
+    const prevIndex =
+      typeof payload?.fromIndex === "number"
+        ? payload.fromIndex
+        : (game.value.currentQuestionIndex - 1 + len) % len;
+    setTimeout(() => {
+      refreshPlayersData(prevIndex);
+    }, 1000);
   }
 }
 
@@ -508,6 +452,9 @@ function handleBroadcastChangeMode(payload: any) {
   ) {
     const offset = broadcastGame.clockOffsetMs;
     syncedStartAt.value = payload.startAt - (typeof offset === "number" ? offset : 0);
+    if (typeof payload?.questionIndex === "number") {
+      questionIndexAtStart.value = payload.questionIndex;
+    }
   }
   // Fin de partie: tous les clients retournent à l'accueil
   if (payload?.mode === "end") {
@@ -625,7 +572,7 @@ async function startGame() {
   const startAt = Date.now() + 800;
   syncedStartAt.value = startAt;
   // Broadcast du changement de mode avec startAt pour synchroniser tous les clients
-  broadcastGame.sendChangeMode("question", startAt);
+  broadcastGame.sendChangeMode("question", startAt, game.value?.currentQuestionIndex);
 
   const { error } = await supabase
     .from("games")
@@ -663,12 +610,49 @@ async function nextPlayerScoreboard() {
 function handleQuestionEnded() {
   if (isHost.value && game.value) {
     // Calcule un startAt commun légèrement dans le futur pour amortir la latence
+    const prevIndex = game.value.currentQuestionIndex; // index de la question qui vient de se terminer
     const startAt = Date.now();
     syncedStartAt.value = startAt;
     // L'hôte envoie l'événement avec le startAt
-    broadcastGame.sendNextQuestion(String(game.value.currentQuestionIndex + 1), startAt);
+    broadcastGame.sendNextQuestion(
+      String(game.value.currentQuestionIndex + 1),
+      startAt,
+      game.value.currentQuestionIndex,
+      (game.value.currentQuestionIndex + 1) % game.value.questions.length
+    );
     // Puis met à jour l'état côté base pour propager l'index de question
     nextQuestion();
+
+    // Et enfin, rafraîchir les playersData 1s après le lancement de la question suivante
+    setTimeout(() => {
+      refreshPlayersData(prevIndex);
+    }, 1000);
+  }
+}
+
+// Récupère depuis la base la dernière version de players_data
+async function refreshPlayersData(prevIndex: number) {
+  if (!game.value) return;
+  try {
+    const { data, error } = await supabase
+      .from("games")
+      .select("players_data")
+      .eq("id", game.value.id)
+      .single();
+
+    if (error) {
+      console.error("Erreur lors du rafraîchissement des playersData", error);
+      return;
+    }
+    if (data?.players_data && Array.isArray(data.players_data)) {
+      // On remplace playersData localement; les réponses pour prevIndex seront ainsi à jour
+      game.value.playersData = (data.players_data as unknown) as Game["playersData"];
+      console.log(
+        `playersData rafraîchi pour la question précédente (index ${prevIndex})`
+      );
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -700,14 +684,20 @@ async function nextQuestion() {
 async function submitAnswer(newAnswer: string) {
   if (!game.value) return;
 
+  // Snapshot the intended question index at which this answer belongs
+  const indexAtSubmit =
+    typeof questionIndexAtStart.value === "number"
+      ? questionIndexAtStart.value
+      : game.value.currentQuestionIndex;
+
   // Envoie via broadcast pour synchronisation temps réel
-  broadcastGame.sendAnswerSubmit(newAnswer);
+  broadcastGame.sendAnswerSubmit(newAnswer, indexAtSubmit);
 
   const { error } = await supabase.rpc("update_answer", {
     p_game_id: game.value?.id,
     p_player_id: getPlayer.id,
     p_new_answer: newAnswer,
-    p_answer_index: game.value?.currentQuestionIndex,
+    p_answer_index: indexAtSubmit,
   });
 
   if (error) {
@@ -751,11 +741,15 @@ async function nextPlayerCorrection() {
       toast.error(`Erreur ${error.code}`, {
         description: error.message,
       });
-    } else if (
-      isLastPlayer.value &&
-      game.value?.currentQuestionIndex == game.value.questions.length - 1
-    ) {
-      changePhase("adjustment");
+    } else {
+      // Prepare state for the next player's correction round
+      result.value = false;
+      if (
+        isLastPlayer.value &&
+        game.value?.currentQuestionIndex == game.value.questions.length - 1
+      ) {
+        changePhase("adjustment");
+      }
     }
   }
 }
@@ -769,7 +763,7 @@ async function changePhase(
     if (phase === "question") {
       const startAt = Date.now();
       syncedStartAt.value = startAt;
-      broadcastGame.sendChangeMode(phase, startAt);
+      broadcastGame.sendChangeMode(phase, startAt, game.value?.currentQuestionIndex);
     } else {
       broadcastGame.sendChangeMode(phase);
     }
@@ -839,6 +833,16 @@ function handleVote(status: VoteValue) {
   broadcastGame.sendVote(status);
 }
 
+function handleHostCorrectionSwitch(correction: boolean) {
+  // Local state
+  result.value = correction;
+  correctionSwitchValue.value = correction;
+  // Only the host should broadcast the value
+  if (isHost.value) {
+    broadcastGame.sendCorrectionSwitch(correction);
+  }
+}
+
 const getPlayerAnswerByIndex = computed(
   () =>
     game.value?.playersData[game.value?.currentPlayerIndex]?.answers[
@@ -853,6 +857,10 @@ watch(
     if (phase === "correction") {
       votes.value = [];
       personalVote.value = "neutral";
+      // Reset the last player's result to avoid carry-over to the next player
+      result.value = false;
+      // Reset external switch so clients use local auto-evaluation until host changes it
+      correctionSwitchValue.value = undefined;
     }
   }
 );
@@ -864,6 +872,10 @@ watch(
     if (game.value?.phase === "correction") {
       votes.value = [];
       personalVote.value = "neutral";
+      // Reset the last player's result when moving to the next player
+      result.value = false;
+      // Reset external switch at each player change
+      correctionSwitchValue.value = undefined;
     }
   }
 );

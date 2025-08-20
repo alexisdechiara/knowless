@@ -8,7 +8,9 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "generate-licenses": "license-report --only=prod --config license-report-config.json > public/licenses.json"
+    "generate-licenses": "license-report --only=prod --config license-report-config.json > public/licenses.json",
+    "lint": "eslint . --ext .vue,.ts,.js",
+    "lint:fix": "eslint . --ext .vue,.ts,.js --fix"
   },
   "dependencies": {
     "@dicebear/collection": "^9.2.2",

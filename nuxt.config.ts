@@ -81,6 +81,8 @@ modules: [
 	},
 
 	icon: {
+		mode: 'css',
+    cssLayer: 'base',
 			customCollections: [
 				{
 					prefix: "custom",

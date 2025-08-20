@@ -69,7 +69,7 @@
   >
     Voici les résutats ...
   </h1>
-  <NextButton
+  <NextButton v-if="showNext"
     class="bottom-4 right-4"
     :variant="sortedPlayersByScore.length - currentIndex > 0 ? 'outline' : 'default'"
     :title="

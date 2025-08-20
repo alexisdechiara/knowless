@@ -57,6 +57,10 @@ export function useBroadcastGame(lobbyId: string, currentPlayerId: string, initi
       events.value.push({ event: 'vote', payload })
     })
 
+    channel.value.on('broadcast', { event: 'correction_switch' }, ({ payload }) => {
+      events.value.push({ event: 'correction_switch', payload })
+    })
+
     // Un invité envoie des pings; l'hôte répond avec pong incluant l'heure hôte
     channel.value.on('broadcast', { event: 'ping' }, ({ payload }) => {
       events.value.push({ event: 'ping', payload })
@@ -143,24 +147,37 @@ export function useBroadcastGame(lobbyId: string, currentPlayerId: string, initi
     })
   }
 
-  function sendNextQuestion(questionId: string, startAt: number) {
-    sendHostEvent('next_question', { questionId, startAt })
+  function sendNextQuestion(
+    questionId: string,
+    startAt: number,
+    fromIndex?: number,
+    toIndex?: number
+  ) {
+    // Provide indices to allow clients to reconcile if they receive late
+    sendHostEvent('next_question', { questionId, startAt, fromIndex, toIndex })
   }
 
-  function sendChangeMode(mode: string, startAt?: number) {
-    sendHostEvent('change_mode', { mode, startAt })
+  function sendChangeMode(mode: string, startAt?: number, questionIndex?: number) {
+    // Include questionIndex when switching to question mode (optional)
+    sendHostEvent('change_mode', { mode, startAt, questionIndex })
   }
 
   function sendAck() {
     sendPlayerEvent('ack', { playerId: currentPlayerId })
   }
 
-  function sendAnswerSubmit(answer: string) {
-    sendPlayerEvent('answer_submit', { playerId: currentPlayerId, answer })
+  function sendAnswerSubmit(answer: string, questionIndex?: number) {
+    // Attach the question index at the time of submission (optional)
+    sendPlayerEvent('answer_submit', { playerId: currentPlayerId, answer, questionIndex })
   }
 
   function sendVote(value: 'correct' | 'incorrect' | 'neutral') {
     sendPlayerEvent('vote', { playerId: currentPlayerId, value })
+  }
+
+  function sendCorrectionSwitch(value: boolean) {
+    // Host broadcasts the correction switch value to all
+    sendHostEvent('correction_switch', { value })
   }
 
   function onAllAcksReceived() {
@@ -177,6 +194,7 @@ export function useBroadcastGame(lobbyId: string, currentPlayerId: string, initi
     sendAck,
     sendAnswerSubmit,
     sendVote,
+    sendCorrectionSwitch,
     events: computed(() => events.value),
     pendingAcks: computed(() => pendingAcks.value),
     isHost: computed(() => isHost.value),
