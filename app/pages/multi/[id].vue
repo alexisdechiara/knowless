@@ -229,26 +229,15 @@ const syncedStartAt = ref<number | undefined>(undefined);
 // Capture the question index at the start of a question to tag answer submissions reliably
 const questionIndexAtStart = ref<number | null>(null);
 const personalVote = ref<VoteValue>("neutral");
-const votes = ref<{ playerId: string; value: VoteValue }[]>([
-  { playerId: "1", value: "neutral" },
-  { playerId: "2", value: "correct" },
-  { playerId: "3", value: "incorrect" },
-  { playerId: "4", value: "correct" },
-  { playerId: "5", value: "neutral" },
-  { playerId: "6", value: "correct" },
-  { playerId: "7", value: "incorrect" },
-  { playerId: "8", value: "correct" },
-  { playerId: "9", value: "correct" },
-  { playerId: "10", value: "correct" },
-  { playerId: "11", value: "incorrect" },
-  { playerId: "12", value: "incorrect" },
-]);
+const votes = ref<{ playerId: string; value: VoteValue }[]>([]);
 const lobbyChannel = ref<null | RealtimeChannel>();
 const gameChannel = ref<null | RealtimeChannel>();
 const isDesktopBreakpoint = useBreakpoints(breakpointsTailwind).greaterOrEqual("md");
 const { outlineOrSecondary } = useDarkMode();
-const { getPlayer, updatePlayer } = usePlayerStore();
+const { getPlayer } = usePlayerStore();
 const presence = usePresenceStore();
+// Snapshot of players who were disconnected at the moment the correction phase started
+const disconnectedAtCorrection = ref<Set<string>>(new Set());
 
 // voteResult/truePercentage moved to VoteDropdown component
 
@@ -331,8 +320,8 @@ onMounted(async () => {
     // Update presence now that the lobby is confirmed
     updatePresenceForLobby();
 
-    lobbyChannel.value = supabase
-      .channel(`lobby-${route.params.id}-updates`)
+    const lobbyCh = supabase.channel(`lobby-${route.params.id}-updates`)
+    ;(lobbyCh as any)
       .on(
         "postgres_changes",
         {
@@ -341,19 +330,76 @@ onMounted(async () => {
           table: "lobbies",
           filter: `id=eq.${route.params.id}`,
         },
-        async (payload) => {
+        async (payload: any) => {
           if (payload.new) {
+            // Diff before applying new lobby for leave notifications
+            const prevIds = Array.isArray(lobby.value?.playerIds)
+              ? [...lobby.value.playerIds]
+              : [];
+            // Snapshot previous players to resolve usernames of those who left
+            const prevPlayers = Array.isArray(lobby.value?.players)
+              ? [...lobby.value.players]
+              : [];
             const newLobby: Lobby = new Lobby(payload.new);
+            const nextIds = Array.isArray(newLobby.playerIds)
+              ? [...newLobby.playerIds]
+              : [];
+            const removedIds = prevIds.filter((id) => !nextIds.includes(id));
+            // Apply lobby update
             lobby.value = newLobby;
             lobby.value.players = await getPlayers(newLobby.playerIds);
 
             // Mise à jour du broadcast avec les nouveaux joueurs et le statut d'hôte
             broadcastGame.updateHostFlag(newLobby.host === getPlayer.id);
             broadcastGame.updateAllPlayerIds(newLobby.playerIds);
+
+            // Notify on players removed from lobby (explicit leave)
+            for (const id of removedIds) {
+              if (id === getPlayer.id) continue;
+              // Prefer previous players snapshot to get the correct username
+              const username =
+                prevPlayers.find((p) => p.id === id)?.username ||
+                lobby.value.players.find((p) => p.id === id)?.username ||
+                "Un joueur";
+              toast.message(`${username} a quitté le salon`);
+            }
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "update",
+          schema: "public",
+          table: "players",
+          filter: `lobby_id=eq.${route.params.id}`,
+        },
+        (payload: any) => {
+          try {
+            const oldStatus = payload.old?.status as string | undefined;
+            const newStatus = payload.new?.status as string | undefined;
+            const pid = payload.new?.id as string | undefined;
+            if (!pid) return;
+            // Update local lobby players' status so UI can react immediately
+            const target = lobby.value?.players.find((p) => p.id === pid);
+            if (target && newStatus) target.status = newStatus as any;
+            const username = target?.username || "Un joueur";
+            if (oldStatus !== newStatus) {
+              // Suppress disconnect toasts to avoid false positives from transient unloads
+              if (
+                (newStatus === "playing" || newStatus === "in-lobby") &&
+                oldStatus === "offline"
+              ) {
+                if (pid !== getPlayer.id) toast.message(`${username} a rejoint à nouveau`);
+              }
+            }
+          } catch (e) {
+            console.error(e);
           }
         }
       )
       .subscribe();
+    lobbyChannel.value = lobbyCh;
   }
 });
 
@@ -526,7 +572,7 @@ async function startLobby() {
     await $fetch("/api/game/create", {
       method: "POST",
       query: {
-        nbQuestions: 20,
+        nbQuestions: lobby.value?.nbQuestions || 20,
         lobbyId: route.params.id,
       },
     });
@@ -818,9 +864,23 @@ function handleHostCorrectionSwitch(correction: boolean) {
 
 const getPlayerAnswerByIndex = computed(
   () =>
-    game.value?.playersData[game.value?.currentPlayerIndex]?.answers[
-      game.value?.currentQuestionIndex
-    ]
+    // Hide answers during correction for players who were disconnected at correction start
+    ((): string | undefined => {
+      if (!game.value) return undefined;
+      const playerId = game.value.playersData[game.value.currentPlayerIndex]?.id;
+      const answer =
+        game.value.playersData[game.value.currentPlayerIndex]?.answers[
+          game.value.currentQuestionIndex
+        ];
+      if (
+        game.value.phase === "correction" &&
+        playerId &&
+        disconnectedAtCorrection.value.has(playerId)
+      ) {
+        return undefined;
+      }
+      return answer;
+    })()
 );
 
 // Réinitialise les votes et le vote personnel à chaque entrée en phase "correction"
@@ -834,6 +894,12 @@ watch(
       result.value = false;
       // Reset external switch so clients use local auto-evaluation until host changes it
       correctionSwitchValue.value = undefined;
+      // Snapshot which players are disconnected right now; their answers will be hidden during this correction phase
+      const snapshot = new Set<string>();
+      for (const p of lobby.value?.players || []) {
+        if (p.status !== "playing") snapshot.add(p.id);
+      }
+      disconnectedAtCorrection.value = snapshot;
     }
   }
 );
@@ -882,8 +948,8 @@ watch(
         game.value = new Game(data);
         // In game
         if (lobby.value?.id) presence.setPlaying(Number(lobby.value.id));
-        gameChannel.value = supabase
-          .channel(`game-${newGameId}-updates`)
+        const gameCh = supabase.channel(`game-${newGameId}-updates`)
+        ;(gameCh as any)
           .on(
             "postgres_changes",
             {
@@ -951,6 +1017,7 @@ watch(
             }
           )
           .subscribe();
+        gameChannel.value = gameCh;
       }
     } else if (gameChannel.value) {
       game.value = null;

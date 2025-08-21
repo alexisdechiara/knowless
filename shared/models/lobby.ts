@@ -9,6 +9,7 @@ export class Lobby {
 	isPublic: boolean
 	password: string
 	isFriendsOnly: boolean
+	nbQuestions: number
 	maxPlayers: number
 	players: Array<User>
 	playerIds: Array<string>
@@ -22,6 +23,7 @@ export class Lobby {
 		this.title = data?.title
 		this.host = data?.host
 		this.maxPlayers = data?.max_players
+		this.nbQuestions = data?.nb_questions || 20
 		this.created_at = data?.created_at
 		this.isPublic = data?.is_public
 		this.password = data?.password

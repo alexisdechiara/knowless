@@ -1,10 +1,11 @@
 // server/api/lobbies/leave.ts
 import { defineEventHandler, readBody } from "h3"
 import { serverSupabaseClient } from "#supabase/server"
+import type { Database, TablesUpdate } from "#shared/types/database.types"
 
 export default defineEventHandler(async (event) => {
-	const supabase = await serverSupabaseClient(event)
-	const rawBody = await readBody(event)
+  const supabase = await serverSupabaseClient<Database>(event)
+  const rawBody = await readBody(event)
 
 	let body
 	try {
@@ -18,57 +19,90 @@ export default defineEventHandler(async (event) => {
 
 	const { lobby, userId } = body
 
-	if (!lobby.playerIds || lobby.playerIds.length === 0) {
-		const { error } = await supabase
-			.from("lobbies")
-			.delete()
-			.eq("id", lobby.id)
+  // Fetch latest lobby state to determine if a game is active
+  let lobbyHasActiveGame = false
+  try {
+    const { data: lobbyRow } = await supabase
+      .from("lobbies")
+      .select("id, game_id")
+      .eq("id", lobby.id)
+      .single()
+    lobbyHasActiveGame = !!(lobbyRow as any)?.game_id
+  }
+  catch (e) {
+    // If we cannot fetch the lobby, default to previous behavior (no active game)
+  }
 
-		if (error) {
-			console.error(`Erreur Supabase lors de la suppression du lobby (API /api/lobbies/leave.ts):`, error) // Log Supabase plus précis
-			console.error(`Lobby ID: ${lobby.id}, Utilisateur ID: ${userId}`) // Infos contextuelles dans le log d'erreur
-			return { success: false, message: `Erreur ${error.code}: ${error.message}` }
-		}
-	}
-	else if (lobby.host === userId) {
-		const { error } = await supabase
-			.from("lobbies")
-			.update({ host: lobby.playerIds[0], players: lobby.playerIds })
-			.eq("id", lobby.id)
-			.select()
-			.single()
+  // If a game is active, do not remove the player from the lobby list.
+  // Only mark the player as offline to allow reconnection.
+  if (lobbyHasActiveGame) {
+    const { error } = await supabase
+      .from("players")
+      .update<TablesUpdate<"players">>({ status: "offline" })
+      .eq("id", userId)
 
-		if (error) {
-			console.error(`Erreur Supabase lors de la mise à jour du lobby (changement d'hôte, API /api/lobbies/leave.ts):`, error) // Log Supabase plus précis
-			console.error(`Lobby ID: ${lobby.id}, Utilisateur ID: ${userId}`) // Infos contextuelles dans le log d'erreur
-			return { success: false, message: `Erreur ${error.code}: ${error.message}` }
-		}
-	}
-	else {
-		const { error } = await supabase
-			.from("lobbies")
-			.update({ players: lobby.playerIds })
-			.eq("id", lobby.id)
-			.select()
-			.single()
+    if (error) {
+      console.error(`Erreur Supabase lors de la mise à jour du statut du joueur (API /api/lobbies/leave.ts - game active):`, error)
+      console.error(`Utilisateur ID: ${userId}`)
+      return { success: false, message: `Erreur ${error.code}: ${error.message}` }
+    }
 
-		if (error) {
-			console.error(`Erreur Supabase lors de la mise à jour des joueurs du lobby (API /api/lobbies/leave.ts):`, error) // Log Supabase plus précis
-			console.error(`Lobby ID: ${lobby.id}, Utilisateur ID: ${userId}`) // Infos contextuelles dans le log d'erreur
-			return { success: false, message: `Erreur ${error.code}: ${error.message}` }
-		}
-	}
+    return { success: true, message: "Joueur marqué hors ligne (partie en cours)." }
+  }
 
-	const { error } = await supabase
-		.from("players")
-		.update({ status: "offline", lobby_id: null })
-		.eq("id", userId)
+  // No active game: proceed with removal from the lobby
+  const updatedPlayerIds: string[] = Array.isArray(lobby.playerIds) ? lobby.playerIds : []
 
-	if (error) {
-		console.error(`Erreur Supabase lors de la mise à jour du statut du joueur (API /api/lobbies/leave.ts):`, error) // Log Supabase plus précis
-		console.error(`Utilisateur ID: ${userId}`) // Infos contextuelles dans le log d'erreur
-		return { success: false, message: `Erreur ${error.code}: ${error.message}` }
-	}
+  if (!updatedPlayerIds || updatedPlayerIds.length === 0) {
+    const { error } = await supabase
+      .from("lobbies")
+      .delete()
+      .eq("id", lobby.id)
 
-	return { success: true, message: "Joueur supprimé et statut mis à jour avec succès." }
+    if (error) {
+      console.error(`Erreur Supabase lors de la suppression du lobby (API /api/lobbies/leave.ts):`, error)
+      console.error(`Lobby ID: ${lobby.id}, Utilisateur ID: ${userId}`)
+      return { success: false, message: `Erreur ${error.code}: ${error.message}` }
+    }
+  }
+  else if (lobby.host === userId) {
+    const { error } = await supabase
+      .from("lobbies")
+      .update<TablesUpdate<"lobbies">>({ host: updatedPlayerIds[0], players: updatedPlayerIds })
+      .eq("id", lobby.id)
+
+    if (error) {
+      console.error(`Erreur Supabase lors de la mise à jour du lobby (API /api/lobbies/leave.ts):`, error)
+      console.error(`Lobby ID: ${lobby.id}, Utilisateur ID: ${userId}`)
+      return { success: false, message: `Erreur ${error.code}: ${error.message}` }
+    }
+  }
+  else {
+    const { error } = await supabase
+      .from("lobbies")
+      .update<TablesUpdate<"lobbies">>({ players: updatedPlayerIds })
+      .eq("id", lobby.id)
+
+    if (error) {
+      console.error(`Erreur Supabase lors de la mise à jour des joueurs du lobby (API /api/lobbies/leave.ts):`, error)
+      console.error(`Lobby ID: ${lobby.id}, Utilisateur ID: ${userId}`)
+      return { success: false, message: `Erreur ${error.code}: ${error.message}` }
+    }
+  }
+
+  // Update player status and clear lobby_id
+  {
+    const { error } = await supabase
+      .from("players")
+      .update<TablesUpdate<"players">>({ status: "offline", lobby_id: null })
+      .eq("id", userId)
+
+    if (error) {
+      console.error(`Erreur Supabase lors de la mise à jour du statut du joueur (API /api/lobbies/leave.ts):`, error)
+      console.error(`Utilisateur ID: ${userId}`)
+      return { success: false, message: `Erreur ${error.code}: ${error.message}` }
+    }
+  }
+
+  return { success: true, message: "Joueur supprimé et statut mis à jour avec succès." }
 })

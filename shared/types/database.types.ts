@@ -79,6 +79,7 @@ export type Database = {
           invited_friends: string[] | null
           is_public: boolean | null
           max_players: number
+          nb_questions: number | null
           password: string | null
           players: string[] | null
           security_level: string[] | null
@@ -94,6 +95,7 @@ export type Database = {
           invited_friends?: string[] | null
           is_public?: boolean | null
           max_players?: number
+          nb_questions?: number | null
           password?: string | null
           players?: string[] | null
           security_level?: string[] | null
@@ -109,6 +111,7 @@ export type Database = {
           invited_friends?: string[] | null
           is_public?: boolean | null
           max_players?: number
+          nb_questions?: number | null
           password?: string | null
           players?: string[] | null
           security_level?: string[] | null
