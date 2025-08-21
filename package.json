@@ -67,7 +67,7 @@
     "@iconify-json/lucide": "1.2.62",
     "@inspira-ui/plugins": "^0.0.1",
     "@tailwindcss/typography": "^0.5.16",
-    "eslint-plugin-tailwindcss": "^3.18.0",
+    "eslint-plugin-tailwindcss": "^4.0.0-beta.0",
     "license-report": "^6.7.2",
     "typescript": "5.9.2",
     "vue-tsc": "2.2.10"

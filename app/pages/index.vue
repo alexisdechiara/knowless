@@ -76,6 +76,10 @@
 import { TabsIndicator, TabsList, TabsRoot, TabsTrigger } from "reka-ui"
 import { breakpointsTailwind, useBreakpoints } from "@vueuse/core"
 
+definePageMeta({
+  title: "Accueil",
+  description: "Jouez en solo ou multijoueur, défiez vos amis et apprenez.",
+})
 const supabase = useSupabaseClient()
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMotionable = computed(() => breakpoints.greaterOrEqual("md") && useDevice().isDesktop && usePreferredReducedMotion().value == "no-preference")

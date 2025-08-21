@@ -1,15 +1,10 @@
 <template>
   <ClientOnly>
-    <div
-      class="fixed inset-0 flex flex-col px-8 py-6 sm:px-16 sm:py-12 md:px-32 md:py-24"
-    >
+    <div class="fixed inset-0 flex flex-col px-8 py-6 sm:px-16 sm:py-12 md:px-32 md:py-24">
       <template v-if="game">
         <Countdown v-if="game.phase === 'start'" @finished="startGame()" />
         <QuestionBoard
-          v-else-if="
-            (game.phase === 'question' || game.phase === 'correction') &&
-            game?.questions[game?.currentQuestionIndex]
-          "
+          v-else-if="(game.phase === 'question' || game.phase === 'correction') &&game?.questions[game?.currentQuestionIndex]"
           :key="`${game.phase}-${game.currentQuestionIndex}-${game.currentPlayerIndex}`"
           mode="multi"
           :phase="game.phase"
@@ -33,41 +28,19 @@
         >
           <template v-if="game.phase === 'correction'" #header>
             <div class="fixed left-1/2 top-4 flex -translate-x-1/2 items-center gap-4">
-              <Avatar
-                v-for="player in surroundingPlayers"
-                :key="player.id"
-                :size="game.playersData[game.currentPlayerIndex]!.id === player.id ? 'base' : 'sm'"
-              >
+              <Avatar v-for="player in surroundingPlayers" :key="player.id" :size="game.playersData[game.currentPlayerIndex]!.id === player.id ? 'base' : 'sm'">
                 <AvatarImage :src="player.avatar ? player.avatar : ''" alt="avatar" />
                 <AvatarFallback class="text-xl">{{ player.username }}</AvatarFallback>
               </Avatar>
             </div>
-            <span
-              v-if="isDesktopBreakpoint"
-              class="absolute start-1/2 top-20 -translate-x-1/2 text-4xl font-semibold"
-              >{{
-                lobby.players.find(
-                  (player) => player.id === game?.playersData[game.currentPlayerIndex]?.id
-                )?.username
-              }}</span
-            >
+            <span v-if="isDesktopBreakpoint" class="absolute start-1/2 top-20 -translate-x-1/2 text-4xl font-semibold" >{{ lobby.players.find( (player) => player.id === game?.playersData[game.currentPlayerIndex]?.id )?.username }}</span>
           </template>
           <template #next>
-            <NextButton
-              v-if="isHost"
-              :variant="
-                isLastPlayer && game.currentQuestionIndex === game.questions.length - 1
-                  ? 'default'
-                  : outlineOrSecondary()
-              "
-              :title="
-                isLastPlayer && game.currentQuestionIndex === game.questions.length - 1
-                  ? 'Ajustements'
-                  : isLastPlayer
-                  ? 'Question suivante'
-                  : 'Joueur suivant'
-              "
-              @click="isHost && nextPlayerCorrection()"
+            <NextButton 
+            v-if="isHost" 
+            :variant="isLastPlayer && game.currentQuestionIndex === game.questions.length - 1 ? 'default' : outlineOrSecondary()" 
+            :title="isLastPlayer && game.currentQuestionIndex === game.questions.length - 1 ? 'Ajustements' : isLastPlayer ? 'Question suivante' : 'Joueur suivant'" 
+            @click="isHost && nextPlayerCorrection()" 
             />
           </template>
           <template #actions>
@@ -141,16 +114,8 @@
             class="flex size-full flex-col gap-4 md:col-span-3 md:justify-between md:gap-8"
           >
             <div class="flex h-full flex-col gap-y-4">
-              <template
-                v-for="player in lobby.players.filter(
-                  (player) => player.id !== getPlayer.id
-                )"
-                :key="player.id"
-              >
-                <div
-                  v-if="player.id !== getPlayer.id"
-                  class="flex w-full items-center gap-2"
-                >
+              <template v-for="player in lobby.players.filter((player) => player.id !== getPlayer.id)" :key="player.id">
+                <div v-if="player.id !== getPlayer.id" class="flex w-full items-center gap-2">
                   <Avatar size="sm">
                     <AvatarImage :src="player.avatar ? player.avatar : ''" alt="avatar" />
                     <AvatarFallback class="text-xl">{{ player.username }}</AvatarFallback>
@@ -168,19 +133,13 @@
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem
-                        v-if="isHost"
-                        @click="removePlayer(player, lobby)"
-                      >
+                      <DropdownMenuItem v-if="isHost" @click="removePlayer(player, lobby)">
                         <Icon name="lucide:user-round-x" /> Exclure
                       </DropdownMenuItem>
                       <DropdownMenuItem v-if="isHost" @click="banPlayer(player, lobby)">
                         <Icon name="lucide:ban" /> Bannir
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        v-if="isHost"
-                        @click="promotePlayer(player, lobby)"
-                      >
+                      <DropdownMenuItem v-if="isHost" @click="promotePlayer(player, lobby)">
                         <Icon name="lucide:circle-fading-arrow-up" /> Promouvoir hôte
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -190,9 +149,9 @@
             </div>
             <div id="settings-mobile" />
             <div class="flex w-full justify-end gap-x-8">
-              <Button v-if="isHost" size="xxl" class="block w-full" @click="startLobby()"
-                >Démarrer</Button
-              >
+              <Button v-if="isHost" size="xxl" class="block w-full" @click="startLobby()">
+                Démarrer
+              </Button>
               <Button
                 size="xxl"
                 :variant="outlineOrSecondary()"
@@ -220,10 +179,7 @@
                     readonly
                     @click="isSupported ? copy(code) : (showCode = !showCode)"
                   />
-                  <span
-                    class="absolute inset-y-0 end-0 flex cursor-pointer items-center justify-center px-4"
-                    @click="showCode = !showCode"
-                  >
+                  <span class="absolute inset-y-0 end-0 flex cursor-pointer items-center justify-center px-4" @click="showCode = !showCode" >
                     <Icon :name="showCode ? 'lucide:eye-off' : 'lucide:eye'" />
                   </span>
                 </TooltipTrigger>
@@ -292,6 +248,7 @@ const gameChannel = ref<null | RealtimeChannel>();
 const isDesktopBreakpoint = useBreakpoints(breakpointsTailwind).greaterOrEqual("md");
 const { outlineOrSecondary } = useDarkMode();
 const { getPlayer, updatePlayer } = usePlayerStore();
+const presence = usePresenceStore();
 
 // voteResult/truePercentage moved to VoteDropdown component
 
@@ -308,6 +265,15 @@ useHead({
   title: lobbyTitle,
 });
 
+function updatePresenceForLobby() {
+  if (!lobby.value || !lobby.value.id) return;
+  if (lobby.value.gameId) {
+    presence.setPlaying(Number(lobby.value.id));
+  } else {
+    presence.setInLobby(Number(lobby.value.id));
+  }
+}
+
 onUnmounted(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
   window.removeEventListener("unload", handleUnload);
@@ -318,6 +284,8 @@ onUnmounted(() => {
   if (gameChannel.value) {
     supabase.removeChannel(gameChannel.value);
   }
+  // Leaving the page -> clear presence back to online
+  presence.clear();
 });
 
 onMounted(async () => {
@@ -359,6 +327,9 @@ onMounted(async () => {
     // Connexion du broadcast après avoir chargé le lobby
     broadcastGame.connect(lobby.value?.host === getPlayer.id);
     broadcastGame.updateAllPlayerIds(lobby.value?.playerIds || []);
+
+    // Update presence now that the lobby is confirmed
+    updatePresenceForLobby();
 
     lobbyChannel.value = supabase
       .channel(`lobby-${route.params.id}-updates`)
@@ -522,6 +493,7 @@ async function cleanupAndGoHome() {
       gameChannel.value = null;
     }
   } finally {
+    presence.clear();
     await navigateTo("/");
   }
 }
@@ -544,6 +516,7 @@ watch(
 
 async function leaveLobby() {
   await removePlayer(getPlayer, lobby.value).then(async () => {
+    presence.clear();
     await navigateTo("/");
   });
 }
@@ -888,6 +861,11 @@ watch(
       gameChannel.value = null;
     }
 
+    if (!newGameId && lobby.value?.id) {
+      // Back to lobby state
+      presence.setInLobby(Number(lobby.value.id));
+    }
+
     if (newGameId) {
       const { data, error } = await supabase
         .from("games")
@@ -902,6 +880,8 @@ watch(
         game.value = null;
       } else if (data) {
         game.value = new Game(data);
+        // In game
+        if (lobby.value?.id) presence.setPlaying(Number(lobby.value.id));
         gameChannel.value = supabase
           .channel(`game-${newGameId}-updates`)
           .on(

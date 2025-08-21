@@ -59,6 +59,7 @@ const roundKey = ref(0)
 const difficulty = String(useRoute().params.difficulty)
 const supabase = useSupabaseClient()
 const { getPlayer, updatePlayer} = usePlayerStore()
+const presence = usePresenceStore()
 
 useHead({
 	title: `Solo - ${difficulty === "easy" ? "Facile" : difficulty === "medium" ? "Moyen" : "Difficile"}`,
@@ -114,10 +115,12 @@ function reduceDurationTime() {
 }
 
 function backToMenu() {
+	presence.clear()
 	navigateTo("/solo")
 }
 
 async function backToHomepage() {
+	presence.clear()
 	await navigateTo("/")
 }
 
@@ -152,4 +155,14 @@ else {
 	stats.nbRounds++
 	execute()
 }
+
+onMounted(() => {
+    // Solo mode counts as playing
+    presence.setPlaying(null)
+})
+
+onUnmounted(() => {
+    // Leaving solo page -> back to online
+    presence.clear()
+})
 </script>

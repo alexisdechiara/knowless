@@ -266,6 +266,12 @@ export async function joinLobby(lobby: Lobby) {
 	const user = useSupabaseUser()
 	const supabase = useSupabaseClient()
 
+	// Prevent joining if the game already started unless the user is already a player or the host
+	if (lobby.gameId && !(user.value && (lobby.playerIds.includes(user.value.id) || lobby.host === user.value.id))) {
+		toast.error("La partie a déjà commencé")
+		return
+	}
+
 	if (user.value && lobby.bannedPlayersId.includes(user.value?.id)) {
 		toast.error("Vous avez été banni de ce lobby")
 	}

@@ -248,6 +248,19 @@ async function popoverMount() {
 				}
 			},
 		)
+		.on(
+			"postgres_changes",
+			{ event: "*", schema: "public", table: "players" },
+			async (payload) => {
+				// Rafraîchir les données d'un ami si présent dans la liste
+				const updated = payload.new as any
+				if (!updated?.id) return
+				const idx = friends.value.findIndex(f => f.id === updated.id)
+				if (idx !== -1) {
+					friends.value[idx] = new User(updated)
+				}
+			}
+		)
 		.subscribe()
 	friendshipChannel.value = channel
 }
