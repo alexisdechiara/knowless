@@ -1,5 +1,5 @@
 <template>
-	<NuxtLayout name="selection" :previous="{ icon: 'lucide:chevron-left', button: { variant: 'default' }, to: '/multi' }">
+	<NuxtLayout name="selection" :previous="{ icon: 'lucide:chevron-left', button: { variant: 'outline' }, to: '/multi' }">
 		<SelectionCard v-for="status in statuses" :key="status.title" :title="status.title" :description="status.description" @click="createLobby(status.value)">
 			<template #img>
 				<Icon :name="status.icon" class="h-32 text-8xl" />

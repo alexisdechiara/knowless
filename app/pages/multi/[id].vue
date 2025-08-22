@@ -319,9 +319,9 @@ onMounted(async () => {
 
     // Update presence now that the lobby is confirmed
     updatePresenceForLobby();
-
-    const lobbyCh = supabase.channel(`lobby-${route.params.id}-updates`)
-    ;(lobbyCh as any)
+    
+    lobbyChannel.value = supabase.channel(`lobby-${route.params.id}-updates`);
+    (lobbyChannel.value as any)
       .on(
         "postgres_changes",
         {
@@ -332,37 +332,14 @@ onMounted(async () => {
         },
         async (payload: any) => {
           if (payload.new) {
-            // Diff before applying new lobby for leave notifications
-            const prevIds = Array.isArray(lobby.value?.playerIds)
-              ? [...lobby.value.playerIds]
-              : [];
-            // Snapshot previous players to resolve usernames of those who left
-            const prevPlayers = Array.isArray(lobby.value?.players)
-              ? [...lobby.value.players]
-              : [];
             const newLobby: Lobby = new Lobby(payload.new);
-            const nextIds = Array.isArray(newLobby.playerIds)
-              ? [...newLobby.playerIds]
-              : [];
-            const removedIds = prevIds.filter((id) => !nextIds.includes(id));
-            // Apply lobby update
+            // Applique la mise à jour du lobby sans notifier les départs
             lobby.value = newLobby;
             lobby.value.players = await getPlayers(newLobby.playerIds);
 
             // Mise à jour du broadcast avec les nouveaux joueurs et le statut d'hôte
             broadcastGame.updateHostFlag(newLobby.host === getPlayer.id);
             broadcastGame.updateAllPlayerIds(newLobby.playerIds);
-
-            // Notify on players removed from lobby (explicit leave)
-            for (const id of removedIds) {
-              if (id === getPlayer.id) continue;
-              // Prefer previous players snapshot to get the correct username
-              const username =
-                prevPlayers.find((p) => p.id === id)?.username ||
-                lobby.value.players.find((p) => p.id === id)?.username ||
-                "Un joueur";
-              toast.message(`${username} a quitté le salon`);
-            }
           }
         }
       )
@@ -399,7 +376,6 @@ onMounted(async () => {
         }
       )
       .subscribe();
-    lobbyChannel.value = lobbyCh;
   }
 });
 

@@ -47,6 +47,7 @@
 
 <script lang="ts" setup>
 import { toast } from "vue-sonner"
+import type { Database } from "~~/shared/types/database.types"
 
 const isPlaying = ref(false)
 const isFinished = ref(false)
@@ -55,10 +56,11 @@ const showGameOverDialog = ref(false)
 const currentScore = ref(0)
 const nextScore = ref(0)
 const roundKey = ref(0)
+const newBestThisRun = ref(false)
 
 const difficulty = String(useRoute().params.difficulty)
-const supabase = useSupabaseClient()
-const { getPlayer, updatePlayer} = usePlayerStore()
+const supabase = useSupabaseClient<Database>()
+const { getPlayer } = usePlayerStore()
 const presence = usePresenceStore()
 
 useHead({
@@ -66,10 +68,31 @@ useHead({
 })
 
 const stats = reactive({
-	nbGames: getPlayer?.stats[difficulty].nb_games || 0,
-	nbRounds: getPlayer?.stats[difficulty].nb_rounds || 0,
-	bestScore: getPlayer?.stats[difficulty].best_score || 0,
+	nbGames: 0,
+	nbRounds: 0,
+	bestScore: 0,
+	bestScoreDate: null as string | null,
 })
+
+async function loadStats() {
+	try {
+		const { data } = await supabase
+			.from('statistics')
+			.select('nb_games, nb_rounds, best_score, best_score_date')
+			.eq('user_id', getPlayer.id as string)
+			.eq('difficulty', difficulty as Database['public']['Enums']['difficulties'])
+			.maybeSingle()
+
+		if (data) {
+			stats.nbGames = data.nb_games ?? 0
+			stats.nbRounds = data.nb_rounds ?? 0
+			stats.bestScore = data.best_score ?? 0
+			stats.bestScoreDate = data.best_score_date ?? null
+		}
+	} catch (e) {
+		console.error(e)
+	}
+}
 
 const category = ref<string | undefined>(getRandomCategory(getPlayer?.categories))
 
@@ -97,7 +120,10 @@ watch(roundKey, () => {
 
 function incrementScore() {
 	nextScore.value++
-	stats.bestScore = Math.max(stats.bestScore, nextScore.value)
+	if (nextScore.value > stats.bestScore) {
+		stats.bestScore = nextScore.value
+		newBestThisRun.value = true
+	}
 }
 
 function nextQuestion() {
@@ -130,35 +156,52 @@ async function restart() {
 	maxDurationTime.value = 5000
 	currentScore.value = 0
 	nextScore.value = 0
+	stats.nbGames++
 	roundKey.value++
+	newBestThisRun.value = false
 	refresh()
 }
 
 watch(isFinished, async () => {
 	if (isFinished.value) {
-		await updatePlayer({
-			stats: {
-				easy: difficulty === "easy" ? { nb_games: stats.nbGames, nb_rounds: stats.nbRounds, best_score: stats.bestScore } : getPlayer?.stats.easy,
-				medium: difficulty === "medium" ? { nb_games: stats.nbGames, nb_rounds: stats.nbRounds, best_score: stats.bestScore } : getPlayer?.stats.medium,
-				hard: difficulty === "hard" ? { nb_games: stats.nbGames, nb_rounds: stats.nbRounds, best_score: stats.bestScore } : getPlayer?.stats.hard,
-			}
-		})
+		try {
+			const newDate = new Date().toISOString()
+			stats.bestScoreDate = newBestThisRun.value ? newDate : stats.bestScoreDate
+			const { error } = await supabase
+				.from('statistics')
+				.upsert(
+					{
+						user_id: getPlayer.id as string,
+						difficulty: difficulty as Database['public']['Enums']['difficulties'],
+						nb_games: stats.nbGames,
+						nb_rounds: stats.nbRounds,
+						best_score: stats.bestScore,
+						best_score_date: stats.bestScoreDate,
+						updated_at: newDate,
+					},
+					{ onConflict: 'user_id,difficulty' }
+				)
+			if (error) throw error
+		} catch (e) {
+			console.error(e)
+			toast.error('Impossible d\'enregistrer les statistiques')
+		}
 	}
 })
 
-if (difficulty === undefined || !["easy", "medium", "hard"].includes(difficulty)) {
-	navigateTo("/solo")
-}
-else {
-	isPlaying.value = true
+onMounted(async () => {
+	const valid = ["easy", "medium", "hard"].includes(difficulty)
+	if (!valid) {
+		await navigateTo("/solo")
+		return
+	}
+	await loadStats()
 	stats.nbGames++
 	stats.nbRounds++
+	isPlaying.value = true
+	presence.setPlaying(null)
+	newBestThisRun.value = false
 	execute()
-}
-
-onMounted(() => {
-    // Solo mode counts as playing
-    presence.setPlaying(null)
 })
 
 onUnmounted(() => {

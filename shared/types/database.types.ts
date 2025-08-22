@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -228,13 +228,54 @@ export type Database = {
         }
         Relationships: []
       }
+      statistics: {
+        Row: {
+          best_score: number | null
+          best_score_date: string | null
+          created_at: string
+          difficulty: Database["public"]["Enums"]["difficulties"]
+          nb_games: number | null
+          nb_rounds: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          best_score?: number | null
+          best_score_date?: string | null
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["difficulties"]
+          nb_games?: number | null
+          nb_rounds?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          best_score?: number | null
+          best_score_date?: string | null
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulties"]
+          nb_games?: number | null
+          nb_rounds?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       accept_friendship: {
-        Args: { p_user_id: string; p_friend_id: string }
+        Args: { p_friend_id: string; p_user_id: string }
         Returns: undefined
       }
       add_player_to_lobby: {
@@ -274,9 +315,9 @@ export type Database = {
       get_random_quizzes: {
         Args: {
           p_categories: string[]
+          p_difficulty?: Database["public"]["Enums"]["difficulties"]
           p_language: Database["public"]["Enums"]["languages"]
           p_limit?: number
-          p_difficulty?: Database["public"]["Enums"]["difficulties"]
         }
         Returns: {
           anecdote: string | null
@@ -297,15 +338,15 @@ export type Database = {
       next_player_correction: {
         Args: {
           p_game_id: number
-          p_player_id: string
           p_new_default_score: number
           p_new_player_index: number
           p_new_question_index: number
+          p_player_id: string
         }
         Returns: undefined
       }
       remove_friendship: {
-        Args: { p_user_id: string; p_friend_id: string }
+        Args: { p_friend_id: string; p_user_id: string }
         Returns: undefined
       }
       remove_inactive_lobbies: {
@@ -314,10 +355,10 @@ export type Database = {
       }
       update_answer: {
         Args: {
-          p_game_id: number
-          p_player_id: string
-          p_new_answer: string
           p_answer_index: number
+          p_game_id: number
+          p_new_answer: string
+          p_player_id: string
         }
         Returns: undefined
       }
