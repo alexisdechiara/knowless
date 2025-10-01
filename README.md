@@ -1,7 +1,6 @@
-
 # 🧠 Knowless
 
-**Knowless** est une application web moderne construite avec **Nuxt 3**, pensée pour offrir une expérience interactive riche autour du quiz. Elle repose sur des technologies web actuelles afin de garantir **performance**, **scalabilité** et **ergonomie**.
+**Knowless** est une application web moderne construite avec **Nuxt 4**, pensée pour offrir une expérience interactive riche autour du quiz. Elle repose sur des technologies web actuelles afin de garantir **performance**, **scalabilité** et **ergonomie**.
 
 ## ⚙️ Fonctionnalités Clés
 
@@ -14,7 +13,7 @@
 * **🎮 Expérience Interactive** :
   Animations fluides avec [@formkit/auto-animate](https://auto-animate.formkit.com/) et [motion-v](https://motion.vueuse.org/), complétées par les composants Radix Vue.
 
-* **🧠 Gestion d’État** :
+* **🧠 Gestion d'État** :
   Basée sur [Pinia](https://pinia.vuejs.org/), avec persistance via `pinia-plugin-persistedstate`.
 
 * **📋 Formulaires Typés** :
@@ -35,7 +34,7 @@
 * **🔔 Notifications** :
   Intégrées avec [vue-sonner](https://github.com/AnandChowdhary/vue-sonner).
 
-* **📱 Détection de l’appareil** :
+* **📱 Détection de l'appareil** :
   Fournie par [`@nuxtjs/device`](https://github.com/nuxt-modules/device).
 
 * **👤 Avatars Génératifs** :
@@ -45,20 +44,24 @@
 
 ```bash
 knowless/
-├── assets/           # Fichiers statiques (CSS, images, etc.)
-├── components/       # Composants Vue globaux
-├── composables/      # Fonctions réutilisables
+├── app/              # Dossier principal de l'application (Nuxt 4)
+│   ├── assets/       # Fichiers statiques (CSS, images, etc.)
+│   ├── components/   # Composants Vue globaux
+│   ├── composables/  # Fonctions réutilisables
+│   ├── layouts/      # Gabarits de page
+│   ├── middleware/   # Middlewares Nuxt
+│   ├── pages/        # Pages de l'application
+│   ├── plugins/      # Plugins Nuxt
+│   ├── stores/       # Stores Pinia
+│   ├── utils/        # Fonctions utilitaires
+│   └── app.vue       # Point d'entrée de l'application
 ├── content/          # Contenu Markdown
-├── layouts/          # Gabarits de page
-├── middleware/       # Middlewares Nuxt
-├── pages/            # Pages de l’application
-├── plugins/          # Plugins Nuxt
 ├── public/           # Fichiers publics
 │   └── licenses.json
 ├── server/           # Code backend Nuxt
-├── stores/           # Stores Pinia
-├── utils/            # Fonctions utilitaires
-├── app.vue
+├── shared/           # Code partagé
+│   └── types/        # Types TypeScript partagés
+│       └── database.types.ts
 ├── nuxt.config.ts
 ├── package.json
 ├── bun.lockb
@@ -87,8 +90,8 @@ bun install
 bun run dev
 ```
 
-L’application sera disponible sur [http://localhost:3000](http://localhost:3000)
-L’option `--host` permet un accès sur le réseau local.
+L'application sera disponible sur [http://localhost:3000](http://localhost:3000)
+L'option `--host` permet un accès sur le réseau local.
 
 ### 📦 Compilation
 
@@ -107,24 +110,24 @@ bun run preview
 ### 📜 Scripts utiles (dans `package.json`)
 
 | Script              | Description                                      |
-|---------------------|-------------------------------------------------|
-| `dev`               | Lance le serveur de dev avec `--host`           |
-| `build`             | Compile pour la production                        |
-| `preview`           | Sert la version build localement                  |
-| `generate`          | Génère une version statique                       |
-| `postinstall`       | Prépare les types après install                   |
+|---------------------|--------------------------------------------------|
+| `dev`               | Lance le serveur de dev avec `--host`            |
+| `build`             | Compile pour la production                       |
+| `preview`           | Sert la version build localement                 |
+| `generate`          | Génère une version statique                      |
+| `postinstall`       | Prépare les types après install                  |
 | `generate-licenses` | Exporte les licences dans `public/licenses.json` |
 
 
 ## 🧩 Configuration Supabase
 
-### 📌 Prérequis
+### 🔌 Prérequis
 
 Créer un compte sur [supabase.com](https://supabase.com) et un projet.
 
 ### 🔑 Récupération des informations
 
-Depuis l’interface Supabase :
+Depuis l'interface Supabase :
 
 * `Project URL`
 * `Anon Public API Key`
@@ -156,7 +159,7 @@ CREATE TABLE public.friendship (
 );
 ```
 
-#### games
+#### `games`
 
 ```sql
 CREATE TABLE public.games (
@@ -171,7 +174,7 @@ CREATE TABLE public.games (
 );
 ```
 
-#### lobbies
+#### `lobbies`
 
 ```sql
 CREATE TABLE public.lobbies (
@@ -187,6 +190,7 @@ CREATE TABLE public.lobbies (
   friends_only boolean NULL,
   banned_players uuid[] NULL,
   max_players smallint NOT NULL DEFAULT '12'::smallint,
+  nb_questions numeric NULL,
   game_id bigint NULL,
   CONSTRAINT lobbies_pkey PRIMARY KEY (id),
   CONSTRAINT lobbies_id_key UNIQUE (id),
@@ -194,7 +198,7 @@ CREATE TABLE public.lobbies (
 );
 ```
 
-#### players
+#### `players`
 
 ```sql
 CREATE TABLE public.players (
@@ -203,6 +207,7 @@ CREATE TABLE public.players (
   usertag character varying NOT NULL DEFAULT ''::character varying,
   avatar text NULL,
   language text NULL DEFAULT 'fr'::text,
+  theme public.themes NULL,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   categories jsonb NULL DEFAULT '["animals", "archaeology", "arts", "graphic_and_animated", "celebrities", "cinema", "bulk_culture", "general_culture", "gastronomy", "geography", "history", "computing", "literature", "games", "music", "nature", "daily_life", "sciences", "sports", "television", "tourism", "web"]'::jsonb,
   stats jsonb NULL DEFAULT '{"easy": {"nb_games": 0, "nb_rounds": 0, "best_score": 0}, "hard": {"nb_games": 0, "nb_rounds": 0, "best_score": 0}, "medium": {"nb_games": 0, "nb_rounds": 0, "best_score": 0}}'::jsonb,
@@ -215,7 +220,7 @@ CREATE TABLE public.players (
 );
 ```
 
-#### quizzes
+#### `quizzes`
 
 ```sql
 CREATE TABLE public.quizzes (
@@ -236,117 +241,241 @@ CREATE TABLE public.quizzes (
 );
 ```
 
+#### `statistics`
+
+```sql
+CREATE TABLE public.statistics (
+  user_id uuid NOT NULL,
+  difficulty public.difficulties NOT NULL,
+  nb_games numeric NULL,
+  nb_rounds numeric NULL,
+  best_score numeric NULL,
+  best_score_date timestamp with time zone NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NULL,
+  CONSTRAINT statistics_pkey PRIMARY KEY (user_id, difficulty),
+  CONSTRAINT scores_user_id_fkey FOREIGN KEY (user_id) REFERENCES players(id) ON DELETE CASCADE
+);
+```
+
 ### 🧾 Types ENUM
 
-* `public.languages` : Langues disponibles (ex: `'fr'`, `'en'`, ...)
-* `public.difficulties` : Niveaux de difficulté (`'easy'`, `'medium'`, `'hard'`, ...)
-* `public.types` : Types de question (`'open'`, `'mcq'`, ...)
+* `public.difficulties` : `'easy'`, `'medium'`, `'hard'`
+* `public.languages` : `'fr'`, `'en'`, `'es'`, `'it'`, `'de'`, `'nl'`
+* `public.themes` : `'light'`, `'dark'`, `'system'`
+* `public.types` : `'open'`, `'two'`, `'four'`, `'order'`, `'range'`
 
 ## 🧠 Fonctions SQL
 
-#### add_friend
+#### `accept_friendship`
 
 ```sql
-CREATE OR REPLACE FUNCTION public.add_friend(user_uuid uuid, friend_uuid uuid)
-RETURNS void AS $$
-BEGIN
-  INSERT INTO public.friendship (user_id, friend_id, status)
-  VALUES (user_uuid, friend_uuid, 'pending')
-  ON CONFLICT (user_id, friend_id) DO NOTHING;
-END;
-$$ LANGUAGE plpgsql;
-````
-
-#### accept\_friend\_request
-
-```sql
-CREATE OR REPLACE FUNCTION public.accept_friend_request(user_uuid uuid, friend_uuid uuid)
+CREATE OR REPLACE FUNCTION public.accept_friendship(
+  p_user_id uuid,
+  p_friend_id uuid
+)
 RETURNS void AS $$
 BEGIN
   UPDATE public.friendship
   SET status = 'accepted'
-  WHERE user_id = friend_uuid AND friend_id = user_uuid AND status = 'pending';
+  WHERE (user_id = p_user_id AND friend_id = p_friend_id)
+     OR (user_id = p_friend_id AND friend_id = p_user_id);
 END;
 $$ LANGUAGE plpgsql;
 ```
 
-#### create\_lobby
+#### `add_player_to_lobby`
 
 ```sql
-CREATE OR REPLACE FUNCTION public.create_lobby(
-  lobby_title text,
-  host_uuid uuid,
-  is_public boolean DEFAULT false,
-  friends_only boolean DEFAULT false,
-  max_players smallint DEFAULT 12
+CREATE OR REPLACE FUNCTION public.add_player_to_lobby(
+  new_lobby_id numeric,
+  player_id uuid
 )
-RETURNS smallint AS $$
-DECLARE
-  new_lobby_id smallint;
-BEGIN
-  INSERT INTO public.lobbies (title, host, is_public, friends_only, max_players, players)
-  VALUES (lobby_title, host_uuid, is_public, friends_only, max_players, ARRAY[host_uuid])
-  RETURNING id INTO new_lobby_id;
-  RETURN new_lobby_id;
-END;
-$$ LANGUAGE plpgsql;
-```
-
-#### add\_player\_to\_lobby
-
-```sql
-CREATE OR REPLACE FUNCTION public.add_player_to_lobby(lobby_id smallint, player_uuid uuid)
 RETURNS void AS $$
 BEGIN
   UPDATE public.lobbies
-  SET players = array_append(players, player_uuid)
-  WHERE id = lobby_id AND player_uuid <> ALL(players);
+  SET players = array_append(players, player_id)
+  WHERE id = new_lobby_id 
+    AND player_id <> ALL(players);
+    
+  UPDATE public.players
+  SET lobby_id = new_lobby_id
+  WHERE id = player_id;
 END;
 $$ LANGUAGE plpgsql;
 ```
 
-#### start\_game
+#### `delete_all_users`
 
 ```sql
-CREATE OR REPLACE FUNCTION public.start_game(lobby_id smallint)
-RETURNS bigint AS $$
-DECLARE
-  new_game_id bigint;
-  lobby_players uuid[];
+CREATE OR REPLACE FUNCTION public.delete_all_users()
+RETURNS void AS $$
 BEGIN
-  SELECT players INTO lobby_players FROM public.lobbies WHERE id = lobby_id;
-  
-  INSERT INTO public.games (phase, players_data)
-  VALUES ('started', ARRAY[]::jsonb[])
-  RETURNING id INTO new_game_id;
-
-  UPDATE public.lobbies SET game_id = new_game_id WHERE id = lobby_id;
-
-  RETURN new_game_id;
+  DELETE FROM auth.users;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
-#### get\_quizzes\_by\_theme\_lang
+#### `delete_anonymous_users`
 
 ```sql
-CREATE OR REPLACE FUNCTION public.get_quizzes_by_theme_lang(theme bigint, lang public.languages)
+CREATE OR REPLACE FUNCTION public.delete_anonymous_users()
+RETURNS void AS $$
+BEGIN
+  DELETE FROM auth.users WHERE is_anonymous = true;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### `get_random_quiz`
+
+```sql
+CREATE OR REPLACE FUNCTION public.get_random_quiz(
+  p_category text,
+  p_language public.languages,
+  p_limit integer DEFAULT 1
+)
 RETURNS SETOF public.quizzes AS $$
 BEGIN
   RETURN QUERY
   SELECT * FROM public.quizzes
-  WHERE theme_id = theme AND language = lang;
+  WHERE category = p_category 
+    AND language = p_language
+  ORDER BY RANDOM()
+  LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql;
 ```
 
-#### update\_player\_status
+#### `get_random_quizzes`
 
 ```sql
-CREATE OR REPLACE FUNCTION public.update_player_status(player_uuid uuid, new_status text)
+CREATE OR REPLACE FUNCTION public.get_random_quizzes(
+  p_categories text[],
+  p_language public.languages,
+  p_difficulty public.difficulties DEFAULT NULL,
+  p_limit integer DEFAULT 10
+)
+RETURNS SETOF public.quizzes AS $$
+BEGIN
+  RETURN QUERY
+  SELECT * FROM public.quizzes
+  WHERE category = ANY(p_categories)
+    AND language = p_language
+    AND (p_difficulty IS NULL OR difficulty = p_difficulty)
+  ORDER BY RANDOM()
+  LIMIT p_limit;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### `next_player_correction`
+
+```sql
+CREATE OR REPLACE FUNCTION public.next_player_correction(
+  p_game_id numeric,
+  p_player_id uuid,
+  p_new_question_index numeric,
+  p_new_player_index numeric,
+  p_new_default_score numeric
+)
 RETURNS void AS $$
 BEGIN
-  UPDATE public.players SET status = new_status WHERE id = player_uuid;
+  UPDATE public.games
+  SET current_question_index = p_new_question_index,
+      current_player_index = p_new_player_index
+  WHERE id = p_game_id;
+  
+  -- Mise à jour du score du joueur dans players_data
+  UPDATE public.games
+  SET players_data = (
+    SELECT array_agg(
+      CASE 
+        WHEN elem->>'id' = p_player_id::text 
+        THEN jsonb_set(elem, '{score}', to_jsonb(p_new_default_score))
+        ELSE elem
+      END
+    )
+    FROM unnest(players_data) AS elem
+  )
+  WHERE id = p_game_id;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### `remove_friendship`
+
+```sql
+CREATE OR REPLACE FUNCTION public.remove_friendship(
+  p_user_id uuid,
+  p_friend_id uuid
+)
+RETURNS void AS $$
+BEGIN
+  DELETE FROM public.friendship
+  WHERE (user_id = p_user_id AND friend_id = p_friend_id)
+     OR (user_id = p_friend_id AND friend_id = p_user_id);
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### `remove_inactive_lobbies`
+
+```sql
+CREATE OR REPLACE FUNCTION public.remove_inactive_lobbies(
+  hours_threshold interval DEFAULT '24 hours'
+)
+RETURNS void AS $$
+BEGIN
+  DELETE FROM public.lobbies
+  WHERE created_at < (NOW() - hours_threshold);
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### `update_answer`
+
+```sql
+CREATE OR REPLACE FUNCTION public.update_answer(
+  p_game_id numeric,
+  p_player_id uuid,
+  p_answer_index numeric,
+  p_new_answer text
+)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.games
+  SET players_data = (
+    SELECT array_agg(
+      CASE 
+        WHEN elem->>'id' = p_player_id::text 
+        THEN jsonb_set(
+          elem, 
+          array['answers', p_answer_index::int]::text[], 
+          to_jsonb(p_new_answer)
+        )
+        ELSE elem
+      END
+    )
+    FROM unnest(players_data) AS elem
+  )
+  WHERE id = p_game_id;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### `update_player_status`
+
+```sql
+CREATE OR REPLACE FUNCTION public.update_player_status()
+RETURNS void AS $$
+BEGIN
+  UPDATE public.players
+  SET status = CASE
+    WHEN last_active_at >= CURRENT_DATE THEN 'online'
+    WHEN last_active_at >= CURRENT_DATE - INTERVAL '7 days' THEN 'away'
+    ELSE 'offline'
+  END;
 END;
 $$ LANGUAGE plpgsql;
 ```
@@ -360,23 +489,23 @@ $$ LANGUAGE plpgsql;
 
 ## 🧑‍💻 Contribuer
 
-1.  Forkez le projet.
-2.  Créez une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`).
-3.  Commitez vos changements (`git commit -m 'Add some AmazingFeature'`).
-4.  Poussez vers la branche (`git push origin feature/AmazingFeature`).
-5.  Ouvrez une Pull Request.
+1. Forkez le projet.
+2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`).
+3. Commitez vos changements (`git commit -m 'Add some AmazingFeature'`).
+4. Poussez vers la branche (`git push origin feature/AmazingFeature`).
+5. Ouvrez une Pull Request.
 
-## 📮 Contact
+## 🔮 Contact
 
 Vous voulez discuter, proposer une idée ou rejoindre le projet ?
-Vous puvez contacter l’auteur du projet :
+Vous pouvez contacter l'auteur du projet :
 
-* GitHub : [@alexisdechiara](https://github.com/alexisdechiara)
-* Site : [Porfolio](https://alexisdechiara.fr)
+* GitHub : [@alexisdechiara](https://github.com/alexisdechiara) ou onglet [discussions](https://github.com/alexisdechiara/knowless/discussions)
+* Site : [Portfolio](https://alexisdechiara.fr)
 
 ## 🧾 Licences
 
-Ce projet est sous licence [GPLv3](/LICENSE.txt) et l'ensenble des dépendances sont listées automatiquement via le script :
+Ce projet est sous licence [GPLv3](/LICENSE.txt) et l'ensemble des dépendances sont listées automatiquement via le script :
 
 ```bash
 bun run generate-licenses
